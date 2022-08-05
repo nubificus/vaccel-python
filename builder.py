@@ -13,6 +13,7 @@ ffibuilder.set_source(
         #include <session.h>
         #include <tf_model.h>
         #include <ops/tf.h>
+        #include <ops/noop.h>
         #include <plugin.h>
         """,
         include_dirs=incdirs,
@@ -158,6 +159,11 @@ ffibuilder.cdef("""
         """
 )
 
+# Noop API
+ffibuilder.cdef("""
+        int vaccel_noop(struct vaccel_session *sess);
+        """
+)
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)

@@ -570,6 +570,7 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
         #include <session.h>
         #include <tf_model.h>
         #include <ops/tf.h>
+        #include <ops/noop.h>
         #include <plugin.h>
         
 
@@ -981,6 +982,44 @@ _cffi_f_unregister_plugin(PyObject *self, PyObject *arg0)
 }
 #else
 #  define _cffi_f_unregister_plugin _cffi_d_unregister_plugin
+#endif
+
+static int _cffi_d_vaccel_noop(struct vaccel_session * x0)
+{
+  return vaccel_noop(x0);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_vaccel_noop(PyObject *self, PyObject *arg0)
+{
+  struct vaccel_session * x0;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  int result;
+  PyObject *pyresult;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(11), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct vaccel_session *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(11), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = vaccel_noop(x0); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_int(result, int);
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  return pyresult;
+}
+#else
+#  define _cffi_f_vaccel_noop _cffi_d_vaccel_noop
 #endif
 
 static int _cffi_d_vaccel_sess_free(struct vaccel_session * x0)
@@ -1717,6 +1756,7 @@ static const struct _cffi_global_s _cffi_globals[] = {
   { "register_plugin_function", (void *)_cffi_f_register_plugin_function, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 0), (void *)_cffi_d_register_plugin_function },
   { "register_plugin_functions", (void *)_cffi_f_register_plugin_functions, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 3), (void *)_cffi_d_register_plugin_functions },
   { "unregister_plugin", (void *)_cffi_f_unregister_plugin, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 7), (void *)_cffi_d_unregister_plugin },
+  { "vaccel_noop", (void *)_cffi_f_vaccel_noop, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 10), (void *)_cffi_d_vaccel_noop },
   { "vaccel_sess_free", (void *)_cffi_f_vaccel_sess_free, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 10), (void *)_cffi_d_vaccel_sess_free },
   { "vaccel_sess_has_resource", (void *)_cffi_f_vaccel_sess_has_resource, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 13), (void *)_cffi_d_vaccel_sess_has_resource },
   { "vaccel_sess_init", (void *)_cffi_f_vaccel_sess_init, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 34), (void *)_cffi_d_vaccel_sess_init },
@@ -1811,7 +1851,7 @@ static const struct _cffi_type_context_s _cffi_type_context = {
   _cffi_struct_unions,
   _cffi_enums,
   _cffi_typenames,
-  39,  /* num_globals */
+  40,  /* num_globals */
   10,  /* num_struct_unions */
   1,  /* num_enums */
   1,  /* num_typenames */
