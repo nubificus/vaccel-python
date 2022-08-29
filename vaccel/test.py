@@ -2,6 +2,7 @@ from vaccel.session import Session
 from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
 from vaccel._vaccel import ffi
+from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 
 
 def test_session():
@@ -39,7 +40,7 @@ def test_genop():
 def test_genop_classify():
     print("Genop test")
     ses = Session(flags=1)
-    source = "img.jpg"
+    source = "./libs/vaccelrt/examples/images/example.jpg"
     print(f'Session id is {ses.id()}')
 
     arg_read = []
@@ -63,7 +64,7 @@ def test_genop_classify():
 def test_genop_detect():
     print("Genop test")
     ses = Session(flags=1)
-    source = "img.jpg"
+    source = "./libs/vaccelrt/examples/images/example.jpg"
     print(f'Session id is {ses.id()}')
 
     arg_read = []
@@ -82,9 +83,54 @@ def test_genop_detect():
     for i in range(len(arg_write)):
         print(arg_write[i].buf)
 
+def test_image_classify():
+    print("Image classify test")
+    ses = Session(flags=3)
+    print(f'Session id is {ses.id()}')
+    res = ImageClassify.classify_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    print(res)
+    print("")
+
+def test_image_detect():
+    print("Image detect test")
+    ses = Session(flags=3)
+    print(f'Session id is {ses.id()}')
+    res = ImageDetect.detect_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    print(res)
+    print("")
+
+def test_image_segment():
+    print("Image segment test")
+    ses = Session(flags=3)
+    print(f'Session id is {ses.id()}')
+    res = ImageSegment.segment_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    print(res)
+    print("")
+
+def test_image_pose():
+    print("Image pose test")
+    ses = Session(flags=3)
+    print(f'Session id is {ses.id()}')
+    res = ImagePose.pose_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    print(res)
+    print("")
+
+def test_image_depth():
+    print("Image depth test")
+    ses = Session(flags=3)
+    print(f'Session id is {ses.id()}')
+    res = ImageDepth.depth_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    print(res)
+    print(" ")
+
 if __name__=="__main__":
     test_session()
     test_noop()
     #test_genop()
     test_genop_classify()
     test_genop_detect()
+    test_image_classify()
+    test_image_detect()
+    test_image_segment()
+    test_image_pose()
+    test_image_depth()
