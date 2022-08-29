@@ -572,6 +572,7 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
         #include <ops/tf.h>
         #include <ops/noop.h>
         #include <ops/genop.h>
+        #include <ops/image.h>
         #include <plugin.h>
         
 
@@ -579,43 +580,43 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
 
 static void *_cffi_types[] = {
 /*  0 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_op *)
-/*  1 */ _CFFI_OP(_CFFI_OP_POINTER, 66), // struct vaccel_op *
+/*  1 */ _CFFI_OP(_CFFI_OP_POINTER, 82), // struct vaccel_op *
 /*  2 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /*  3 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_op *, size_t)
 /*  4 */ _CFFI_OP(_CFFI_OP_NOOP, 1),
 /*  5 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28), // size_t
 /*  6 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /*  7 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_plugin *)
-/*  8 */ _CFFI_OP(_CFFI_OP_POINTER, 67), // struct vaccel_plugin *
+/*  8 */ _CFFI_OP(_CFFI_OP_POINTER, 83), // struct vaccel_plugin *
 /*  9 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /* 10 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *)
-/* 11 */ _CFFI_OP(_CFFI_OP_POINTER, 69), // struct vaccel_session *
+/* 11 */ _CFFI_OP(_CFFI_OP_POINTER, 85), // struct vaccel_session *
 /* 12 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /* 13 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *, struct vaccel_arg *, int, struct vaccel_arg *, int)
 /* 14 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
-/* 15 */ _CFFI_OP(_CFFI_OP_POINTER, 65), // struct vaccel_arg *
+/* 15 */ _CFFI_OP(_CFFI_OP_POINTER, 81), // struct vaccel_arg *
 /* 16 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7), // int
 /* 17 */ _CFFI_OP(_CFFI_OP_NOOP, 15),
 /* 18 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
 /* 19 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /* 20 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *, struct vaccel_resource *)
 /* 21 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
-/* 22 */ _CFFI_OP(_CFFI_OP_POINTER, 68), // struct vaccel_resource *
+/* 22 */ _CFFI_OP(_CFFI_OP_POINTER, 84), // struct vaccel_resource *
 /* 23 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /* 24 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *, struct vaccel_tf_saved_model *, struct vaccel_tf_status *)
 /* 25 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
-/* 26 */ _CFFI_OP(_CFFI_OP_POINTER, 73), // struct vaccel_tf_saved_model *
-/* 27 */ _CFFI_OP(_CFFI_OP_POINTER, 74), // struct vaccel_tf_status *
+/* 26 */ _CFFI_OP(_CFFI_OP_POINTER, 89), // struct vaccel_tf_saved_model *
+/* 27 */ _CFFI_OP(_CFFI_OP_POINTER, 90), // struct vaccel_tf_status *
 /* 28 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
 /* 29 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *, struct vaccel_tf_saved_model const *, struct vaccel_tf_buffer const *, struct vaccel_tf_node const *, struct vaccel_tf_tensor * const *, int, struct vaccel_tf_node const *, struct vaccel_tf_tensor * *, int, struct vaccel_tf_status *)
 /* 30 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
-/* 31 */ _CFFI_OP(_CFFI_OP_POINTER, 73), // struct vaccel_tf_saved_model const *
-/* 32 */ _CFFI_OP(_CFFI_OP_POINTER, 70), // struct vaccel_tf_buffer const *
-/* 33 */ _CFFI_OP(_CFFI_OP_POINTER, 72), // struct vaccel_tf_node const *
-/* 34 */ _CFFI_OP(_CFFI_OP_POINTER, 75), // struct vaccel_tf_tensor * const *
+/* 31 */ _CFFI_OP(_CFFI_OP_POINTER, 89), // struct vaccel_tf_saved_model const *
+/* 32 */ _CFFI_OP(_CFFI_OP_POINTER, 86), // struct vaccel_tf_buffer const *
+/* 33 */ _CFFI_OP(_CFFI_OP_POINTER, 88), // struct vaccel_tf_node const *
+/* 34 */ _CFFI_OP(_CFFI_OP_POINTER, 91), // struct vaccel_tf_tensor * const *
 /* 35 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
 /* 36 */ _CFFI_OP(_CFFI_OP_NOOP, 33),
-/* 37 */ _CFFI_OP(_CFFI_OP_POINTER, 75), // struct vaccel_tf_tensor * *
+/* 37 */ _CFFI_OP(_CFFI_OP_POINTER, 91), // struct vaccel_tf_tensor * *
 /* 38 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 7),
 /* 39 */ _CFFI_OP(_CFFI_OP_NOOP, 27),
 /* 40 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
@@ -623,44 +624,61 @@ static void *_cffi_types[] = {
 /* 42 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
 /* 43 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 22), // uint32_t
 /* 44 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 45 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_tf_model *)
-/* 46 */ _CFFI_OP(_CFFI_OP_POINTER, 71), // struct vaccel_tf_model *
-/* 47 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 48 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_tf_model *, char const *)
-/* 49 */ _CFFI_OP(_CFFI_OP_NOOP, 46),
-/* 50 */ _CFFI_OP(_CFFI_OP_POINTER, 61), // char const *
+/* 45 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *, void const *, unsigned char *, size_t, size_t)
+/* 46 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
+/* 47 */ _CFFI_OP(_CFFI_OP_POINTER, 97), // void const *
+/* 48 */ _CFFI_OP(_CFFI_OP_POINTER, 94), // unsigned char *
+/* 49 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
+/* 50 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
 /* 51 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 52 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_tf_model *, uint8_t const *, size_t)
-/* 53 */ _CFFI_OP(_CFFI_OP_NOOP, 46),
-/* 54 */ _CFFI_OP(_CFFI_OP_POINTER, 77), // uint8_t const *
-/* 55 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
-/* 56 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 57 */ _CFFI_OP(_CFFI_OP_FUNCTION, 78), // vaccel_id_t()(struct vaccel_tf_model const *)
-/* 58 */ _CFFI_OP(_CFFI_OP_POINTER, 71), // struct vaccel_tf_model const *
-/* 59 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
-/* 60 */ _CFFI_OP(_CFFI_OP_POINTER, 61), // char *
-/* 61 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 2), // char
-/* 62 */ _CFFI_OP(_CFFI_OP_ENUM, 0), // enum vaccel_tf_data_type
-/* 63 */ _CFFI_OP(_CFFI_OP_POINTER, 64), // int64_t *
-/* 64 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 23), // int64_t
-/* 65 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 0), // struct vaccel_arg
-/* 66 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 1), // struct vaccel_op
-/* 67 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 2), // struct vaccel_plugin
-/* 68 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 3), // struct vaccel_resource
-/* 69 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 4), // struct vaccel_session
-/* 70 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 5), // struct vaccel_tf_buffer
-/* 71 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 6), // struct vaccel_tf_model
-/* 72 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 7), // struct vaccel_tf_node
-/* 73 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 8), // struct vaccel_tf_saved_model
-/* 74 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 9), // struct vaccel_tf_status
-/* 75 */ _CFFI_OP(_CFFI_OP_POINTER, 76), // struct vaccel_tf_tensor *
-/* 76 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 10), // struct vaccel_tf_tensor
-/* 77 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 18), // uint8_t
-/* 78 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, _cffi_prim_int(sizeof(vaccel_id_t), (
+/* 52 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_session *, void const *, unsigned char *, unsigned char *, size_t, size_t, size_t)
+/* 53 */ _CFFI_OP(_CFFI_OP_NOOP, 11),
+/* 54 */ _CFFI_OP(_CFFI_OP_NOOP, 47),
+/* 55 */ _CFFI_OP(_CFFI_OP_NOOP, 48),
+/* 56 */ _CFFI_OP(_CFFI_OP_NOOP, 48),
+/* 57 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
+/* 58 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
+/* 59 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
+/* 60 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 61 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_tf_model *)
+/* 62 */ _CFFI_OP(_CFFI_OP_POINTER, 87), // struct vaccel_tf_model *
+/* 63 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 64 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_tf_model *, char const *)
+/* 65 */ _CFFI_OP(_CFFI_OP_NOOP, 62),
+/* 66 */ _CFFI_OP(_CFFI_OP_POINTER, 77), // char const *
+/* 67 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 68 */ _CFFI_OP(_CFFI_OP_FUNCTION, 16), // int()(struct vaccel_tf_model *, uint8_t const *, size_t)
+/* 69 */ _CFFI_OP(_CFFI_OP_NOOP, 62),
+/* 70 */ _CFFI_OP(_CFFI_OP_POINTER, 93), // uint8_t const *
+/* 71 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 28),
+/* 72 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 73 */ _CFFI_OP(_CFFI_OP_FUNCTION, 95), // vaccel_id_t()(struct vaccel_tf_model const *)
+/* 74 */ _CFFI_OP(_CFFI_OP_POINTER, 87), // struct vaccel_tf_model const *
+/* 75 */ _CFFI_OP(_CFFI_OP_FUNCTION_END, 0),
+/* 76 */ _CFFI_OP(_CFFI_OP_POINTER, 77), // char *
+/* 77 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 2), // char
+/* 78 */ _CFFI_OP(_CFFI_OP_ENUM, 0), // enum vaccel_tf_data_type
+/* 79 */ _CFFI_OP(_CFFI_OP_POINTER, 80), // int64_t *
+/* 80 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 23), // int64_t
+/* 81 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 0), // struct vaccel_arg
+/* 82 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 1), // struct vaccel_op
+/* 83 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 2), // struct vaccel_plugin
+/* 84 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 3), // struct vaccel_resource
+/* 85 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 4), // struct vaccel_session
+/* 86 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 5), // struct vaccel_tf_buffer
+/* 87 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 6), // struct vaccel_tf_model
+/* 88 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 7), // struct vaccel_tf_node
+/* 89 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 8), // struct vaccel_tf_saved_model
+/* 90 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 9), // struct vaccel_tf_status
+/* 91 */ _CFFI_OP(_CFFI_OP_POINTER, 92), // struct vaccel_tf_tensor *
+/* 92 */ _CFFI_OP(_CFFI_OP_STRUCT_UNION, 10), // struct vaccel_tf_tensor
+/* 93 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 18), // uint8_t
+/* 94 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 4), // unsigned char
+/* 95 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, _cffi_prim_int(sizeof(vaccel_id_t), (
            ((vaccel_id_t)-1) | 0 /* check that vaccel_id_t is an integer type */
          ) <= 0)), // vaccel_id_t
-/* 79 */ _CFFI_OP(_CFFI_OP_POINTER, 80), // void *
-/* 80 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 0), // void
+/* 96 */ _CFFI_OP(_CFFI_OP_POINTER, 97), // void *
+/* 97 */ _CFFI_OP(_CFFI_OP_PRIMITIVE, 0), // void
 };
 
 static int _cffi_const_VACCEL_TF_FLOAT(unsigned long long *o)
@@ -1069,6 +1087,403 @@ _cffi_f_vaccel_genop(PyObject *self, PyObject *args)
 #  define _cffi_f_vaccel_genop _cffi_d_vaccel_genop
 #endif
 
+static int _cffi_d_vaccel_image_classification(struct vaccel_session * x0, void const * x1, unsigned char * x2, unsigned char * x3, size_t x4, size_t x5, size_t x6)
+{
+  return vaccel_image_classification(x0, x1, x2, x3, x4, x5, x6);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_vaccel_image_classification(PyObject *self, PyObject *args)
+{
+  struct vaccel_session * x0;
+  void const * x1;
+  unsigned char * x2;
+  unsigned char * x3;
+  size_t x4;
+  size_t x5;
+  size_t x6;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  int result;
+  PyObject *pyresult;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+  PyObject *arg5;
+  PyObject *arg6;
+
+  if (!PyArg_UnpackTuple(args, "vaccel_image_classification", 7, 7, &arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(11), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct vaccel_session *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(11), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(47), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (void const *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(47), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(48), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (unsigned char *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(48), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(48), arg3, (char **)&x3);
+  if (datasize != 0) {
+    x3 = ((size_t)datasize) <= 640 ? (unsigned char *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(48), arg3, (char **)&x3,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x4 = _cffi_to_c_int(arg4, size_t);
+  if (x4 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  x5 = _cffi_to_c_int(arg5, size_t);
+  if (x5 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  x6 = _cffi_to_c_int(arg6, size_t);
+  if (x6 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = vaccel_image_classification(x0, x1, x2, x3, x4, x5, x6); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_int(result, int);
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  return pyresult;
+}
+#else
+#  define _cffi_f_vaccel_image_classification _cffi_d_vaccel_image_classification
+#endif
+
+static int _cffi_d_vaccel_image_depth(struct vaccel_session * x0, void const * x1, unsigned char * x2, size_t x3, size_t x4)
+{
+  return vaccel_image_depth(x0, x1, x2, x3, x4);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_vaccel_image_depth(PyObject *self, PyObject *args)
+{
+  struct vaccel_session * x0;
+  void const * x1;
+  unsigned char * x2;
+  size_t x3;
+  size_t x4;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  int result;
+  PyObject *pyresult;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+
+  if (!PyArg_UnpackTuple(args, "vaccel_image_depth", 5, 5, &arg0, &arg1, &arg2, &arg3, &arg4))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(11), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct vaccel_session *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(11), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(47), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (void const *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(47), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(48), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (unsigned char *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(48), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x3 = _cffi_to_c_int(arg3, size_t);
+  if (x3 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  x4 = _cffi_to_c_int(arg4, size_t);
+  if (x4 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = vaccel_image_depth(x0, x1, x2, x3, x4); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_int(result, int);
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  return pyresult;
+}
+#else
+#  define _cffi_f_vaccel_image_depth _cffi_d_vaccel_image_depth
+#endif
+
+static int _cffi_d_vaccel_image_detection(struct vaccel_session * x0, void const * x1, unsigned char * x2, size_t x3, size_t x4)
+{
+  return vaccel_image_detection(x0, x1, x2, x3, x4);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_vaccel_image_detection(PyObject *self, PyObject *args)
+{
+  struct vaccel_session * x0;
+  void const * x1;
+  unsigned char * x2;
+  size_t x3;
+  size_t x4;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  int result;
+  PyObject *pyresult;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+
+  if (!PyArg_UnpackTuple(args, "vaccel_image_detection", 5, 5, &arg0, &arg1, &arg2, &arg3, &arg4))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(11), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct vaccel_session *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(11), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(47), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (void const *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(47), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(48), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (unsigned char *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(48), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x3 = _cffi_to_c_int(arg3, size_t);
+  if (x3 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  x4 = _cffi_to_c_int(arg4, size_t);
+  if (x4 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = vaccel_image_detection(x0, x1, x2, x3, x4); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_int(result, int);
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  return pyresult;
+}
+#else
+#  define _cffi_f_vaccel_image_detection _cffi_d_vaccel_image_detection
+#endif
+
+static int _cffi_d_vaccel_image_pose(struct vaccel_session * x0, void const * x1, unsigned char * x2, size_t x3, size_t x4)
+{
+  return vaccel_image_pose(x0, x1, x2, x3, x4);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_vaccel_image_pose(PyObject *self, PyObject *args)
+{
+  struct vaccel_session * x0;
+  void const * x1;
+  unsigned char * x2;
+  size_t x3;
+  size_t x4;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  int result;
+  PyObject *pyresult;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+
+  if (!PyArg_UnpackTuple(args, "vaccel_image_pose", 5, 5, &arg0, &arg1, &arg2, &arg3, &arg4))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(11), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct vaccel_session *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(11), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(47), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (void const *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(47), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(48), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (unsigned char *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(48), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x3 = _cffi_to_c_int(arg3, size_t);
+  if (x3 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  x4 = _cffi_to_c_int(arg4, size_t);
+  if (x4 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = vaccel_image_pose(x0, x1, x2, x3, x4); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_int(result, int);
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  return pyresult;
+}
+#else
+#  define _cffi_f_vaccel_image_pose _cffi_d_vaccel_image_pose
+#endif
+
+static int _cffi_d_vaccel_image_segmentation(struct vaccel_session * x0, void const * x1, unsigned char * x2, size_t x3, size_t x4)
+{
+  return vaccel_image_segmentation(x0, x1, x2, x3, x4);
+}
+#ifndef PYPY_VERSION
+static PyObject *
+_cffi_f_vaccel_image_segmentation(PyObject *self, PyObject *args)
+{
+  struct vaccel_session * x0;
+  void const * x1;
+  unsigned char * x2;
+  size_t x3;
+  size_t x4;
+  Py_ssize_t datasize;
+  struct _cffi_freeme_s *large_args_free = NULL;
+  int result;
+  PyObject *pyresult;
+  PyObject *arg0;
+  PyObject *arg1;
+  PyObject *arg2;
+  PyObject *arg3;
+  PyObject *arg4;
+
+  if (!PyArg_UnpackTuple(args, "vaccel_image_segmentation", 5, 5, &arg0, &arg1, &arg2, &arg3, &arg4))
+    return NULL;
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(11), arg0, (char **)&x0);
+  if (datasize != 0) {
+    x0 = ((size_t)datasize) <= 640 ? (struct vaccel_session *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(11), arg0, (char **)&x0,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(47), arg1, (char **)&x1);
+  if (datasize != 0) {
+    x1 = ((size_t)datasize) <= 640 ? (void const *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(47), arg1, (char **)&x1,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  datasize = _cffi_prepare_pointer_call_argument(
+      _cffi_type(48), arg2, (char **)&x2);
+  if (datasize != 0) {
+    x2 = ((size_t)datasize) <= 640 ? (unsigned char *)alloca((size_t)datasize) : NULL;
+    if (_cffi_convert_array_argument(_cffi_type(48), arg2, (char **)&x2,
+            datasize, &large_args_free) < 0)
+      return NULL;
+  }
+
+  x3 = _cffi_to_c_int(arg3, size_t);
+  if (x3 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  x4 = _cffi_to_c_int(arg4, size_t);
+  if (x4 == (size_t)-1 && PyErr_Occurred())
+    return NULL;
+
+  Py_BEGIN_ALLOW_THREADS
+  _cffi_restore_errno();
+  { result = vaccel_image_segmentation(x0, x1, x2, x3, x4); }
+  _cffi_save_errno();
+  Py_END_ALLOW_THREADS
+
+  (void)self; /* unused */
+  pyresult = _cffi_from_c_int(result, int);
+  if (large_args_free != NULL) _cffi_free_array_arguments(large_args_free);
+  return pyresult;
+}
+#else
+#  define _cffi_f_vaccel_image_segmentation _cffi_d_vaccel_image_segmentation
+#endif
+
 static int _cffi_d_vaccel_noop(struct vaccel_session * x0)
 {
   return vaccel_noop(x0);
@@ -1367,10 +1782,10 @@ _cffi_f_vaccel_tf_model_destroy(PyObject *self, PyObject *arg0)
   PyObject *pyresult;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(46), arg0, (char **)&x0);
+      _cffi_type(62), arg0, (char **)&x0);
   if (datasize != 0) {
     x0 = ((size_t)datasize) <= 640 ? (struct vaccel_tf_model *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(46), arg0, (char **)&x0,
+    if (_cffi_convert_array_argument(_cffi_type(62), arg0, (char **)&x0,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -1405,10 +1820,10 @@ _cffi_f_vaccel_tf_model_get_id(PyObject *self, PyObject *arg0)
   PyObject *pyresult;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(58), arg0, (char **)&x0);
+      _cffi_type(74), arg0, (char **)&x0);
   if (datasize != 0) {
     x0 = ((size_t)datasize) <= 640 ? (struct vaccel_tf_model const *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(58), arg0, (char **)&x0,
+    if (_cffi_convert_array_argument(_cffi_type(74), arg0, (char **)&x0,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -1449,19 +1864,19 @@ _cffi_f_vaccel_tf_model_new(PyObject *self, PyObject *args)
     return NULL;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(46), arg0, (char **)&x0);
+      _cffi_type(62), arg0, (char **)&x0);
   if (datasize != 0) {
     x0 = ((size_t)datasize) <= 640 ? (struct vaccel_tf_model *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(46), arg0, (char **)&x0,
+    if (_cffi_convert_array_argument(_cffi_type(62), arg0, (char **)&x0,
             datasize, &large_args_free) < 0)
       return NULL;
   }
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(50), arg1, (char **)&x1);
+      _cffi_type(66), arg1, (char **)&x1);
   if (datasize != 0) {
     x1 = ((size_t)datasize) <= 640 ? (char const *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(50), arg1, (char **)&x1,
+    if (_cffi_convert_array_argument(_cffi_type(66), arg1, (char **)&x1,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -1504,19 +1919,19 @@ _cffi_f_vaccel_tf_model_new_from_buffer(PyObject *self, PyObject *args)
     return NULL;
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(46), arg0, (char **)&x0);
+      _cffi_type(62), arg0, (char **)&x0);
   if (datasize != 0) {
     x0 = ((size_t)datasize) <= 640 ? (struct vaccel_tf_model *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(46), arg0, (char **)&x0,
+    if (_cffi_convert_array_argument(_cffi_type(62), arg0, (char **)&x0,
             datasize, &large_args_free) < 0)
       return NULL;
   }
 
   datasize = _cffi_prepare_pointer_call_argument(
-      _cffi_type(54), arg1, (char **)&x1);
+      _cffi_type(70), arg1, (char **)&x1);
   if (datasize != 0) {
     x1 = ((size_t)datasize) <= 640 ? (uint8_t const *)alloca((size_t)datasize) : NULL;
-    if (_cffi_convert_array_argument(_cffi_type(54), arg1, (char **)&x1,
+    if (_cffi_convert_array_argument(_cffi_type(70), arg1, (char **)&x1,
             datasize, &large_args_free) < 0)
       return NULL;
   }
@@ -1852,16 +2267,21 @@ static const struct _cffi_global_s _cffi_globals[] = {
   { "register_plugin_functions", (void *)_cffi_f_register_plugin_functions, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 3), (void *)_cffi_d_register_plugin_functions },
   { "unregister_plugin", (void *)_cffi_f_unregister_plugin, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 7), (void *)_cffi_d_unregister_plugin },
   { "vaccel_genop", (void *)_cffi_f_vaccel_genop, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 13), (void *)_cffi_d_vaccel_genop },
+  { "vaccel_image_classification", (void *)_cffi_f_vaccel_image_classification, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 52), (void *)_cffi_d_vaccel_image_classification },
+  { "vaccel_image_depth", (void *)_cffi_f_vaccel_image_depth, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 45), (void *)_cffi_d_vaccel_image_depth },
+  { "vaccel_image_detection", (void *)_cffi_f_vaccel_image_detection, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 45), (void *)_cffi_d_vaccel_image_detection },
+  { "vaccel_image_pose", (void *)_cffi_f_vaccel_image_pose, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 45), (void *)_cffi_d_vaccel_image_pose },
+  { "vaccel_image_segmentation", (void *)_cffi_f_vaccel_image_segmentation, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 45), (void *)_cffi_d_vaccel_image_segmentation },
   { "vaccel_noop", (void *)_cffi_f_vaccel_noop, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 10), (void *)_cffi_d_vaccel_noop },
   { "vaccel_sess_free", (void *)_cffi_f_vaccel_sess_free, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 10), (void *)_cffi_d_vaccel_sess_free },
   { "vaccel_sess_has_resource", (void *)_cffi_f_vaccel_sess_has_resource, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 20), (void *)_cffi_d_vaccel_sess_has_resource },
   { "vaccel_sess_init", (void *)_cffi_f_vaccel_sess_init, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 41), (void *)_cffi_d_vaccel_sess_init },
   { "vaccel_sess_register", (void *)_cffi_f_vaccel_sess_register, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 20), (void *)_cffi_d_vaccel_sess_register },
   { "vaccel_sess_unregister", (void *)_cffi_f_vaccel_sess_unregister, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 20), (void *)_cffi_d_vaccel_sess_unregister },
-  { "vaccel_tf_model_destroy", (void *)_cffi_f_vaccel_tf_model_destroy, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 45), (void *)_cffi_d_vaccel_tf_model_destroy },
-  { "vaccel_tf_model_get_id", (void *)_cffi_f_vaccel_tf_model_get_id, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 57), (void *)_cffi_d_vaccel_tf_model_get_id },
-  { "vaccel_tf_model_new", (void *)_cffi_f_vaccel_tf_model_new, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 48), (void *)_cffi_d_vaccel_tf_model_new },
-  { "vaccel_tf_model_new_from_buffer", (void *)_cffi_f_vaccel_tf_model_new_from_buffer, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 52), (void *)_cffi_d_vaccel_tf_model_new_from_buffer },
+  { "vaccel_tf_model_destroy", (void *)_cffi_f_vaccel_tf_model_destroy, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 61), (void *)_cffi_d_vaccel_tf_model_destroy },
+  { "vaccel_tf_model_get_id", (void *)_cffi_f_vaccel_tf_model_get_id, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_O, 73), (void *)_cffi_d_vaccel_tf_model_get_id },
+  { "vaccel_tf_model_new", (void *)_cffi_f_vaccel_tf_model_new, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 64), (void *)_cffi_d_vaccel_tf_model_new },
+  { "vaccel_tf_model_new_from_buffer", (void *)_cffi_f_vaccel_tf_model_new_from_buffer, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 68), (void *)_cffi_d_vaccel_tf_model_new_from_buffer },
   { "vaccel_tf_session_load", (void *)_cffi_f_vaccel_tf_session_load, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 24), (void *)_cffi_d_vaccel_tf_session_load },
   { "vaccel_tf_session_run", (void *)_cffi_f_vaccel_tf_session_run, _CFFI_OP(_CFFI_OP_CPYTHON_BLTN_V, 29), (void *)_cffi_d_vaccel_tf_session_run },
 };
@@ -1872,13 +2292,13 @@ static const struct _cffi_field_s _cffi_fields[] = {
             _CFFI_OP(_CFFI_OP_NOOP, 43) },
   { "buf", offsetof(struct vaccel_arg, buf),
            sizeof(((struct vaccel_arg *)0)->buf),
-           _CFFI_OP(_CFFI_OP_NOOP, 79) },
+           _CFFI_OP(_CFFI_OP_NOOP, 96) },
   { "session_id", offsetof(struct vaccel_session, session_id),
                   sizeof(((struct vaccel_session *)0)->session_id),
                   _CFFI_OP(_CFFI_OP_NOOP, 43) },
   { "data", offsetof(struct vaccel_tf_buffer, data),
             sizeof(((struct vaccel_tf_buffer *)0)->data),
-            _CFFI_OP(_CFFI_OP_NOOP, 79) },
+            _CFFI_OP(_CFFI_OP_NOOP, 96) },
   { "size", offsetof(struct vaccel_tf_buffer, size),
             sizeof(((struct vaccel_tf_buffer *)0)->size),
             _CFFI_OP(_CFFI_OP_NOOP, 5) },
@@ -1887,19 +2307,19 @@ static const struct _cffi_field_s _cffi_fields[] = {
                 _CFFI_OP(_CFFI_OP_NOOP, 22) },
   { "name", offsetof(struct vaccel_tf_node, name),
             sizeof(((struct vaccel_tf_node *)0)->name),
-            _CFFI_OP(_CFFI_OP_NOOP, 60) },
+            _CFFI_OP(_CFFI_OP_NOOP, 76) },
   { "id", offsetof(struct vaccel_tf_node, id),
           sizeof(((struct vaccel_tf_node *)0)->id),
-          _CFFI_OP(_CFFI_OP_NOOP, 64) },
+          _CFFI_OP(_CFFI_OP_NOOP, 80) },
   { "error_code", offsetof(struct vaccel_tf_status, error_code),
                   sizeof(((struct vaccel_tf_status *)0)->error_code),
-                  _CFFI_OP(_CFFI_OP_NOOP, 77) },
+                  _CFFI_OP(_CFFI_OP_NOOP, 93) },
   { "message", offsetof(struct vaccel_tf_status, message),
                sizeof(((struct vaccel_tf_status *)0)->message),
-               _CFFI_OP(_CFFI_OP_NOOP, 50) },
+               _CFFI_OP(_CFFI_OP_NOOP, 66) },
   { "data", offsetof(struct vaccel_tf_tensor, data),
             sizeof(((struct vaccel_tf_tensor *)0)->data),
-            _CFFI_OP(_CFFI_OP_NOOP, 79) },
+            _CFFI_OP(_CFFI_OP_NOOP, 96) },
   { "size", offsetof(struct vaccel_tf_tensor, size),
             sizeof(((struct vaccel_tf_tensor *)0)->size),
             _CFFI_OP(_CFFI_OP_NOOP, 5) },
@@ -1908,44 +2328,44 @@ static const struct _cffi_field_s _cffi_fields[] = {
                _CFFI_OP(_CFFI_OP_NOOP, 16) },
   { "dims", offsetof(struct vaccel_tf_tensor, dims),
             sizeof(((struct vaccel_tf_tensor *)0)->dims),
-            _CFFI_OP(_CFFI_OP_NOOP, 63) },
+            _CFFI_OP(_CFFI_OP_NOOP, 79) },
   { "data_type", offsetof(struct vaccel_tf_tensor, data_type),
                  sizeof(((struct vaccel_tf_tensor *)0)->data_type),
-                 _CFFI_OP(_CFFI_OP_NOOP, 62) },
+                 _CFFI_OP(_CFFI_OP_NOOP, 78) },
 };
 
 static const struct _cffi_struct_union_s _cffi_struct_unions[] = {
-  { "vaccel_arg", 65, _CFFI_F_CHECK_FIELDS,
+  { "vaccel_arg", 81, _CFFI_F_CHECK_FIELDS,
     sizeof(struct vaccel_arg), offsetof(struct _cffi_align_struct_vaccel_arg, y), 0, 2 },
-  { "vaccel_op", 66, 0,
+  { "vaccel_op", 82, 0,
     sizeof(struct vaccel_op), offsetof(struct _cffi_align_struct_vaccel_op, y), 2, 0 },
-  { "vaccel_plugin", 67, 0,
+  { "vaccel_plugin", 83, 0,
     sizeof(struct vaccel_plugin), offsetof(struct _cffi_align_struct_vaccel_plugin, y), 2, 0 },
-  { "vaccel_resource", 68, _CFFI_F_OPAQUE,
+  { "vaccel_resource", 84, _CFFI_F_OPAQUE,
     (size_t)-1, -1, -1, 0 /* opaque */ },
-  { "vaccel_session", 69, 0,
+  { "vaccel_session", 85, 0,
     sizeof(struct vaccel_session), offsetof(struct _cffi_align_struct_vaccel_session, y), 2, 1 },
-  { "vaccel_tf_buffer", 70, _CFFI_F_CHECK_FIELDS,
+  { "vaccel_tf_buffer", 86, _CFFI_F_CHECK_FIELDS,
     sizeof(struct vaccel_tf_buffer), offsetof(struct _cffi_align_struct_vaccel_tf_buffer, y), 3, 2 },
-  { "vaccel_tf_model", 71, 0,
+  { "vaccel_tf_model", 87, 0,
     sizeof(struct vaccel_tf_model), offsetof(struct _cffi_align_struct_vaccel_tf_model, y), 5, 1 },
-  { "vaccel_tf_node", 72, _CFFI_F_CHECK_FIELDS,
+  { "vaccel_tf_node", 88, _CFFI_F_CHECK_FIELDS,
     sizeof(struct vaccel_tf_node), offsetof(struct _cffi_align_struct_vaccel_tf_node, y), 6, 2 },
-  { "vaccel_tf_saved_model", 73, _CFFI_F_OPAQUE,
+  { "vaccel_tf_saved_model", 89, _CFFI_F_OPAQUE,
     (size_t)-1, -1, -1, 0 /* opaque */ },
-  { "vaccel_tf_status", 74, _CFFI_F_CHECK_FIELDS,
+  { "vaccel_tf_status", 90, _CFFI_F_CHECK_FIELDS,
     sizeof(struct vaccel_tf_status), offsetof(struct _cffi_align_struct_vaccel_tf_status, y), 8, 2 },
-  { "vaccel_tf_tensor", 76, _CFFI_F_CHECK_FIELDS,
+  { "vaccel_tf_tensor", 92, _CFFI_F_CHECK_FIELDS,
     sizeof(struct vaccel_tf_tensor), offsetof(struct _cffi_align_struct_vaccel_tf_tensor, y), 10, 5 },
 };
 
 static const struct _cffi_enum_s _cffi_enums[] = {
-  { "vaccel_tf_data_type", 62, _cffi_prim_int(sizeof(enum vaccel_tf_data_type), ((enum vaccel_tf_data_type)-1) <= 0),
+  { "vaccel_tf_data_type", 78, _cffi_prim_int(sizeof(enum vaccel_tf_data_type), ((enum vaccel_tf_data_type)-1) <= 0),
     "VACCEL_TF_FLOAT,VACCEL_TF_DOUBLE,VACCEL_TF_INT32,VACCEL_TF_UINT8,VACCEL_TF_INT16,VACCEL_TF_INT8,VACCEL_TF_STRING,VACCEL_TF_COMPLEX64,VACCEL_TF_COMPLEX,VACCEL_TF_INT64,VACCEL_TF_BOOL,VACCEL_TF_QINT8,VACCEL_TF_QUINT8,VACCEL_TF_QINT32,VACCEL_TF_BFLOAT16,VACCEL_TF_QINT16,VACCEL_TF_QUINT16,VACCEL_TF_UINT16,VACCEL_TF_COMPLEX128,VACCEL_TF_HALF,VACCEL_TF_RESOURCE,VACCEL_TF_VARIANT,VACCEL_TF_UINT32,VACCEL_TF_UINT64" },
 };
 
 static const struct _cffi_typename_s _cffi_typenames[] = {
-  { "vaccel_id_t", 78 },
+  { "vaccel_id_t", 95 },
 };
 
 static const struct _cffi_type_context_s _cffi_type_context = {
@@ -1955,12 +2375,12 @@ static const struct _cffi_type_context_s _cffi_type_context = {
   _cffi_struct_unions,
   _cffi_enums,
   _cffi_typenames,
-  41,  /* num_globals */
+  46,  /* num_globals */
   11,  /* num_struct_unions */
   1,  /* num_enums */
   1,  /* num_typenames */
   NULL,  /* no includes */
-  81,  /* num_types */
+  98,  /* num_types */
   0,  /* flags */
 };
 
