@@ -14,3 +14,6 @@ install: libvaccel-python.so
 
 clean:
 	-rm -f libvaccel-python.so libs/install/lib/libvaccel-python.so
+
+test:
+	PYTHON_VACCEL_PLUGIN=./libs/vaccelrt/build/plugins/noop/libvaccel-noop.so VACCEL_DEBUG_LEVEL=4 LD_LIBRARY_PATH=./libs/install/lib PYTHONPATH=$(which python3):. python3 vaccel/test.py

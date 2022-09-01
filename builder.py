@@ -14,6 +14,7 @@ ffibuilder.set_source(
         #include <tf_model.h>
         #include <ops/tf.h>
         #include <ops/noop.h>
+        #include <ops/genop.h>
         #include <plugin.h>
         """,
         include_dirs=incdirs,
@@ -163,6 +164,19 @@ ffibuilder.cdef("""
 ffibuilder.cdef("""
         int vaccel_noop(struct vaccel_session *sess);
         """
+)
+
+# Genop API
+ffibuilder.cdef("""
+        struct vaccel_arg {
+                uint32_t size;
+                void *buf;
+        };"""
+)
+
+ffibuilder.cdef("""
+int vaccel_genop(struct vaccel_session *sess, struct vaccel_arg *read,
+		int nr_read, struct vaccel_arg *write, int nr_write);"""
 )
 
 if __name__ == "__main__":

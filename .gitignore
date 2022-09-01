@@ -4,3 +4,4 @@ libs/install
 build
 **.so
 **.o
+__pycache__/
