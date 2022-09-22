@@ -1,16 +1,15 @@
 from vaccel.session import Session
 from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
-from vaccel._vaccel import ffi
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
-
+from vaccel import image_genop as genimg
 
 def test_session():
     print("Session test")
     ses_a = Session(flags=0)
     ses_b = Session(flags=1)
     print(f'Session A id is {ses_a.id()} and Session B id is {ses_b.id()}')
-    print("")
+    print('')
 
 def test_noop():
     print("Noop test")
@@ -18,10 +17,12 @@ def test_noop():
     print(f'Session id is {ses.id()}')
     res = Noop.noop(ses)
     print(res)
-    print("")
+    print('')
+
+imgsource = "./libs/vaccelrt/examples/images/example.jpg"
 
 def test_genop():
-    """ 
+    """
     should work, but it doesn't because the sanity check on vAccel
     regarding the number of arguments is not correct
     """
@@ -34,101 +35,90 @@ def test_genop():
 
     arg_write = []
 
-    res = Genop.genop(ses, arg_read, arg_write) 
+    res = Genop.genop(ses, arg_read, arg_write)
     print("RESULT=" ,res)
+    print('')
 
-def test_genop_classify():
-    print("Genop test")
-    ses = Session(flags=1)
-    source = "./libs/vaccelrt/examples/images/example.jpg"
-    print(f'Session id is {ses.id()}')
+def test_image_class_genop():
+    print('Image classify over genop test')
+    res = genimg.ImageClassify.classify(image=imgsource)
+    print(res)
+    print('')
 
-    arg_read = []
-    with open(source, "rb") as imgfile:
-        data = imgfile.read()
-    arg_read.append(VaccelArg(data=2))
-    arg_read.append(VaccelArg(data=data))
+def test_image_detect_genop():
+    print('Image detection over genop test')
+    res = genimg.ImageDetect.detect(image=imgsource)
+    print(res)
+    print('')
 
-    arg_write = []
-    #out_text = 100 * "a"
-    out_text = bytes(100 * " ", encoding = "utf-8")
-    out_imagename = bytes(100 * " ", encoding = "utf-8")
-    arg_write.append(VaccelArg(data=out_text))
-    arg_write.append(VaccelArg(data=out_imagename))
+def test_image_segme_genop():
+    print('Image segmentation over genop test')
+    res = genimg.ImageSegment.segment(image=imgsource)
+    print(res)
+    print('')
 
-    res = Genop.genop(ses, arg_read, arg_write) 
-    print("RESULT=" ,res)
-    for i in range(len(arg_write)):
-        print(arg_write[i].buf)
+def test_image_pose_genop():
+    print('Image pose over genop test')
+    res = genimg.ImagePose.pose(image=imgsource)
+    print(res)
+    print('')
 
-def test_genop_detect():
-    print("Genop test")
-    ses = Session(flags=1)
-    source = "./libs/vaccelrt/examples/images/example.jpg"
-    print(f'Session id is {ses.id()}')
-
-    arg_read = []
-    with open(source, "rb") as imgfile:
-        data = imgfile.read()
-    arg_read.append(VaccelArg(data=3))
-    arg_read.append(VaccelArg(data=data))
-
-    arg_write = []
-    #out_text = 100 * "a"
-    out_imagename = bytes(100 * " ", encoding = "utf-8")
-    arg_write.append(VaccelArg(data=out_imagename))
-
-    res = Genop.genop(ses, arg_read, arg_write) 
-    print("RESULT=" ,res)
-    for i in range(len(arg_write)):
-        print(arg_write[i].buf)
+def test_image_depth_genop():
+    print('Image depth over genop test')
+    res = genimg.ImageDepth.depth(image=imgsource)
+    print(res)
+    print('')
 
 def test_image_classify():
     print("Image classify test")
     ses = Session(flags=3)
     print(f'Session id is {ses.id()}')
-    res = ImageClassify.classify_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    res = ImageClassify.classify_from_filename(session=ses, source=imgsource)
     print(res)
-    print("")
+    print('')
 
 def test_image_detect():
     print("Image detect test")
     ses = Session(flags=3)
     print(f'Session id is {ses.id()}')
-    res = ImageDetect.detect_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    res = ImageDetect.detect_from_filename(session=ses, source=imgsource)
     print(res)
-    print("")
+    print('')
 
 def test_image_segment():
     print("Image segment test")
     ses = Session(flags=3)
     print(f'Session id is {ses.id()}')
-    res = ImageSegment.segment_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    res = ImageSegment.segment_from_filename(session=ses, source=imgsource)
     print(res)
-    print("")
+    print('')
 
 def test_image_pose():
     print("Image pose test")
     ses = Session(flags=3)
     print(f'Session id is {ses.id()}')
-    res = ImagePose.pose_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    res = ImagePose.pose_from_filename(session=ses, source=imgsource)
     print(res)
-    print("")
+    print('')
 
 def test_image_depth():
     print("Image depth test")
     ses = Session(flags=3)
     print(f'Session id is {ses.id()}')
-    res = ImageDepth.depth_from_filename(session=ses, source="./libs/vaccelrt/examples/images/example.jpg")
+    res = ImageDepth.depth_from_filename(session=ses, source=imgsource)
     print(res)
-    print(" ")
+    print('')
 
 if __name__=="__main__":
     test_session()
     test_noop()
-    #test_genop()
-    test_genop_classify()
-    test_genop_detect()
+    #test genop image operations
+    test_image_class_genop()
+    test_image_detect_genop()
+    test_image_segme_genop()
+    test_image_pose_genop()
+    test_image_depth_genop()
+    #test static image operations
     test_image_classify()
     test_image_detect()
     test_image_segment()

@@ -48,7 +48,7 @@ class VaccelArg:
             arg1buf = ffi.from_buffer(self.buf)
 
         if self.info.datatype == "float":
-            arg1buf = ffi.new("float *", self.buf)  
+            arg1buf = ffi.new("float *", self.buf)
         # TODO Handle double data type
 
         self.__hidden__.append(arg1buf)
@@ -61,6 +61,10 @@ class VaccelArg:
         arg[0].buf = buf
 
         return arg[0]
+
+    @property
+    def content(self):
+        return str(self.buf, encoding='utf-8').strip().rstrip('\x00')
 
 
 class VaccelArgInfo:
@@ -116,6 +120,7 @@ class VaccelArgList:
 
         return final
 
+
 class Genop:
     def __init__(self):
         """exec vAccel Genop"""
@@ -136,5 +141,5 @@ class Genop:
         vaccel_args_write = VaccelArgList(arg_write).to_cffi()
 
         a = lib.vaccel_genop(csession, vaccel_args_read, nr_read,
-                         vaccel_args_write, nr_write)
+                             vaccel_args_write, nr_write)
         return a
