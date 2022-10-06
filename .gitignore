@@ -5,3 +5,6 @@ build
 **.so
 **.o
 __pycache__/
+.pytest_cache/
+env/
+.coverage

@@ -62,3 +62,16 @@ The module should be ready. To test run:
 ```bash
 PYTHON_VACCEL_PLUGIN=./libs/vaccelrt/build/plugins/noop/libvaccel-noop.so LD_LIBRARY_PATH=./libs/install/lib PYTHONPATH=$PYTHONPATH:. python3 vaccel/test.py
 ```
+
+
+## Test
+
+To run the tests:
+
+```bash
+# Run tests
+PYTHON_VACCEL_PLUGIN=./libs/vaccelrt/build/plugins/noop/libvaccel-noop.so LD_LIBRARY_PATH=./libs/install/lib PYTHONPATH=$PYTHONPATH:. pytest
+
+# Test coverage
+PYTHON_VACCEL_PLUGIN=./libs/vaccelrt/build/plugins/noop/libvaccel-noop.so LD_LIBRARY_PATH=./libs/install/lib PYTHONPATH=$PYTHONPATH:. pytest --cov=vaccel tests/
+```
