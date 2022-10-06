@@ -1,3 +1,5 @@
+import errno
+
 class VaccelError(RuntimeError):
     """Exception raised when a vAccel runtime error occurs"""
 
@@ -6,5 +8,5 @@ class VaccelError(RuntimeError):
         self.message = message
 
     def __str__(self):
-        return "{}: {}".format(self.message, self.error)
+        return "[errno {}] {}: {}".format(self.error, errno.errorcode[self.error], self.message)
 

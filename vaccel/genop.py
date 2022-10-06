@@ -140,6 +140,9 @@ class Genop:
         vaccel_args_read = VaccelArgList(arg_read).to_cffi()
         vaccel_args_write = VaccelArgList(arg_write).to_cffi()
 
-        a = lib.vaccel_genop(csession, vaccel_args_read, nr_read,
+        ret = lib.vaccel_genop(csession, vaccel_args_read, nr_read,
                              vaccel_args_write, nr_write)
-        return a
+        if ret != 0:
+            raise VaccelError(ret, "Could not execute generic operation")
+
+        return ret

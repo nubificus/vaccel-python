@@ -35,10 +35,13 @@ class ImageClassify:
         len_out_text = self.out_size
         len_out_imgname = 0
 
-        a = lib.vaccel_image_classification(csession, img, out_text, out_imgname, len_img, len_out_text, len_out_imgname)
+        ret = lib.vaccel_image_classification(csession, img, out_text, out_imgname, len_img, len_out_text, len_out_imgname)
+        if ret != 0:
+            raise VaccelError(ret, "Could not execute image classification operation")
+
         out_res = "".join([chr(i) for i in out_text]).rstrip('\x00')
 
-        return out_res, a
+        return out_res
 
     @classmethod
     def classify_from_filename(self, session: Session, source: str) -> str:
@@ -75,9 +78,11 @@ class ImageDetect:
 
         len_out_imagename = 0
 
-        a = lib.vaccel_image_detection(csession, img, out_imagename, len_img, len_out_imagename)
+        ret = lib.vaccel_image_detection(csession, img, out_imagename, len_img, len_out_imagename)
+        if ret != 0:
+            raise VaccelError(ret, "Could not execute image detection operation")
 
-        return a
+        return ret
 
     @classmethod
     def detect_from_filename(self, session:Session, source: str) -> str :
@@ -114,9 +119,11 @@ class ImageSegment:
 
         len_out_imagename = 0
 
-        a = lib.vaccel_image_segmentation(csession, img, out_imagename, len_img, len_out_imagename)
+        ret = lib.vaccel_image_segmentation(csession, img, out_imagename, len_img, len_out_imagename)
+        if ret != 0:
+            raise VaccelError(ret, "Could not execute image segmentation operation")
 
-        return a
+        return ret
 
     @classmethod
     def segment_from_filename(self, session:Session, source: str) -> str :
@@ -153,9 +160,11 @@ class ImagePose:
 
         len_out_imagename = 0
 
-        a = lib.vaccel_image_pose(csession, img, out_imagename, len_img, len_out_imagename)
+        ret = lib.vaccel_image_pose(csession, img, out_imagename, len_img, len_out_imagename)
+        if ret != 0:
+            raise VaccelError(ret, "Could not execute image pose operation")
 
-        return a
+        return ret
 
     @classmethod
     def pose_from_filename(self, session:Session, source: str) -> str :
@@ -192,9 +201,11 @@ class ImageDepth:
 
         len_out_imagename = 0
 
-        a = lib.vaccel_image_depth(csession, img, out_imagename, len_img, len_out_imagename)
+        ret = lib.vaccel_image_depth(csession, img, out_imagename, len_img, len_out_imagename)        
+        if ret != 0:
+            raise VaccelError(ret, "Could not execute image depth operation")
 
-        return a
+        return ret
 
     @classmethod
     def depth_from_filename(self, session:Session, source: str) -> str :
