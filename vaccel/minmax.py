@@ -1,10 +1,12 @@
 from vaccel.session import Session
 from typing import List
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
+import struct
+import copy
 
 class MinMax:
 
-    def_arg_write: bytes = bytes(100 * " ", encoding="utf-8")
+    def_arg_write: float = bytes(100 * " ", encoding="utf-8")
 
     __op__ = VaccelOpType.VACCEL_MINMAX
 
@@ -17,7 +19,7 @@ class MinMax:
         """
         ses = Session(flags=0)
         Genop.genop(ses, arg_read, arg_write)
-        return arg_write[index].content
+        return struct.unpack('d', arg_write[index].raw_content[:8])[0]
 
     @staticmethod
     def __parse_ndata__(ndata: "str | bytes") -> bytes:
@@ -32,7 +34,7 @@ class MinMax:
         return ndata
 
     @classmethod
-    def minmax(self, indata: float, ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
+    def minmax(self, indata: int, ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
         """
         MinMax using vAccel over genop
 
@@ -48,11 +50,11 @@ class MinMax:
         #indata = double(indata)
         ndata = self.__parse_ndata__(ndata=ndata)
         arg_read = [VaccelArg(data=int(self.__op__)),
-                    VaccelArg(data=indata),
                     VaccelArg(data=ndata),
+                    VaccelArg(data=indata),
                     VaccelArg(data=low_threshold),
                     VaccelArg(data=high_threshold)]
-        arg_write = [VaccelArg(data=self.def_arg_write)] * 3
+        arg_write = [VaccelArg(data=self.def_arg_write), VaccelArg(data=copy.deepcopy(self.def_arg_write)), VaccelArg(data=copy.deepcopy(self.def_arg_write))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 
