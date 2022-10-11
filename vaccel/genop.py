@@ -22,8 +22,8 @@ class VaccelOpType(Enum):
     VACCEL_TF_SESSION_LOAD = 12
     VACCEL_TF_SESSION_RUN = 13
     VACCEL_TF_SESSION_DELETE = 14
-    VACCEL_FUNCTIONS_NR = 15
-    VACCEL_MINMAX = 16
+    VACCEL_MINMAX = 15
+    VACCEL_FUNCTIONS_NR = 16
 
     def __int__(self):
         return self.value
@@ -70,6 +70,10 @@ class VaccelArg:
     def content(self):
         return str(self.buf, encoding='utf-8').strip().rstrip('\x00')
 
+    @property
+    def raw_content(self):
+        return self.buf
+
 
 class VaccelArgInfo:
     def __init__(self, datatype="", datasize="") -> None:
@@ -88,7 +92,7 @@ class VaccelArgInfo:
         if isinstance(arg.buf, bytes):
             datatype = "bytes"
         #if isinstance(arg.buf, double):
-        #   datatype = "double"
+        #    datatype = "double"
         if "cdata" in str(arg.buf).lower():
             datatype = "cdata"
 

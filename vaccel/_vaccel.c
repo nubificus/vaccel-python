@@ -571,6 +571,8 @@ static void (*_cffi_call_python_org)(struct _cffi_externpy_s *, char *);
         #include <tf_model.h>
         #include <ops/tf.h>
         #include <ops/noop.h>
+        #include <ops/blas.h>
+        #include <ops/minmax.h>
         #include <ops/genop.h>
         #include <ops/image.h>
         #include <plugin.h>

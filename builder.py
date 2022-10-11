@@ -14,6 +14,8 @@ ffibuilder.set_source(
         #include <tf_model.h>
         #include <ops/tf.h>
         #include <ops/noop.h>
+        #include <ops/blas.h>
+        #include <ops/minmax.h>
         #include <ops/genop.h>
         #include <ops/image.h>
         #include <plugin.h>
