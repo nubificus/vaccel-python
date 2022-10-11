@@ -21,7 +21,14 @@ class VaccelOpType(Enum):
     VACCEL_TF_SESSION_LOAD = 12
     VACCEL_TF_SESSION_RUN = 13
     VACCEL_TF_SESSION_DELETE = 14
-    VACCEL_FUNCTIONS_NR = 15
+    VACCEL_MINMAX = 15
+    VACCEL_PYNQ_ARR_COPY = 16
+    #VACCEL_PYNQ_MMULT = 17
+    VACCEL_PYNQ_PARALLEL = 18
+    VACCEL_PYNQ_VECTOR_ADD = 19
+    VACCEL_FUNCTIONS_NR = 20
+
+
 
     def __int__(self):
         return self.value
@@ -48,7 +55,10 @@ class VaccelArg:
 
         if self.info.datatype == "float":
             arg1buf = ffi.new("float *", self.buf)
+
         # TODO Handle double data type
+        if self.info.datatype == "double":
+            arg1buf = ffi.new("double *", self.buf)      
 
         self.__hidden__.append(arg1buf)
         buf = ffi.cast("void *", arg1buf)
@@ -64,6 +74,10 @@ class VaccelArg:
     @property
     def content(self):
         return str(self.buf, encoding='utf-8').strip().rstrip('\x00')
+
+    @property
+    def raw_content(self):
+        return self.buf
 
 
 class VaccelArgInfo:
@@ -82,6 +96,8 @@ class VaccelArgInfo:
             datatype = "float"
         if isinstance(arg.buf, bytes):
             datatype = "bytes"
+        #if isinstance(arg.buf, double):
+        #    datatype = "double"
         if "cdata" in str(arg.buf).lower():
             datatype = "cdata"
         return datatype
@@ -96,6 +112,9 @@ class VaccelArgInfo:
             temp = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
         if datatype == "float":
             temp = ffi.new("float *", arg.buf)
+            temp = ffi.new(f"float *", arg.buf)
+        if datatype == "double":
+            temp = ffi.cast("double *", arg.buf)
         if datatype == "cdata":
             temp = arg.buf
         if datatype == "bytes":
@@ -105,7 +124,6 @@ class VaccelArgInfo:
             temp = ffi.cast(temp1)
         datasize = ffi.sizeof(temp)
         return cls(datatype=datatype, datasize=datasize)
-
 
 class VaccelArgList:
     def __init__(self, args: List[VaccelArg]) -> None:

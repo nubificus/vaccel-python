@@ -2,8 +2,12 @@ from vaccel.session import Session
 from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
+from vaccel.minmax import MinMax
+from vaccel.sgemm import Sgemm
+from vaccel.pynq_array_copy import Pynq_array_copy
+from vaccel.pynq_parallel import Pynq_parallel
+from vaccel.pynq_vector_add import Pynq_vector_add
 from vaccel import image_genop as genimg
-
 
 def test_session():
     print("Session test")
@@ -22,7 +26,7 @@ def test_noop():
     print('')
 
 
-imgsource = "/store/nucs/test.jpg"
+imgsource = "/usr/local/share/images/example.jpg"
 
 
 def test_genop():
@@ -75,6 +79,41 @@ def test_image_pose_genop():
 def test_image_depth_genop():
     print('Image depth over genop test')
     res = genimg.ImageDepth.depth(image=imgsource)
+    print(res)
+    print('')
+
+
+def test_min_max_genop():
+    print('Min-Max over genop test')
+    res = MinMax.minmax(indata=262144, ndata=imgsource, low_threshold=10, high_threshold=5000)
+    print(res)
+    print('')
+
+
+def test_sgemm_genop():
+    print('Sgemm over genop test')
+    res = Sgemm.sgemm(m=512, n=512, k=512, alpha=32412.000000, lda=512, ldb=512, beta=2123.000000)
+    print(res)
+    print('')
+
+
+def test_pynq_array_copy_genop():
+    print('Pynq array copy over genop test')
+    res = Pynq_array_copy.pynq_arr_copy(a=10)
+    print(res)
+    print('')
+
+
+def test_pynq_parallel_genop():
+    print('Pynq parallel over genop test')
+    res = Pynq_parallel.pynq_parellel(a=1.0, len_a=3)
+    print(res)
+    print('')
+
+
+def test_pynq_vector_add_genop():
+    print('Pynq vector add over genop test')
+    res = Pynq_vector_add.pynq_vector_add(len_a=5, len_b=5)
     print(res)
     print('')
 
@@ -133,6 +172,11 @@ if __name__ == "__main__":
     test_image_segme_genop()
     test_image_pose_genop()
     test_image_depth_genop()
+    test_min_max_genop()
+    test_sgemm_genop()
+    test_pynq_array_copy_genop()
+    test_pynq_parallel_genop()
+    test_pynq_vector_add_genop()
     # test static image operations
     test_image_classify()
     test_image_detect()
