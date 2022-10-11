@@ -2,6 +2,7 @@ from vaccel.session import Session
 from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
+from vaccel.minmax import MinMax
 from vaccel import image_genop as genimg
 
 def test_session():
@@ -69,6 +70,12 @@ def test_image_depth_genop():
     print(res)
     print('')
 
+def test_min_max_genop():
+    print('Min-Max test')
+    res = MinMax.minmax(indata=262144, ndata=imgsource, low_threshold=10, high_threshold=5000)
+    print(res)
+    print('')
+
 def test_image_classify():
     print("Image classify test")
     ses = Session(flags=3)
@@ -118,6 +125,7 @@ if __name__=="__main__":
     test_image_segme_genop()
     test_image_pose_genop()
     test_image_depth_genop()
+    test_min_max_genop()
     #test static image operations
     test_image_classify()
     test_image_detect()

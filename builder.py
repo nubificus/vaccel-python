@@ -216,5 +216,27 @@ int vaccel_image_depth(struct vaccel_session *sess, const void *img,
 """
 )
 
+#Blas
+ffibuilder.cdef("""
+int vaccel_sgemm(struct vaccel_session *sess,
+	int64_t m, int64_t n, int64_t k,
+	float alpha,
+	float *a, int64_t lda,
+	float *b, int64_t ldb,
+	float beta,
+	float *c, int64_t ldc);
+"""
+)
+
+#MinMax
+ffibuilder.cdef("""
+int vaccel_minmax(struct vaccel_session *sess,
+        const double *indata, int ndata,
+        int low_threshold, int high_threshold,
+        double *outdata,
+        double *min, double *max);
+"""
+)
+
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
