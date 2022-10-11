@@ -22,9 +22,8 @@ def test_noop():
     print(res)
     print('')
 
-
-imgsource = "/store/nucs/test.jpg"
-
+imgsource = "./libs/vaccelrt/examples/images/example.jpg"
+csvsource = "./input_262144.csv"
 
 def test_genop():
     """
@@ -81,7 +80,7 @@ def test_image_depth_genop():
 
 def test_min_max_genop():
     print('Min-Max test')
-    res = MinMax.minmax(indata=262144, ndata=imgsource, low_threshold=10, high_threshold=5000)
+    res = MinMax.minmax(indata=262144, ndata=csvsource, low_threshold=10, high_threshold=5000)
     print(res)
     print('')
 

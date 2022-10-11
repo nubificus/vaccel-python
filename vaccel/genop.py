@@ -49,7 +49,10 @@ class VaccelArg:
 
         if self.info.datatype == "float":
             arg1buf = ffi.new("float *", self.buf)
+
         # TODO Handle double data type
+        if self.info.datatype == "double":
+            arg1buf = ffi.new("double *", self.buf)      
 
         self.__hidden__.append(arg1buf)
         buf = ffi.cast("void *", arg1buf)
@@ -83,6 +86,8 @@ class VaccelArgInfo:
             datatype = "float"
         if isinstance(arg.buf, bytes):
             datatype = "bytes"
+        #if isinstance(arg.buf, double):
+        #   datatype = "double"
         if "cdata" in str(arg.buf).lower():
             datatype = "cdata"
         return datatype
@@ -97,6 +102,9 @@ class VaccelArgInfo:
             temp = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
         if datatype == "float":
             temp = ffi.new("float *", arg.buf)
+            temp = ffi.new(f"float *", arg.buf)
+        if datatype == "double":
+            temp = ffi.cast("double *", arg.buf)
         if datatype == "cdata":
             temp = arg.buf
         if datatype == "bytes":
@@ -106,7 +114,6 @@ class VaccelArgInfo:
             temp = ffi.cast(temp1)
         datasize = ffi.sizeof(temp)
         return cls(datatype=datatype, datasize=datasize)
-
 
 class VaccelArgList:
     def __init__(self, args: List[VaccelArg]) -> None:

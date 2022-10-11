@@ -32,7 +32,7 @@ class MinMax:
         return ndata
 
     @classmethod
-    def minmax(self, indata: "float", ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
+    def minmax(self, indata: float, ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
         """
         MinMax using vAccel over genop
 
@@ -45,18 +45,19 @@ class MinMax:
         Returns:
             outdata, min, max: float 
         """
+        #indata = double(indata)
         ndata = self.__parse_ndata__(ndata=ndata)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=indata),
                     VaccelArg(data=ndata),
                     VaccelArg(data=low_threshold),
                     VaccelArg(data=high_threshold)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]*2
+        arg_write = [VaccelArg(data=self.def_arg_write)] * 3
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 
 """int vaccel_minmax(struct vaccel_session *sess,
-        const double *intdata, int ndata,
+        const double *indata, int ndata,
         int low_threshold, int high_threshold,
         double *outdata,
         double *min, double *max);
