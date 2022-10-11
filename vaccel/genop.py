@@ -22,6 +22,7 @@ class VaccelOpType(Enum):
     VACCEL_TF_SESSION_RUN = 13
     VACCEL_TF_SESSION_DELETE = 14
     VACCEL_FUNCTIONS_NR = 15
+    VACCEL_MINMAX = 16
 
     def __int__(self):
         return self.value
