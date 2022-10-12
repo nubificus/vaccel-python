@@ -13,6 +13,7 @@ ffibuilder.set_source(
         #include <ops/noop.h>
         #include <ops/genop.h>
         #include <ops/image.h>
+        #include <resources/tf_saved_model.h>
         #include <plugin.h>
         """,
         libraries=['vaccel-python', 'dl'],
@@ -51,10 +52,16 @@ ffibuilder.cdef("""
             ...;
         };
 
+        struct vaccel_tf_saved_model {
+            struct vaccel_resource *resource;
+            ...;
+        };
+
         int vaccel_tf_model_new(struct vaccel_tf_model *model, const char *path);
         int vaccel_tf_model_new_from_buffer(struct vaccel_tf_model *model,
                         const uint8_t *buff, size_t size);
         int vaccel_tf_model_destroy(struct vaccel_tf_model *model);
+        int vaccel_tf_saved_model_destroy(struct vaccel_tf_saved_model *model);
         vaccel_id_t vaccel_tf_model_get_id(const struct vaccel_tf_model *model);
         """
 )
@@ -117,6 +124,7 @@ ffibuilder.cdef("""
 
                 /* Data type */
                 enum vaccel_tf_data_type data_type;
+                ...;
         };
 
         struct vaccel_tf_status {
@@ -127,16 +135,24 @@ ffibuilder.cdef("""
                 const char *message;
         };
 
+        int vaccel_tf_saved_model_set_path(
+                struct vaccel_tf_saved_model *model,
+                const char *path
+                );
+
+
         int vaccel_tf_session_load(
                 struct vaccel_session *session,
                 struct vaccel_tf_saved_model *model,
                 struct vaccel_tf_status *status
         );
 
+        int vaccel_tf_saved_model_register(struct vaccel_tf_saved_model *model);
+
         int vaccel_tf_session_run(
                 struct vaccel_session *session,
                 const struct vaccel_tf_saved_model *model, const struct vaccel_tf_buffer *run_options,
-                const struct vaccel_tf_node *in_nodes, struct vaccel_tf_tensor *const *in, int nr_inputs,
+                const struct vaccel_tf_node *in_nodes, struct vaccel_tf_tensor *const*in, int nr_inputs,
                 const struct vaccel_tf_node *out_nodes, struct vaccel_tf_tensor **out, int nr_outputs,
                 struct vaccel_tf_status *status
         );
