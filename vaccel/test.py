@@ -19,7 +19,7 @@ def test_noop():
     print(res)
     print('')
 
-imgsource = "./libs/vaccelrt/examples/images/example.jpg"
+imgsource = "/store/nucs/test.jpg"
 
 def test_genop():
     """

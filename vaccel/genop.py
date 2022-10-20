@@ -142,7 +142,7 @@ class Genop:
 
         ret = lib.vaccel_genop(csession, vaccel_args_read, nr_read,
                              vaccel_args_write, nr_write)
-        if ret != 0:
-            raise VaccelError(ret, "Could not execute generic operation")
+        #if ret != 0:
+        #    raise VaccelError(ret, "Could not execute generic operation")
 
         return ret

@@ -1,7 +1,7 @@
 from vaccel.session import Session
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 
-imgsource = "./libs/vaccelrt/examples/images/example.jpg"
+imgsource = "/usr/local/share/images/example.jpg"
 
 def test_image_classify():
    ses = Session(flags=3)

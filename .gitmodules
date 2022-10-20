@@ -1,3 +1,0 @@
-[submodule "vaccelrt"]
-	path = libs/vaccelrt
-	url = https://github.com/cloudkernels/vaccelrt.git
