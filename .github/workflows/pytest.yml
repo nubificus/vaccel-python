@@ -13,8 +13,13 @@ permissions:
 
 jobs:
   build:
+    runs-on: [ self-hosted, "${{ matrix.archconfig }}" ]
+    strategy:
+      matrix:
+        archconfig: [ x86_64, aarch64 ]
+        #build_type: [Debug, Release]
+      fail-fast: false
 
-    runs-on: [ self-hosted ]
     steps:
     - name: Cleanup previous jobs
       run: |
@@ -26,11 +31,36 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install dependencies
+    - name: Find SHA
       run: |
-        python3 -m pip install --upgrade pip
-        python3 -m pip install flake8 pytest build
-        if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
+        if [[ "${{github.event.pull_request.head.sha}}" != "" ]]
+        then
+          echo "ARTIFACT_SHA=$(echo ${{github.event.pull_request.head.sha}})" >> $GITHUB_ENV
+        else
+          echo "ARTIFACT_SHA=$(echo ${{github.sha}})" >> $GITHUB_ENV
+        fi
+
+    - name: Create python isolated env
+      run: |
+        python3 -m venv .venv
+
+    - name: Install python dependencies
+      run: |
+        ./.venv/bin/python3 -m pip install --upgrade pip
+        # FIXME: add requirements instead of pip-installing them here
+        ./.venv/bin/python3 -m pip install flake8 build setuptools cffi pytest pytest-cov datestamp cmake_build_extension
+        #if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
+
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        ./.venv/bin/python3 -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.venv
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        ./.venv/bin/python3 -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.venv
+
+    # FIXME: fetch deb from s3 instead of building it locally
+    - name: Build vaccelrt
+      run: |
         git clone https://github.com/cloudkernels/vaccelrt --recursive
         cd vaccelrt
         mkdir build
@@ -38,21 +68,66 @@ jobs:
         cmake ../ -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PLUGIN_NOOP=ON -DBUILD_EXAMPLES=ON
         make
         cpack
-        sudo dpkg -i *.deb
-    - name: Lint with flake8
+
+    - name: Install vaccelrt
       run: |
-        # stop the build if there are Python syntax errors or undefined names
-        python3 -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        python3 -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        sudo dpkg -i vaccelrt/build/*.deb
+        # FIXME: make sure rundir exists
+        sudo mkdir -p /run/user/1001
+        sudo chown runner -R /run/user/1001
+
     - name: Test with pytest
       env:
-        PYTHON_VACCEL_PLUGIN: /usr/local/lib/libvaccel-noop.so
+        VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
+        LD_LIBRARY_PATH: /usr/local/lib
+        PYTHONPATH: .
+      run: |
+        #python3 -m build
+        ./.venv/bin/python3 builder.py
+        ./.venv/bin/python3 -m pytest
+
+    - name: Test with coverage
+      env:
+        VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
+        LD_LIBRARY_PATH: /usr/local/lib
+        PYTHONPATH: .
+      run: |
+        ./.venv/bin/python3 -m pytest --cov=vaccel tests/
+
+    - name: Build pip package
+      env:
+        VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
         LD_LIBRARY_PATH: /usr/local/lib
       run: |
-        python3 -m build
-        python3 -m pip install dist/*.whl
-        python3 -m pytest
+        ./.venv/bin/python3 -m build
+        VERSION=$(./.venv/bin/python3 setup.py --version)
+        PYVER=$(./.venv/bin/python3 --version | awk '{print $2}' | awk -F\. '{print $1 $2 }')
+        echo "wheel_name=vaccel-${VERSION}-${PYVER}-${PYVER}m_Linux_${{ matrix.archconfig }}" >> $GITHUB_ENV
+        echo "built: ${{ env.wheel_name }}"
+
+    # FIXME: Add step to upload package to s3
+
+    - name: Upload artifact to s3
+      uses: cloudkernels/minio-upload@master
+      with:
+        url: https://s3.nubificus.co.uk
+        access-key: ${{ secrets.AWS_ACCESS_KEY }}
+        secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        #local-path: dist/${{ env.wheel_name }}
+        local-path: dist/
+        remote-path: nbfc-assets/github/python-vaccel/${{ env.ARTIFACT_SHA }}/${{ matrix.archconfig }}/
+
+     # FIXME: add pypi publish step
+     #- name: Publish package
+     #  if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+     #  uses: pypa/gh-action-pypi-publish@release/v1
+     #  with:
+     #    password: ${{ secrets.PYPI_ANANOS_TOKEN }}
+
     - name: Cleanup
       run: |
-        apt remove vaccel*
+        sudo apt remove -y vaccel
+        # FIXME: remove pip package if installed
+        #pip3 uninstall vaccel
+        echo "built: ${{ env.wheel_name }}"
+        rm -rf ./.venv
