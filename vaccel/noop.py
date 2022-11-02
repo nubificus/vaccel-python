@@ -6,10 +6,10 @@ from vaccel.session import Session
 class Noop:
     def __init__(self):
         """exec vAccel Noop"""
-        printf("test init")
+        print("test init")
 
     def __del__(self):
-        printf("test del")
+        print("test del")
 
     @classmethod
     def noop(self, session):

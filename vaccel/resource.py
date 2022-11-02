@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 class Resource:
     """A vAccel resource
 

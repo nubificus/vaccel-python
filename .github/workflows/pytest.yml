@@ -29,8 +29,8 @@ jobs:
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip
-        pip3 install flake8 pytest build
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        python3 -m pip install flake8 pytest build
+        if [ -f requirements.txt ]; then python3 -m pip install -r requirements.txt; fi
         git clone https://github.com/cloudkernels/vaccelrt --recursive
         cd vaccelrt
         mkdir build
@@ -39,12 +39,12 @@ jobs:
         make
         cpack
         sudo dpkg -i *.deb
-    #- name: Lint with flake8
-    #  run: |
-    #    # stop the build if there are Python syntax errors or undefined names
-    #    flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    #    # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-    #    flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        python3 -m flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        python3 -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       env:
         PYTHON_VACCEL_PLUGIN: /usr/local/lib/libvaccel-noop.so
@@ -52,7 +52,7 @@ jobs:
       run: |
         python3 -m build
         python3 -m pip install dist/*.whl
-        pytest
+        python3 -m pytest
     - name: Cleanup
       run: |
         apt remove vaccel*
