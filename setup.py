@@ -10,7 +10,8 @@ if platform.system != 'Linux':
     _ = f'"(package.title())" only supported to run on Linux'
     raise RuntimeError(_)
 
-setup(url = 'https://github.com/nubificus/python-vaccel',
+setup(name = 'vaccel',
+        url = 'https://github.com/nubificus/python-vaccel',
         author = 'Nubificus Ltd.',
         version = stamp(package),
         packages = find_packages(),

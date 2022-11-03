@@ -1,6 +1,7 @@
 from typing import List
 from vaccel.session import Session
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
+import copy
 
 
 class __ImageOperation__:
@@ -48,7 +49,7 @@ class ImageClassify(__ImageOperation__):
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=image)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]*2
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8")), VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 class ImageDetect(__ImageOperation__):
@@ -69,7 +70,7 @@ class ImageDetect(__ImageOperation__):
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=image)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 class ImageSegment(__ImageOperation__):
@@ -90,7 +91,7 @@ class ImageSegment(__ImageOperation__):
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=image)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 class ImagePose(__ImageOperation__):
@@ -111,7 +112,7 @@ class ImagePose(__ImageOperation__):
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=image)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 class ImageDepth(__ImageOperation__):
@@ -132,5 +133,5 @@ class ImageDepth(__ImageOperation__):
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=image)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)

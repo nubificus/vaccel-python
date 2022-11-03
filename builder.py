@@ -4,9 +4,6 @@ import os
 
 ffibuilder = FFI()
 
-incdirs=['libs/install/include']
-libdirs=['libs/install/lib']
-
 ffibuilder.set_source(
         "vaccel._vaccel",
         r"""
@@ -18,10 +15,7 @@ ffibuilder.set_source(
         #include <ops/image.h>
         #include <plugin.h>
         """,
-        include_dirs=incdirs,
-        library_dirs=libdirs,
         libraries=['vaccel-python', 'dl'],
-        extra_link_args=["-Wl,-rpath,{}".format(libdirs[0])]
 )
 
 # Session API

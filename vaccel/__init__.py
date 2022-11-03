@@ -1,4 +1,4 @@
-__version__ = '2021.6.28'
+__version__ = '2022.11.2'
 __vaccel__ = '0.1.0'
 
 import os, sys, ctypes
