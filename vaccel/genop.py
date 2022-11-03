@@ -1,6 +1,5 @@
 from enum import Enum
 from vaccel._vaccel import lib, ffi
-from vaccel.error import VaccelError
 
 from vaccel.session import Session
 from typing import List
@@ -72,8 +71,8 @@ class VaccelArgInfo:
         self.datatype = datatype
         self.datasize = datasize
 
-    @classmethod
-    def from_vaccel_arg(cls, arg: VaccelArg):
+    @staticmethod
+    def detect_datatype(arg: VaccelArg) -> str:
         datatype = "void"
         if isinstance(arg.buf, int):
             datatype = "int"
@@ -85,19 +84,24 @@ class VaccelArgInfo:
             datatype = "bytes"
         if "cdata" in str(arg.buf).lower():
             datatype = "cdata"
+        return datatype
+
+    @classmethod
+    def from_vaccel_arg(cls, arg: VaccelArg):
+        datatype = VaccelArgInfo.detect_datatype(arg)
 
         if datatype == "int":
-            temp = ffi.new(f"int *", arg.buf)
+            temp = ffi.new("int *", arg.buf)
         if datatype == "char []":
-            temp = ffi.new(f"char []", bytes(arg.buf, encoding="utf-8"))
+            temp = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
         if datatype == "float":
-            temp = ffi.new(f"float *", arg.buf)
+            temp = ffi.new("float *", arg.buf)
         if datatype == "cdata":
             temp = arg.buf
         if datatype == "bytes":
             temp = ffi.from_buffer(arg.buf)
         if datatype == "void":
-            temp1 = ffi.new(f"char []", bytes(arg.buf, encoding="utf-8"))
+            temp1 = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
             temp = ffi.cast(temp1)
         datasize = ffi.sizeof(temp)
         return cls(datatype=datatype, datasize=datasize)
@@ -141,8 +145,8 @@ class Genop:
         vaccel_args_write = VaccelArgList(arg_write).to_cffi()
 
         ret = lib.vaccel_genop(csession, vaccel_args_read, nr_read,
-                             vaccel_args_write, nr_write)
-        #if ret != 0:
+                               vaccel_args_write, nr_write)
+        # if ret != 0:
         #    raise VaccelError(ret, "Could not execute generic operation")
 
         return ret

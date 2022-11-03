@@ -1,7 +1,6 @@
 from typing import List
 from vaccel.session import Session
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
-import copy
 
 
 class __ImageOperation__:
@@ -31,6 +30,7 @@ class __ImageOperation__:
 
         return image
 
+
 class ImageClassify(__ImageOperation__):
 
     __op__ = VaccelOpType.VACCEL_IMG_CLASS
@@ -49,8 +49,10 @@ class ImageClassify(__ImageOperation__):
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=image)]
-        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8")), VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8")),
+                     VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+
 
 class ImageDetect(__ImageOperation__):
 
@@ -62,7 +64,7 @@ class ImageDetect(__ImageOperation__):
         Perform image detection operation using vAccel over genop
 
         Parameters:
-            image (str | bytes): Filename or bytes object of the image 
+            image (str | bytes): Filename or bytes object of the image
 
         Returns:
             str: Detection result
@@ -72,6 +74,7 @@ class ImageDetect(__ImageOperation__):
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+
 
 class ImageSegment(__ImageOperation__):
 
@@ -83,7 +86,7 @@ class ImageSegment(__ImageOperation__):
         Perform image segmentation operation using vAccel over genop
 
         Parameters:
-            image (str | bytes): Filename or bytes object of the image 
+            image (str | bytes): Filename or bytes object of the image
 
         Returns:
             str: Segmentation result
@@ -93,6 +96,7 @@ class ImageSegment(__ImageOperation__):
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+
 
 class ImagePose(__ImageOperation__):
 
@@ -115,6 +119,7 @@ class ImagePose(__ImageOperation__):
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
+
 class ImageDepth(__ImageOperation__):
 
     __op__ = VaccelOpType.VACCEL_IMG_DEPTH
@@ -125,7 +130,7 @@ class ImageDepth(__ImageOperation__):
         Perform image depth estimation operation using vAccel over genop
 
         Parameters:
-            image (str | bytes): Filename or bytes object of the image 
+            image (str | bytes): Filename or bytes object of the image
 
         Returns:
             str: Depth result

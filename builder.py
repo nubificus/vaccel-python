@@ -1,12 +1,11 @@
 from cffi import FFI
-import pathlib
-import os
+
 
 ffibuilder = FFI()
 
 ffibuilder.set_source(
-        "vaccel._vaccel",
-        r"""
+    "vaccel._vaccel",
+    r"""
         #include <session.h>
         #include <tf_model.h>
         #include <ops/tf.h>
@@ -16,7 +15,7 @@ ffibuilder.set_source(
         #include <resources/tf_saved_model.h>
         #include <plugin.h>
         """,
-        libraries=['vaccel-python', 'dl'],
+    libraries=['vaccel-python', 'dl'],
 )
 
 # Session API
@@ -41,7 +40,7 @@ ffibuilder.cdef("""
             struct vaccel_resource *resource
         );
         """
-)
+                )
 
 
 # TensorFlow model
@@ -64,7 +63,7 @@ ffibuilder.cdef("""
         int vaccel_tf_saved_model_destroy(struct vaccel_tf_saved_model *model);
         vaccel_id_t vaccel_tf_model_get_id(const struct vaccel_tf_model *model);
         """
-)
+                )
 
 # TensorFlow inference
 ffibuilder.cdef("""
@@ -157,7 +156,7 @@ ffibuilder.cdef("""
                 struct vaccel_tf_status *status
         );
         """
-)
+                )
 
 # Plugin system
 ffibuilder.cdef("""
@@ -169,13 +168,13 @@ ffibuilder.cdef("""
         int register_plugin_function(struct vaccel_op *plugin_op);
         int register_plugin_functions(struct vaccel_op *plugin_ops, size_t nr_ops);
         """
-)
+                )
 
 # Noop API
 ffibuilder.cdef("""
         int vaccel_noop(struct vaccel_session *sess);
         """
-)
+                )
 
 # Genop API
 ffibuilder.cdef("""
@@ -183,48 +182,48 @@ ffibuilder.cdef("""
                 uint32_t size;
                 void *buf;
         };"""
-)
+                )
 
 ffibuilder.cdef("""
 int vaccel_genop(struct vaccel_session *sess, struct vaccel_arg *read,
-		int nr_read, struct vaccel_arg *write, int nr_write);"""
-)
+                int nr_read, struct vaccel_arg *write, int nr_write);"""
+                )
 
 # Image API
 ffibuilder.cdef("""
 int vaccel_image_classification(struct vaccel_session *sess, const void *img,
-		unsigned char *out_text, unsigned char *out_imgname,
-		size_t len_img, size_t len_out_text, size_t len_out_imgname);
+                unsigned char *out_text, unsigned char *out_imgname,
+                size_t len_img, size_t len_out_text, size_t len_out_imgname);
 """
-)
+                )
 
 ffibuilder.cdef("""
 int vaccel_image_detection(struct vaccel_session *sess, const void *img,
-		unsigned char *out_imgname, size_t len_img,
-		size_t len_out_imgname);
+                unsigned char *out_imgname, size_t len_img,
+                size_t len_out_imgname);
 """
-)
+                )
 
 ffibuilder.cdef("""
 int vaccel_image_segmentation(struct vaccel_session *sess, const void *img,
-		unsigned char *out_imgname, size_t len_img,
-		size_t len_out_imgname);
+                unsigned char *out_imgname, size_t len_img,
+                size_t len_out_imgname);
 """
-)
+                )
 
 ffibuilder.cdef("""
 int vaccel_image_pose(struct vaccel_session *sess, const void *img,
-		unsigned char *out_imgname, size_t len_img,
-		size_t len_out_imgname);
+                unsigned char *out_imgname, size_t len_img,
+                size_t len_out_imgname);
 """
-)
+                )
 
 ffibuilder.cdef("""
 int vaccel_image_depth(struct vaccel_session *sess, const void *img,
-		unsigned char *out_imgname, size_t len_img,
-		size_t len_out_imgname);
+                unsigned char *out_imgname, size_t len_img,
+                size_t len_out_imgname);
 """
-)
+                )
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
