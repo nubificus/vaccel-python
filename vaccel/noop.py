@@ -1,7 +1,5 @@
-from vaccel._vaccel import lib, ffi
-from vaccel.error import VaccelError
+from vaccel._vaccel import lib
 
-from vaccel.session import Session
 
 class Noop:
     def __init__(self):
@@ -16,4 +14,3 @@ class Noop:
         """exec the operation"""
         csession = session._to_inner()
         return lib.vaccel_noop(csession)
-

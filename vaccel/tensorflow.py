@@ -3,8 +3,8 @@ from vaccel.error import VaccelError
 
 import functools
 import operator
-import sys
 from enum import IntEnum
+
 
 class Node:
     """A representation of TensorFlow graph input or output node"""
@@ -12,6 +12,7 @@ class Node:
     def __init__(self, name, node_id):
         self._name = bytes(name, "ascii")
         self._id = node_id
+        self.__hidden__ = list()
 
     def __str__(self):
         return '{}:{}'.format(self._name.decode('ascii'), self._id)
@@ -32,20 +33,29 @@ class Node:
     def id(self, node_id):
         self._id = node_id
 
-    def _to_ctype(self, ctype=None):
-        if ctype == None:
-            ctype = ffi.new("struct vaccel_tf_node *")
-        ctype.name = ffi.new("char[]", self._name)
-        ctype.id = self._id
-        return ctype
+    def to_cffi(self):
+        name = ffi.new("char[]", self._name)
+        nid = self._id
 
-    @staticmethod
-    def _to_carray(nodes):
-        cnodes = ffi.new("struct vaccel_tf_node[%d]" % len(nodes))
+        ctype = ffi.new("struct vaccel_tf_node []", 1)
+        self.__hidden__.append(ctype)
+        self.__hidden__.append(name)
+        ctype[0].name = name
+        ctype[0].id = nid
+
+        return ctype[0]
+
+    def _to_carray(self, nodes):
+        temp = []
         for i, n in enumerate(nodes):
-            n._to_ctype(cnodes[i])
+            temp.append(n.to_cffi())
 
-        return cnodes
+        ctypenew = ffi.new("struct vaccel_tf_node[]", temp)
+        # hack to keep memory alive
+        self.__hidden__.append(ctypenew)
+
+        return ctypenew
+
 
 class TensorType(IntEnum):
     FLOAT = lib.VACCEL_TF_FLOAT
@@ -72,21 +82,22 @@ class TensorType(IntEnum):
     UINT32 = lib.VACCEL_TF_UINT32
     UINT64 = lib.VACCEL_TF_UINT64
 
+
 class Tensor:
     """A representation of a Tensor"""
 
     _size_dict = dict([
-            (TensorType.FLOAT, (ffi.sizeof('float'), 'float')),
-            (TensorType.DOUBLE, (ffi.sizeof('double'), 'double')),
-            (TensorType.INT32, (ffi.sizeof('int32_t'), 'int32_t')),
-            (TensorType.UINT8, (ffi.sizeof('int8_t'), 'int8_t')),
-            (TensorType.INT16, (ffi.sizeof('int16_t'), 'int16_t')),
-            (TensorType.INT8, (ffi.sizeof('int8_t'), 'int8_t')),
-            (TensorType.INT64, (ffi.sizeof('int64_t'), 'int64_t')),
-            (TensorType.BOOL, (ffi.sizeof('bool'), 'bool')),
-            (TensorType.UINT16, (ffi.sizeof('uint16_t'), 'uint16_t')),
-            (TensorType.UINT32, (ffi.sizeof('uint32_t'), 'uint32_t')),
-            (TensorType.UINT64, (ffi.sizeof('uint64_t'), 'uint64_t'))
+        (TensorType.FLOAT, (ffi.sizeof('float'), 'float')),
+        (TensorType.DOUBLE, (ffi.sizeof('double'), 'double')),
+        (TensorType.INT32, (ffi.sizeof('int32_t'), 'int32_t')),
+        (TensorType.UINT8, (ffi.sizeof('int8_t'), 'int8_t')),
+        (TensorType.INT16, (ffi.sizeof('int16_t'), 'int16_t')),
+        (TensorType.INT8, (ffi.sizeof('int8_t'), 'int8_t')),
+        (TensorType.INT64, (ffi.sizeof('int64_t'), 'int64_t')),
+        (TensorType.BOOL, (ffi.sizeof('bool'), 'bool')),
+        (TensorType.UINT16, (ffi.sizeof('uint16_t'), 'uint16_t')),
+        (TensorType.UINT32, (ffi.sizeof('uint32_t'), 'uint32_t')),
+        (TensorType.UINT64, (ffi.sizeof('uint64_t'), 'uint64_t'))
     ])
 
     class OutOfBoundsTensorIndex(RuntimeError):
@@ -105,10 +116,11 @@ class Tensor:
         def __str__(self):
             return "Trying to set data with length {} in tensor with dims: {}".format(self._data_len, self._dims)
 
-    def __init__(self, dims, dtype:TensorType):
+    def __init__(self, dims, dtype: TensorType):
         self._dims = dims
         self._data = []
         self._dtype = dtype
+        self.__hidden__ = []
 
     def __str__(self):
         return "Tensor {} of {}".format(self._dims, self._dtype)
@@ -158,69 +170,115 @@ class Tensor:
         index = self.get_index(indices)
         return self.data[index]
 
-    def _to_ctype(self, ctype=None):
-        if ctype == None:
-            ctype = ffi.new("struct vaccel_tf_tensor *")
+    def to_cffi(self):
+        dims = ffi.new("int64_t[%d]" % len(self.dims), self.dims)
+        # hack to keep memory alive
+        self.__hidden__.append(dims)
 
-        ctype.dims = ffi.new("int64_t[%d]" % len(self.dims), self.dims)
-        ctype.nr_dims = len(self.dims)
-        ctype.data = ffi.new("%s[%d]" % (self._ctype(), self._csize() * len(self.data)), self.data)
-        ctype.size = self._csize() * len(self.data)
-        ctype.data_type = int(self._dtype)
+        nr_dims = len(self.dims)
 
-        return ctype
+        data = ffi.new("%s[%d]" % (self._ctype(), len(self.data)), self.data)
+        # hack to keep memory alive
+        self.__hidden__.append(data)
 
-    @staticmethod
-    def _to_carray(tensors):
+        size = self._csize() * len(self.data)
+        data_type = int(self._dtype)
+
+        ctype = ffi.new("struct vaccel_tf_tensor []", 1)
+        # hack to keep memory alive
+        self.__hidden__.append(ctype)
+
+        ctype[0].dims = dims
+        ctype[0].nr_dims = nr_dims
+        ctype[0].data = data
+        ctype[0].size = size
+        ctype[0].data_type = data_type
+
+        return ctype[0]
+
+    def _to_carray(self, tensors):
+
         ctensors = ffi.new("struct vaccel_tf_tensor[%d]" % len(tensors))
-        for i, t in enumerate(tensors):
-            t._to_ctype(ctensors[i])
+        self.__hidden__.append(ctensors)
 
-        return ctensors
+        temp = []
+        for i, t in enumerate(tensors):
+            temp.append(t.to_cffi())
+#           __hidden__.append(ctensors[i])
+
+#       ctypenew = ffi.new("struct vaccel_tf_tensor**", ctensors)
+        ctypenew = ffi.new("struct vaccel_tf_tensor[]", temp)
+        self.__hidden__.append(ctypenew)
+        ctypenew = ffi.new("struct vaccel_tf_tensor**", ctypenew)
+        self.__hidden__.append(ctypenew)
+#       return ctensors
+        return ctypenew
 
     @staticmethod
     def _from_ctype(ctensor):
         dims = ffi.unpack(ctensor.dims, ctensor.nr_dims)
+#       dims = [ctensor.dims[i] for i in range(ctensor.nr_dims)]
         dtype = TensorType(ctensor.data_type)
 
         tensor = Tensor(dims, dtype)
         typed_cdata = ffi.cast("%s *" % tensor._ctype(), ctensor.data)
-        tensor.data = ffi.unpack(typed_cdata, int(ctensor.size / tensor._csize()))
+        tensor.data = ffi.unpack(typed_cdata, int(
+            ctensor.size / tensor._csize()))
 
         return tensor
-        
+
     @staticmethod
     def _from_carray(ctensors, nr_tensors):
         ctensors = ffi.unpack(ctensors, nr_tensors)
         return [Tensor._from_ctype(t) for t in ctensors]
-        
+
 
 class TensorFlowModel:
     """A TensorFlow model vAccel resource"""
 
     def __init__(self):
         """Create a TensorFlow model resource"""
-        self._inner = ffi.new("struct vaccel_tf_model *")
+        self._inner = ffi.new("struct vaccel_tf_saved_model *")
 
     def __del__(self):
         """Destroy a vAccel TensorFlow model"""
-        
-        lib.vaccel_tf_model_destroy(self._inner)
+
+        # lib.vaccel_tf_session_destroy(self._inner)
+        lib.vaccel_tf_saved_model_destroy(self._inner)
 
     def _get_inner_resource(self):
         return self._inner.resource
 
-    def from_model_file(self, model_path:str):
+    def from_model_file(self, model_path: str):
         """Initialize a TensorFlow model by loading it from a .pb file"""
 
         ret = lib.vaccel_tf_model_new(self._inner, bytes(model_path, 'ascii'))
         if ret != 0:
             raise VaccelError(ret, "Could not create model")
 
-    def from_data(self, data:bytes):
+    def from_data(self, data: bytes):
         """Initialize a TensorFlow model from a byte array"""
 
         ret = lib.vaccel_tf_model_new_from_buffer(self._inner, data)
+        if ret != 0:
+            raise VaccelError(ret, "Could not create model")
+
+    def model_set_path(self, model_path: str):
+        ret = lib.vaccel_tf_saved_model_set_path(
+            self._inner, bytes(model_path, 'ascii'))
+        if ret != 0:
+            raise VaccelError(ret, "Could not set path")
+
+    def model_register(self):
+        ret = lib.vaccel_tf_saved_model_register(self._inner)
+        if ret != 0:
+            raise VaccelError(ret, "Could not register model")
+
+    def from_session(self, session, model_path: str):
+        status = ffi.new("struct vaccel_tf_status *")
+
+        ret = lib.vaccel_tf_session_load(
+            session._to_inner(), self._inner, status)
         if ret != 0:
             raise VaccelError(ret, "Could not create model")
 
@@ -235,27 +293,30 @@ class TensorFlowModel:
     def load_graph(self, session):
         status = ffi.new("struct vaccel_tf_status *")
         ret = lib.vaccel_tf_model_load_graph(session._to_inner(), self._inner,
-                status)
+                                             status)
         if ret != 0:
             raise VaccelError(ret, "Could not load TensorFlow graph")
 
     def run(self, session, in_nodes, in_tensors, out_nodes):
-        _run_options = ffi.new("struct vaccel_tf_buffer *");
-        _status = ffi.new("struct vaccel_tf_status *");
-        _out_tensors = ffi.new("struct vaccel_tf_tensor[%d]" % len(out_nodes))
+        _run_options = ffi.new("struct vaccel_tf_buffer *")
+        _status = ffi.new("struct vaccel_tf_status *")
+        _out_tensors_ = ffi.new("struct vaccel_tf_tensor[%d]" % len(out_nodes))
+        _out_tensors = ffi.new("struct vaccel_tf_tensor**", _out_tensors_)
 
-        _in_nodes = Node._to_carray(in_nodes)
-        _in_tensors = Tensor._to_carray(in_tensors)
-        _out_nodes = Node._to_carray(out_nodes)
+#       _in_nodes = Node._to_carray(in_nodes)
+#       _in_tensors = Tensor._to_carray(in_tensors)
+#       _out_nodes = Node._to_carray(out_nodes)
+        _in_nodes = in_nodes[0]._to_carray(in_nodes)
+        _in_tensors = in_tensors[0]._to_carray(in_tensors)
+        _out_nodes = out_nodes[0]._to_carray(out_nodes)
 
-        ret = lib.vaccel_tf_model_run(session._to_inner(), self._inner, _run_options,
-                _in_nodes, _in_tensors, len(in_nodes),
-                _out_nodes, _out_tensors, len(out_nodes),
-                _status)
+        ret = lib.vaccel_tf_session_run(session._to_inner(), self._inner, _run_options,
+                                        _in_nodes, _in_tensors, len(in_nodes),
+                                        _out_nodes, _out_tensors, len(
+                                            out_nodes),
+                                        _status)
         if ret != 0:
             print(ffi.string(_status.message))
             raise VaccelError(ret, "Could not run TensorFlow graph")
 
         return Tensor._from_carray(_out_tensors, len(out_nodes))
-
-

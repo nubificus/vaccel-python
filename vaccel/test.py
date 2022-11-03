@@ -1,8 +1,9 @@
 from vaccel.session import Session
 from vaccel.noop import Noop
-from vaccel.genop import Genop, VaccelArg, VaccelOpType
+from vaccel.genop import Genop, VaccelArg
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 from vaccel import image_genop as genimg
+
 
 def test_session():
     print("Session test")
@@ -10,6 +11,7 @@ def test_session():
     ses_b = Session(flags=1)
     print(f'Session A id is {ses_a.id()} and Session B id is {ses_b.id()}')
     print('')
+
 
 def test_noop():
     print("Noop test")
@@ -19,7 +21,9 @@ def test_noop():
     print(res)
     print('')
 
+
 imgsource = "/store/nucs/test.jpg"
+
 
 def test_genop():
     """
@@ -36,8 +40,9 @@ def test_genop():
     arg_write = []
 
     res = Genop.genop(ses, arg_read, arg_write)
-    print("RESULT=" ,res)
+    print("RESULT=", res)
     print('')
+
 
 def test_image_class_genop():
     print('Image classify over genop test')
@@ -45,11 +50,13 @@ def test_image_class_genop():
     print(res)
     print('')
 
+
 def test_image_detect_genop():
     print('Image detection over genop test')
     res = genimg.ImageDetect.detect(image=imgsource)
     print(res)
     print('')
+
 
 def test_image_segme_genop():
     print('Image segmentation over genop test')
@@ -57,17 +64,20 @@ def test_image_segme_genop():
     print(res)
     print('')
 
+
 def test_image_pose_genop():
     print('Image pose over genop test')
     res = genimg.ImagePose.pose(image=imgsource)
     print(res)
     print('')
 
+
 def test_image_depth_genop():
     print('Image depth over genop test')
     res = genimg.ImageDepth.depth(image=imgsource)
     print(res)
     print('')
+
 
 def test_image_classify():
     print("Image classify test")
@@ -77,6 +87,7 @@ def test_image_classify():
     print(res)
     print('')
 
+
 def test_image_detect():
     print("Image detect test")
     ses = Session(flags=3)
@@ -84,6 +95,7 @@ def test_image_detect():
     res = ImageDetect.detect_from_filename(session=ses, source=imgsource)
     print(res)
     print('')
+
 
 def test_image_segment():
     print("Image segment test")
@@ -93,6 +105,7 @@ def test_image_segment():
     print(res)
     print('')
 
+
 def test_image_pose():
     print("Image pose test")
     ses = Session(flags=3)
@@ -100,6 +113,7 @@ def test_image_pose():
     res = ImagePose.pose_from_filename(session=ses, source=imgsource)
     print(res)
     print('')
+
 
 def test_image_depth():
     print("Image depth test")
@@ -109,16 +123,17 @@ def test_image_depth():
     print(res)
     print('')
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     test_session()
     test_noop()
-    #test genop image operations
+    # test genop image operations
     test_image_class_genop()
     test_image_detect_genop()
     test_image_segme_genop()
     test_image_pose_genop()
     test_image_depth_genop()
-    #test static image operations
+    # test static image operations
     test_image_classify()
     test_image_detect()
     test_image_segment()

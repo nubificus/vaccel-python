@@ -1,6 +1,7 @@
 from vaccel._vaccel import lib, ffi
 from vaccel.error import VaccelError
 
+
 class Session:
     def __init__(self, flags):
         """Create a new vAccel session"""
@@ -23,16 +24,20 @@ class Session:
     def register_resource(self, resource):
         """Register a vAccel resource with the session"""
 
-        ret = lib.vaccel_sess_register(self._inner, resource._get_inner_resource())
+        ret = lib.vaccel_sess_register(
+            self._inner, resource._get_inner_resource())
         if ret != 0:
-            raise VaccelError(ret, "Could not register resource to session".format(self.id()))
-        
+            raise VaccelError(
+                ret, "Could not register resource to session {}".format(self.id()))
+
     def unregister_resource(self, resource):
         """Unregister a vAccel resource from the session"""
 
-        ret = lib.vaccel_sess_unregister(self._inner, resource._get_inner_resource())
+        ret = lib.vaccel_sess_unregister(
+            self._inner, resource._get_inner_resource())
         if ret != 0:
-            raise VaccelError(ret, "Could not unregister resource from session".format(self.id()))
+            raise VaccelError(
+                ret, "Could not unregister resource from session {}".format(self.id()))
 
     def has_resource(self, resource):
         """Returns true if the resource is registered with the session"""
