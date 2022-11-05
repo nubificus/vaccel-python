@@ -37,7 +37,7 @@ jobs:
         then
           echo "ARTIFACT_SHA=$(echo ${{github.event.pull_request.head.sha}})" >> $GITHUB_ENV
         else
-          echo "ARTIFACT_SHA=$(echo ${{github.sha}})" >> $GITHUB_ENV
+          echo "ARTIFACT_SHA=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         fi
 
     - name: Create python isolated env
@@ -105,8 +105,6 @@ jobs:
         echo "wheel_name=vaccel-${VERSION}-${PYVER}-${PYVER}m_Linux_${{ matrix.archconfig }}" >> $GITHUB_ENV
         echo "built: ${{ env.wheel_name }}"
 
-    # FIXME: Add step to upload package to s3
-
     - name: Upload artifact to s3
       uses: cloudkernels/minio-upload@master
       with:
@@ -115,6 +113,7 @@ jobs:
         secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         #local-path: dist/${{ env.wheel_name }}
         local-path: dist/
+        policy: 1
         remote-path: nbfc-assets/github/python-vaccel/${{ env.ARTIFACT_SHA }}/${{ matrix.archconfig }}/
 
      # FIXME: add pypi publish step
