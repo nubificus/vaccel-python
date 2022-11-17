@@ -1,8 +1,10 @@
+from contextlib import nullcontext
 from vaccel.session import Session
 from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 from vaccel.minmax import MinMax
+from vaccel.sgemm import Sgemm
 from vaccel import image_genop as genimg
 
 
@@ -84,6 +86,12 @@ def test_min_max_genop():
     print(res)
     print('')
 
+def test_sgemm_genop():
+    print('Sgemm test')
+    res = Sgemm.sgemm(m=512, n=512, k=512, alpha=32412.000000, lda=512, ldb=512, beta=2123.000000)
+    print(res)
+    print('')
+
 def test_image_classify():
     print("Image classify test")
     ses = Session(flags=3)
@@ -132,16 +140,17 @@ def test_image_depth():
 if __name__ == "__main__":
     test_session()
     test_noop()
-    # test genop image operations
-    test_image_class_genop()
-    test_image_detect_genop()
-    test_image_segme_genop()
-    test_image_pose_genop()
-    test_image_depth_genop()
+    #test genop image operations
+    #test_image_class_genop()
+    #test_image_detect_genop()
+    #test_image_segme_genop()
+    #test_image_pose_genop()
+    #test_image_depth_genop()
     test_min_max_genop()
+    test_sgemm_genop()
     #test static image operations
-    test_image_classify()
-    test_image_detect()
-    test_image_segment()
-    test_image_pose()
-    test_image_depth()
+    #test_image_classify()
+    #test_image_detect()
+    #test_image_segment()
+    #test_image_pose()
+    #test_image_depth()

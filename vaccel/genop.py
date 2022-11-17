@@ -23,6 +23,11 @@ class VaccelOpType(Enum):
     VACCEL_TF_SESSION_DELETE = 14
     VACCEL_MINMAX = 15
     VACCEL_FUNCTIONS_NR = 16
+    VACCEL_PYNQ_ARR_COPY = 17
+    VACCEL_PYNQ_PARALLEL = 18
+    VACCEL_PYNQ_VECTOR_ADD = 19
+
+
 
     def __int__(self):
         return self.value
