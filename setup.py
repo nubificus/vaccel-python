@@ -2,18 +2,15 @@ from setuptools import setup, find_packages
 from platform import uname
 from datestamp import stamp
 
-package = 'vaccel'
+package = 'vaccel-python'
 platform = uname()
 
-if platform.system != 'Linux':
-    _ = f'"{package.title()}" only supported to run on Linux'
-    raise RuntimeError(_)
-
-setup(name='vaccel',
+setup(name=package,
       url='https://github.com/nubificus/python-vaccel',
       author='Nubificus Ltd.',
-      version=stamp(package),
       packages=find_packages(),
+      setuptools_git_versioning={ "enabled": True, },
+      setup_requires=["setuptools-git-versioning<2"],
       description=('Python bindings with CFFI for libvaccel'),
       install_requires=["cffi>=1.0.0"],
       cffi_modules=["builder.py:ffibuilder"],
