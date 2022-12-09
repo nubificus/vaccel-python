@@ -56,7 +56,7 @@ class MinMax:
                     VaccelArg(data=high_threshold)]
         
         arg_write = [VaccelArg(data=self.def_arg_write), VaccelArg(data=copy.deepcopy(self.def_arg_write)), VaccelArg(data=copy.deepcopy(self.def_arg_write))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=1)
 
 
 """int vaccel_minmax(struct vaccel_session *sess,
