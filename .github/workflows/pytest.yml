@@ -12,6 +12,58 @@ permissions:
   contents: read
 
 jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.archconfig }}
+    runs-on: [ self-hosted, "${{ matrix.archconfig }}" ]
+    strategy:
+      matrix:
+        archconfig: [ x86_64, aarch64 ]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Used to host cibuildwheel
+      - uses: actions/setup-python@v3
+
+      - name: Find SHA
+        run: |
+          if [[ "${{github.event.pull_request.head.sha}}" != "" ]]
+          then
+            echo "ARTIFACT_SHA=$(echo ${{github.event.pull_request.head.sha}})" >> $GITHUB_ENV
+          else
+            echo "ARTIFACT_SHA=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+          fi
+
+      - name: Install cibuildwheel
+        run: python -m pip install cibuildwheel==2.11.4
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        # to supply options, put them in 'env', like:
+        # env:
+        #   CIBW_SOME_OPTION: value
+        env:
+          CIBW_SKIP: "*-win32 *-*linux_i686 *macos*"
+          CIBW_BEFORE_ALL: >
+            git clone --recursive https://github.com/cloudkernels/vaccelrt &&
+            cd vaccelrt &&
+            mkdir -p build &&
+            cd build &&
+            cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PLUGIN_NOOP=ON -DBUILD_EXAMPLES=ON ../ &&
+            make install -j$(nproc)
+
+      - name: Upload artifact to s3
+        uses: cloudkernels/minio-upload@v3
+        with:
+          url: https://s3.nubificus.co.uk
+          access-key: ${{ secrets.AWS_ACCESS_KEY }}
+          secret-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          #local-path: dist/${{ env.wheel_name }}
+          local-path: wheelhouse/
+          policy: 1
+          remote-path: nbfc-assets/github/python-vaccel/wheels/${{ env.ARTIFACT_SHA }}/${{ matrix.archconfig }}/
+
   build:
     runs-on: [ self-hosted, "${{ matrix.archconfig }}" ]
     strategy:
@@ -111,7 +163,7 @@ jobs:
         echo "built: ${{ env.wheel_name }}"
 
     - name: Upload artifact to s3
-      uses: cloudkernels/minio-upload@master
+      uses: cloudkernels/minio-upload@v3
       with:
         url: https://s3.nubificus.co.uk
         access-key: ${{ secrets.AWS_ACCESS_KEY }}
