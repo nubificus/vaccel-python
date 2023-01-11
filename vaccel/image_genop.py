@@ -13,6 +13,16 @@ class __ImageOperation__:
         Performs the genop operation provided in arg_read.
 
         Returns the content of the arg_write indicated by index.
+        
+        Paramters
+        ---------
+        arg_read : `list` 
+        arg_write : `list`
+        index : `int`
+
+        Returns
+        ---------
+        The content of the `arg_write` indicated by `index`.
         """
         ses = Session(flags=0)
         Genop.genop(ses, arg_read, arg_write)
@@ -20,6 +30,20 @@ class __ImageOperation__:
 
     @staticmethod
     def __parse_image__(image: "str | bytes") -> bytes:
+        """
+        Reads image data from file.
+        Returns image file content.
+        
+        Parameters
+        ----------
+        image: `str|bytes`
+            Filename or bytes object of the image.
+
+        Returns
+        ----------
+        image : `bytes`
+        """
+
         if not isinstance(image, str) and not isinstance(image, bytes):
             raise TypeError(
                 f"Invalid image type. Expected str or bytes, got {type(image)}.")
@@ -38,13 +62,16 @@ class ImageClassify(__ImageOperation__):
     @classmethod
     def classify(self, image: "str | bytes"):
         """
-        Classify image using vAccel over genop
+        Classify image using vAccel over genop.
 
-        Parameters:
-            image (str | bytes): Filename or bytes object of the image
+        Parameters
+        ----------
+        image : `str | bytes` 
+            Filename or bytes object of the image.
 
-        Returns:
-            str: Classification tag
+        Returns
+        ----------
+        `str` : Classification tag
         """
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
@@ -61,13 +88,16 @@ class ImageDetect(__ImageOperation__):
     @classmethod
     def detect(self, image: "str | bytes"):
         """
-        Perform image detection operation using vAccel over genop
+        Performs image detection operation using vAccel over genop
 
-        Parameters:
-            image (str | bytes): Filename or bytes object of the image
+        Parameters
+        ----------
+        image : `str | bytes` 
+            Filename or bytes object of the image.
 
-        Returns:
-            str: Detection result
+        Returns
+        ----------
+        `str` : Detection result
         """
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
@@ -83,13 +113,16 @@ class ImageSegment(__ImageOperation__):
     @classmethod
     def segment(self, image: "str | bytes"):
         """
-        Perform image segmentation operation using vAccel over genop
+        Performs image segmentation operation using vAccel over genop
 
-        Parameters:
-            image (str | bytes): Filename or bytes object of the image
+        Parameters
+        ----------
+        image : `str | bytes` 
+            Filename or bytes object of the image.
 
-        Returns:
-            str: Segmentation result
+        Returns
+        ----------
+        `str` : Segmentation result
         """
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
@@ -107,11 +140,14 @@ class ImagePose(__ImageOperation__):
         """
         Perform image pose estimation operation using vAccel over genop
 
-        Parameters:
-            image (str | bytes): Filename or bytes object of the image
+        Parameters
+        ----------
+        image : `str | bytes` 
+            Filename or bytes object of the image.
 
-        Returns:
-            str: Pose result
+        Returns
+        ----------
+        `str` : Pose result
         """
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),
@@ -129,11 +165,14 @@ class ImageDepth(__ImageOperation__):
         """
         Perform image depth estimation operation using vAccel over genop
 
-        Parameters:
-            image (str | bytes): Filename or bytes object of the image
+        Parameters
+        ----------
+        image : `str | bytes` 
+            Filename or bytes object of the image.
 
-        Returns:
-            str: Depth result
+        Returns
+        ----------
+        `str` : Depth result
         """
         image = self.__parse_image__(image=image)
         arg_read = [VaccelArg(data=int(self.__op__)),

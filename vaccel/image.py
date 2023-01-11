@@ -5,21 +5,29 @@ from typing import List
 
 
 class ImageClassify:
-    """An ImageClassify model vAccel resource"""
+    """An Image Classify model vAccel resource."""
 
     out_size = 500
 
     def __init__(self):
-        """Create an ImageClassify model resource"""
         print("test init")
 
     def __del__(self):
-        """Destroy a vAccel ImageClassify model"""
         print("test del")
 
     @classmethod
     def __classify__(self, session: Session, data: List[int]) -> str:
-        """Execute image classification operation"""
+        """Execute image classification operation.
+        
+        Parameters
+        ----------
+        session : `Any`
+        data : `list`
+
+        Returns
+        ----------
+        `str` : Classification tag
+        """
         csession = session._to_inner()
 
         img = ffi.cast("const void *", data)
@@ -44,30 +52,48 @@ class ImageClassify:
 
     @classmethod
     def classify_from_filename(self, session: Session, source: str) -> str:
-        """Initialize an ImageClassify model by loading image from filename"""
+        """Initialize an ImageClassify model by loading image from filename
+        
+        Parameters
+        ----------
+        session : `Any`
+        source : `str`
+
+        Returns
+        ----------
+        `str` : Classification tag
+        """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
         res = self.__classify__(session=session, data=pointer)
-
         return res
 
 
 class ImageDetect:
+    """An Image Detect model vAccel resource"""
 
     out_size = 500
 
     def __init__(self):
-        """Create an ImageDetect model resource"""
         print("test init")
 
     def __del__(self):
-        """Destroy a vAccel ImageDetect model"""
         print("test del")
 
     @classmethod
     def __detect__(self, session: Session, data: List[int]) -> str:
-        """Execute image detection operation"""
+        """Execute image detection operation
+        
+        Parameters
+        ----------
+        session : `Any`
+        data : `list`
+
+        Returns
+        ----------
+        `str` : Detection result
+        """
         csession = session._to_inner()
 
         img = ffi.cast("const void *", data)
@@ -87,7 +113,17 @@ class ImageDetect:
 
     @classmethod
     def detect_from_filename(self, session: Session, source: str) -> str:
-        """Initialize an ImageDetect model by loading image from filename"""
+        """Initialize an ImageDetect model by loading image from filename
+        
+        Parameters
+        ----------
+        session : `Any`
+        source : `str`
+
+        Returns
+        ----------
+        `str` : Detection tag
+        """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
@@ -97,20 +133,29 @@ class ImageDetect:
 
 
 class ImageSegment:
+    """An Image Segment model vAccel resource"""
 
     out_size = 500
 
     def __init__(self):
-        """Create an ImageSegment model resource"""
         print("test init")
 
     def __del__(self):
-        """Destroy a vAccel ImageSegment model"""
         print("test del")
 
     @classmethod
     def __segment__(self, session: Session, data: List[int]) -> str:
-        """Execute image segmentation operation"""
+        """Execute image segmentation operation
+        
+        Parameters
+        ----------
+        session : `Any`
+        data : `list`
+
+        Returns
+        ----------
+        `str` : Segmentation result
+        """
         csession = session._to_inner()
 
         img = ffi.cast("const void *", data)
@@ -130,7 +175,16 @@ class ImageSegment:
 
     @classmethod
     def segment_from_filename(self, session: Session, source: str) -> str:
-        """Initialize an ImageSegment model by loading image from filename"""
+        """Initialize an ImageSegment model by loading image from filename
+        Parameters
+        ----------
+        session : `Any`
+        source : `str`
+
+        Returns
+        ----------
+        `str` : Segmentation tag
+        """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
@@ -140,20 +194,29 @@ class ImageSegment:
 
 
 class ImagePose:
+    """An ImageC Pose model vAccel resource"""
 
     out_size = 500
 
     def __init__(self):
-        """Create an ImagePose model resource"""
         print("test init")
 
     def __del__(self):
-        """Destroy a vAccel ImagePose model"""
         print("test del")
 
     @classmethod
     def __pose__(self, session: Session, data: List[int]) -> str:
-        """Execute image pose operation"""
+        """Execute image pose operation
+        
+        Parameters
+        ----------
+        session : `Any`
+        data : `list`
+
+        Returns
+        ----------
+        `str` : Pose result
+        """
         csession = session._to_inner()
 
         img = ffi.cast("const void *", data)
@@ -172,7 +235,17 @@ class ImagePose:
 
     @classmethod
     def pose_from_filename(self, session: Session, source: str) -> str:
-        """Initialize an ImagePose model by loading image from filename"""
+        """Initialize an ImagePose model by loading image from filename
+        
+        Parameters
+        ----------
+        session : `Any`
+        source : `str`
+
+        Returns
+        ----------
+        `str` : Pose result
+        """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
@@ -182,20 +255,29 @@ class ImagePose:
 
 
 class ImageDepth:
+    """An Image Depth model vAccel resource"""
 
     out_size = 500
 
     def __init__(self):
-        """Create an ImageDepth model resource"""
         print("test init")
 
     def __del__(self):
-        """Destroy a vAccel ImageDepth model"""
         print("test del")
 
     @classmethod
     def __depth__(self, session: Session, data: List[int]) -> str:
-        """Execute image depth operation"""
+        """Execute image depth operation
+        
+        Parameters
+        ----------
+        session : `Any`
+        data : `list`
+
+        Returns
+        ----------
+        `str` : Depth reult
+        """
         csession = session._to_inner()
 
         img = ffi.cast("const void *", data)
@@ -214,7 +296,17 @@ class ImageDepth:
 
     @classmethod
     def depth_from_filename(self, session: Session, source: str) -> str:
-        """Initialize an ImageDepth model by loading image from filename"""
+        """Initialize an ImageDepth model by loading image from filename
+        
+        Parameters
+        ----------
+        session : `Any`
+        source : `str`
+
+        Returns
+        ----------
+        `str` : Depth reult
+        """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)

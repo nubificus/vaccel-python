@@ -24,16 +24,18 @@ class Pynq_parallel:
     def pynq_parellel(self, a:float,len_a:int):
         
         """
-        Pynq parallel using vAccel over genop
+        Pynq parallel using vAccel over genop.
 
-        Parameters:
-        a: float
-        len_a: int
+        Parameters
+        ----------
+        a : `float`
+        len_a : `int`
 
-        Returns:
-        b: float
-        add_out: float
-        mult_out: float
+        Returns
+        ----------
+        b : `float`
+        add_out : `float`
+        mult_out : `float`
         """
         
         arg_read = [VaccelArg(data=int(self.__op__)),
