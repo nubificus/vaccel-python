@@ -25,16 +25,18 @@ class Pynq_vector_add:
     def pynq_vector_add(self, len_a:int, len_b:int):
         
         """
-        Pynq parallel using vAccel over genop
+        Pynq vector_add using vAccel over genop.
 
-        Parameters:
-        len_a: int
-        len_b: int
+        Parameters
+        ----------
+        len_a : `int`
+        len_b : `int`
 
-        Returns:
-        a: float
-        b: float
-        c: float
+        Returns
+        ----------
+        a : `float`
+        b : `float`
+        c : `float`
         """
         
         arg_read = [VaccelArg(data=int(self.__op__)),

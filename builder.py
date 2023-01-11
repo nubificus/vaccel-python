@@ -249,5 +249,25 @@ int vaccel_minmax(struct vaccel_session *sess,
 """
 )
 
+#Array copy
+ffibuilder.cdef("""
+int v_arraycopy(struct vaccel_session *session, int *a, int *b,size_t c);
+"""
+)
+
+#Vector add
+ffibuilder.cdef("""
+int v_vectoradd(struct vaccel_session *session, float *a, float *b,
+	float *c, size_t len_a, size_t len_b);
+"""
+)
+
+#Parallel
+ffibuilder.cdef("""
+int v_parallel(struct vaccel_session *session, float *a, float *b,
+	float *add_out, float *mult_out, size_t len_a);
+"""
+)
+
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)

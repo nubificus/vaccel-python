@@ -24,14 +24,16 @@ class Pynq_array_copy:
     def pynq_arr_copy(self, a:int):
         
         """
-        Pynq array copy using vAccel over genop
+        Pynq array copy using vAccel over genop.
 
-        Parameters:
-        a: int
+        Parameters
+        ----------
+        a : `int`
 
-        Returns:
-        b: int
-        c: int
+        Returns
+        ----------
+        b : `int`
+        c : `int`
         """
 
         arg_read = [VaccelArg(data=int(self.__op__)),
