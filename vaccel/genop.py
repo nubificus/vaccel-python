@@ -28,8 +28,6 @@ class VaccelOpType(Enum):
     VACCEL_PYNQ_VECTOR_ADD = 19
     VACCEL_FUNCTIONS_NR = 20
 
-
-
     def __int__(self):
         return self.value
 
@@ -145,7 +143,6 @@ class VaccelArgList:
 
 class Genop:
     def __init__(self):
-        """exec vAccel Genop"""
         print("test init")
 
     def __del__(self):
@@ -153,7 +150,19 @@ class Genop:
 
     @classmethod
     def genop(self, session: Session, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> List[str]:
-        """exec the operation"""
+        """
+        Vaccel genop.
+
+        Paramters
+        ---------
+        session : `Any`
+        arg_read : `list` 
+        arg_write : `list`
+
+        Returns
+        ---------
+        List of `str`.
+        """
         csession = session._to_inner()
 
         nr_read = len(arg_read)

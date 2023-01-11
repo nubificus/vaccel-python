@@ -2,7 +2,7 @@
 
 This document briefly describes the process to use vAccel from Python programs.
 
-- [Build from Source](#build-from-source) or [get the binary packages](#Get-the-binary-packages) [currently only for Debian/Ubuntu variants and pip]
+- [Build from Source](#build-from-source) or [get the binary packages](#get-the-binary-packages) [currently only for Debian/Ubuntu variants and pip]
 - Run a [simple example](#simple-example) [using the `noop` plugin]
 - Run a more [elaborate example](#jetson-example) [using the `jetson-inference` plugin]
 
@@ -15,10 +15,11 @@ vAccel components.
 
 You can install vAccelRT (in `/usr/local`) using the following commands:
 
-```
+```bash
 wget https://s3.nbfc.io/nbfc-assets/github/vaccelrt/master/x86_64/Release-deb/vaccel-0.5.0-Linux.deb
 sudo dpkg -i vaccel-0.5.0-Linux.deb
 ```
+
 ### Get python bindings
 
 #### Prerequisites
@@ -33,14 +34,14 @@ sudo apt-get install -y python3-dev python3-venv python3-pip
 
 To install the python bindings we use a whl package. Create a fresh virtual environment and install the package there:
 
-```
+```bash
 python3 -m venv .vaccel-venv
 .vaccel-venv/bin/pip3 install https://s3.nbfc.io/nbfc-assets/github/python-vaccel/main/x86_64/vaccel-python-0.0.1.tar.gz
 ```
 
 ## Build from Source
 
-### Prerequisites
+### Prerequisites for building
 
 In Ubuntu-based systems, you need to have the following packages to build `vaccelrt`:
 
@@ -86,7 +87,7 @@ Install **vaccelrt**:
 sudo dpkg -i vaccel*.deb
 ```
 
-<hr>
+***
 
 ### Build the Python package
 
@@ -140,7 +141,7 @@ Donwload an adorable kitten photo:
 wget https://i.imgur.com/aSuOWgU.jpeg -O cat.jpeg
 ```
 
-<hr>
+***
 
 Create a new python file called **cat.py** and add the following lines:
 
@@ -195,12 +196,13 @@ on a host with nvidia-container-runtime installed.
 
 so, assuming our code is in `/data/code` let's spawn our container and see this in action:
 
-```
+```bash
 docker run --gpus 0 --rm -it -v/data/code:/data/ -w /data nubificus/jetson-inference-updated:x86_64 /bin/bash
 ```
+
 Afterwards, the steps are more or less the same as above. Install the vAccelRT package:
 
-```
+```bash
 root@32e90efe86b9:/data/code# wget https://s3.nbfc.io/nbfc-assets/github/vaccelrt/master/x86_64/Release-deb/vaccel-0.5.0-Linux.deb
 --2022-11-05 13:43:43--  https://s3.nbfc.io/nbfc-assets/github/vaccelrt/master/x86_64/Release-deb/vaccel-0.5.0-Linux.deb
 Resolving s3.nbfc.io (s3.nbfc.io)... 84.254.1.240
@@ -223,7 +225,7 @@ Setting up vaccel (0.5.0) ...
 
 Get and install the jetson plugin:
 
-```
+```bash
 root@32e90efe86b9:/data/code# wget https://s3.nubificus.co.uk/nbfc-assets/github/vaccelrt/plugins/jetson_inference/master/x86_64/vaccelrt-plugin-jetson-0.1-Linux.deb
 --2022-11-05 14:45:53--  https://s3.nubificus.co.uk/nbfc-assets/github/vaccelrt/plugins/jetson_inference/master/x86_64/vaccelrt-plugin-jetson-0.1-Linux.deb
 Resolving s3.nubificus.co.uk (s3.nubificus.co.uk)... 84.254.1.240
@@ -245,7 +247,7 @@ Setting up vaccelrt-plugin-jetson (0.1) ...
 
 Install the bindings:
 
-```
+```bash
 root@32e90efe86b9:/data/code# .vaccel-venv/bin/pip3 install https://s3.nbfc.io/nbfc-assets/github/python-vaccel/main/x86_64/vaccel-2022.11.5.tar.gz
 Collecting https://s3.nbfc.io/nbfc-assets/github/python-vaccel/main/x86_64/vaccel-2022.11.5.tar.gz
   Downloading https://s3.nbfc.io/nbfc-assets/github/python-vaccel/main/x86_64/vaccel-2022.11.5.tar.gz (23 kB)
@@ -265,10 +267,9 @@ Installing collected packages: pycparser, cffi, vaccel
 Successfully installed cffi-1.15.1 pycparser-2.21 vaccel-2022.11.5
 ```
 
-
 Now let's go ahead and run the example!
 
-```
+```bash
 root@32e90efe86b9:/data/code# export LD_LIBRARY_PATH=/usr/local/lib/
 root@32e90efe86b9:/data/code# export VACCEL_BACKENDS=/usr/local/lib/libvaccel-jetson.so
 root@32e90efe86b9:/data/code# export VACCEL_IMAGENET_NETWORKS=/data/code/networks
@@ -407,7 +408,6 @@ imagenet: shutting down...
 Shutting down vAccel
 ```
 
-
 #### `aarch64`
 
 For aarch64 things are more or less the same. We run the example on a Jetson
@@ -419,7 +419,8 @@ the python bindings so assuming there's a Jetson Linux distro with Jetpack
 installed:
 
 - install jetson-inference:
-```
+
+```bash
 git clone --recursive https://github.com/dusty-nv/jetson-inference
 cd jetson-inference 
 mkdir build
@@ -430,27 +431,28 @@ make install
 
 - install vAccelRT:
 
-```
+```bash
 wget https://s3.nubificus.co.uk/nbfc-assets/github/vaccelrt/master/aarch64/Release-deb/vaccel-0.5.0-Linux.deb
 dpkg -i vaccel-0.5.0-Linux.deb
 ```
 
 - install the jetson plugin:
 
-```
+```bash
 wget https://s3.nubificus.co.uk/nbfc-assets/github/vaccelrt/plugins/jetson_inference/master/aarch64/vaccelrt-plugin-jetson-0.1-Linux.deb
 dpkg -i vaccelrt-plugin-jetson-0.1-Linux.deb
 ```
 
 - install python bindings in a virtual env:
-```
+
+```bash
 python3 -m venv .vaccel-venv
 .vaccel-venv/bin/pip3 install https://s3.nbfc.io/nbfc-assets/github/python-vaccel/main/aarch64/vaccel-2022.11.5.tar.gz
 ```
 
 - run the example:
 
-```
+```bash
 # .vaccel-venv/bin/python3 cat.py
 Loading libvaccel
 2022.11.05-20:25:12.79 - <debug> Initializing vAccel
@@ -594,35 +596,40 @@ Shutting down vAccel
 [Jetson-inference](https://github.com/dusty-nv/jetson-inference) is an suite of
 tools built around TensorRT to expose an image inference API. Installing this
 suite on x86 used to be a real challenge (kind of still is), but things are
-getting better! 
+getting better!
 
 We use a container file to capture the individual steps to install jetson inference. Assuming the host is debian-based (we tried that on Ubuntu 20.04), and has a recent NVIDIA driver (`520.61.05`) we follow the steps below:
 
 - clone the container repo:
-```
+
+```bash
 git clone https://github.com/nubificus/jetson-inference-container
 ```
+
 - build the container image:
-```
+
+```bash
 docker build -t nubificus/jetson-inference-updated:x86_64 -f Dockerfile .
 ```
+
 or just get the one we've built (could take some time, i'ts 12GB...):
 
-```
+```bash
 docker pull nubificus/jetson-inference-updated:x86_64
 ```
+
 - run the `jetson-inference` example:
 
 Run the container:
 
-```
+```bash
 # docker run --gpus all --rm -it -v/data/code:/data/code -w $PWD nubificus/jetson-inference-updated:x86_64 /bin/bash
 root@9f5224cb28cc:/data/code#
 ```
+
 Use pre-installed example images and models to do image inference:
 
-
-```
+```bash
 root@9f5224cb28cc:/data/code# ln -s /usr/local/data/images .
 root@9f5224cb28cc:/data/code# ln -s /usr/local/data/networks .
 
@@ -791,7 +798,8 @@ imagenet:  shutdown complete.
 ```
 
 **Note**: _The first time the engine needs to do some autotuning, so it will take some time and drop output similar to the one below_:
-```
+
+```bash
 ...
 [TRT]    Tactic: 0x89c2d153627e52ba Time: 0.0134678
 [TRT]    loss3/classifier Set Tactic Name: volta_h884cudnn_256x128_ldg8_relu_exp_small_nhwc_tn_v1 Tactic: 0xc110e19c9f5aa36e
@@ -835,7 +843,6 @@ imagenet:  shutdown complete.
 ```
 
 **Note**: _If you want to avoid that everytime you run the container, keep the networks folder outside the container and bind mount it (eg. in the `/data/code` path). That is, instead of doing `ln -s /usr/local/data/networks .` do a `cp -avf /usr/local/data/networks .`. Thus, every time you re-run the example using this folder, the auto-tuned engine will be there._
-
 
 ## Appendix I Build a jetson-inference container image
 
@@ -917,7 +924,6 @@ docker build -t jetson-inference:x86_64 -f Dockerfile .
 ```
 
 expect a lot of output, and about ~15' on a generic machine (6 cores, 16GB of RAM).
-
 
 and run an example:
 
@@ -1080,4 +1086,3 @@ imagenet:  shutting down...
 )
 imagenet:  shutdown complete.
 ```
-

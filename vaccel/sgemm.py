@@ -23,20 +23,21 @@ class Sgemm:
     @classmethod
     def sgemm(self, m:int, n:int, k:int, alpha:float, lda:int, ldb:int, beta:float):
         """
-        def sgemm(self, m:int, n:int, k:int, alpha:float, lda:int, ldb:int, beta:float):
-        def sgemm(self, m:int, n:int, k:int, alpha:float, a:float, lda:int, b:array, ldb:int, beta:float, c:array, ldc:int):
-        Sgemm using vAccel over genop
+        Sgemm using vAccel over genop.
 
-        Parameters:
-        m:int, n:int, k:int,
-        alpha:float,
-        a:array, lda:int,
-        b:array, ldb:int,
-        beta:float,
-        c:array, ldc:int
+        Parameters
+        ----------
+        m : `int`,
+        n : `int`,
+        k : `int`,
+        alpha : `float`,
+        lda : `int`,
+        ldb : `int`,
+        beta : `float`
 
-        Returns:
-
+        Returns
+        ----------
+        ldc : `int`
         """
         arg_read = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=m),VaccelArg(data=n),VaccelArg(data=k),
@@ -44,13 +45,3 @@ class Sgemm:
                     VaccelArg(data=ldb),VaccelArg(data=beta)]
         arg_write = [VaccelArg(data=self.def_arg_write)]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
-
-"""
-int vaccel_sgemm(struct vaccel_session *sess,
-	int64_t m, int64_t n, int64_t k,
-	float alpha,
-	float *a, int64_t lda,
-	float *b, int64_t ldb,
-	float beta,
-	float *c, int64_t ldc);
-"""
