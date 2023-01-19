@@ -10,6 +10,13 @@ class Noop:
 
     @classmethod
     def noop(self, session):
-        """Execute noop"""
+        """Execute noop
+        
+        Args: 
+            session: A vaccel.Session instance
+
+        Returns:
+            A string containing the noop result
+        """
         csession = session._to_inner()
         return lib.vaccel_noop(csession)

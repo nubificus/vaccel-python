@@ -150,18 +150,15 @@ class Genop:
 
     @classmethod
     def genop(self, session: Session, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> List[str]:
-        """
-        Vaccel genop.
+        """Vaccel genop.
 
-        Paramters
-        ---------
-        session : `Any`
-        arg_read : `list` 
-        arg_write : `list`
+        Args:
+            session : A vaccel.Session instance
+            arg_read : A list of inputs
+            arg_write : A list of outputs
 
-        Returns
-        ---------
-        List of `str`.
+        Returns:
+            List of `str`.
         """
         csession = session._to_inner()
 

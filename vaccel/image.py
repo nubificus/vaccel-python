@@ -5,7 +5,11 @@ from typing import List
 
 
 class ImageClassify:
-    """An Image Classify model vAccel resource."""
+    """An Image Classify model vAccel resource.
+    
+    Attributes:
+        out_size (int): The maximum length of the output tag
+    """
 
     out_size = 500
 
@@ -17,16 +21,17 @@ class ImageClassify:
 
     @classmethod
     def __classify__(self, session: Session, data: List[int]) -> str:
-        """Execute image classification operation.
-        
-        Parameters
-        ----------
-        session : `Any`
-        data : `list`
+        """Executes image classification operation.
 
-        Returns
-        ----------
-        `str` : Classification tag
+        Args:
+            session: A vaccel.Session instance
+            data: A sequence of integers representing the image
+        
+        Returns:
+            A string containing the classifiaction tag
+        
+        Raises:
+            VaccelError: An error occured while executing the image classification operation
         """
         csession = session._to_inner()
 
@@ -53,15 +58,16 @@ class ImageClassify:
     @classmethod
     def classify_from_filename(self, session: Session, source: str) -> str:
         """Initialize an ImageClassify model by loading image from filename
-        
-        Parameters
-        ----------
-        session : `Any`
-        source : `str`
 
-        Returns
-        ----------
-        `str` : Classification tag
+        Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
+        
+        Returns:
+            A string containing the classifiaction tag
+        
+        Raises:
+            VaccelError: An error occured while executing the image classification operation
         """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
@@ -71,7 +77,11 @@ class ImageClassify:
 
 
 class ImageDetect:
-    """An Image Detect model vAccel resource"""
+    """An Image Detect model vAccel resource
+
+     Attributes:
+        out_size (int): The maximum length of the output tag
+    """
 
     out_size = 500
 
@@ -85,14 +95,15 @@ class ImageDetect:
     def __detect__(self, session: Session, data: List[int]) -> str:
         """Execute image detection operation
         
-        Parameters
-        ----------
-        session : `Any`
-        data : `list`
-
-        Returns
-        ----------
-        `str` : Detection result
+         Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
+        
+        Returns:
+            A string containing the detection result
+        
+        Raises:
+            VaccelError: An error occured while executing the image detection operation
         """
         csession = session._to_inner()
 
@@ -114,15 +125,16 @@ class ImageDetect:
     @classmethod
     def detect_from_filename(self, session: Session, source: str) -> str:
         """Initialize an ImageDetect model by loading image from filename
-        
-        Parameters
-        ----------
-        session : `Any`
-        source : `str`
+                
+        Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
 
-        Returns
-        ----------
-        `str` : Detection tag
+        Returns:
+            A string containing the detection result
+
+        Raises:
+            VaccelError: An error occured while executing the image detection operation
         """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
@@ -133,8 +145,12 @@ class ImageDetect:
 
 
 class ImageSegment:
-    """An Image Segment model vAccel resource"""
-
+    """An Image Segment model vAccel resource
+    
+    Attributes:
+        out_size (int): The maximum length of the output tag
+    """
+    
     out_size = 500
 
     def __init__(self):
@@ -147,15 +163,17 @@ class ImageSegment:
     def __segment__(self, session: Session, data: List[int]) -> str:
         """Execute image segmentation operation
         
-        Parameters
-        ----------
-        session : `Any`
-        data : `list`
-
-        Returns
-        ----------
-        `str` : Segmentation result
+         Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
+        
+        Returns:
+            A string containing the segmentation result
+        
+        Raises:
+            VaccelError: An error occured while executing the image segmentation operation
         """
+
         csession = session._to_inner()
 
         img = ffi.cast("const void *", data)
@@ -176,14 +194,16 @@ class ImageSegment:
     @classmethod
     def segment_from_filename(self, session: Session, source: str) -> str:
         """Initialize an ImageSegment model by loading image from filename
-        Parameters
-        ----------
-        session : `Any`
-        source : `str`
+                 
+        Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
 
-        Returns
-        ----------
-        `str` : Segmentation tag
+        Returns:
+            A string containing the segmentation result
+
+        Raises:
+            VaccelError: An error occured while executing the image segmentation operation
         """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
@@ -194,7 +214,11 @@ class ImageSegment:
 
 
 class ImagePose:
-    """An ImageC Pose model vAccel resource"""
+    """An Image Pose model vAccel resource
+    
+    Attributes:
+        out_size (int): The maximum length of the output tag
+    """
 
     out_size = 500
 
@@ -208,14 +232,15 @@ class ImagePose:
     def __pose__(self, session: Session, data: List[int]) -> str:
         """Execute image pose operation
         
-        Parameters
-        ----------
-        session : `Any`
-        data : `list`
+        Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
 
-        Returns
-        ----------
-        `str` : Pose result
+        Returns:
+            A string containing the pose result
+
+        Raises:
+            VaccelError: An error occured while executing the image pose operation
         """
         csession = session._to_inner()
 
@@ -236,15 +261,16 @@ class ImagePose:
     @classmethod
     def pose_from_filename(self, session: Session, source: str) -> str:
         """Initialize an ImagePose model by loading image from filename
-        
-        Parameters
-        ----------
-        session : `Any`
-        source : `str`
+                 
+        Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
 
-        Returns
-        ----------
-        `str` : Pose result
+         Returns:
+            A string containing the pose result
+
+        Raises:
+            VaccelError: An error occured while executing the image pose operation
         """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
@@ -255,7 +281,11 @@ class ImagePose:
 
 
 class ImageDepth:
-    """An Image Depth model vAccel resource"""
+    """An Image Depth model vAccel resource
+    
+    Attributes:
+        out_size (int): The maximum length of the output tag
+    """
 
     out_size = 500
 
@@ -269,14 +299,15 @@ class ImageDepth:
     def __depth__(self, session: Session, data: List[int]) -> str:
         """Execute image depth operation
         
-        Parameters
-        ----------
-        session : `Any`
-        data : `list`
+         Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
 
-        Returns
-        ----------
-        `str` : Depth reult
+        Returns:
+            A string containing the depth result
+
+        Raises:
+            VaccelError: An error occured while executing the image depth operation
         """
         csession = session._to_inner()
 
@@ -298,14 +329,15 @@ class ImageDepth:
     def depth_from_filename(self, session: Session, source: str) -> str:
         """Initialize an ImageDepth model by loading image from filename
         
-        Parameters
-        ----------
-        session : `Any`
-        source : `str`
+        Args:
+            session: A vaccel.Session instance
+            source: A string containing the image's file path
 
-        Returns
-        ----------
-        `str` : Depth reult
+         Returns:
+            A string containing the depth result
+
+        Raises:
+            VaccelError: An error occured while executing the image depth operation
         """
         with open(source, "rb") as imgfile:
             data = imgfile.read()
