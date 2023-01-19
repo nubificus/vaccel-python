@@ -17,7 +17,13 @@ class Resource:
 
     @abstractmethod
     def is_registered(self, session):
-        """Returns true if the resource is registered with the session"""
+        """Checks if the resource is registered with the session
+
+        Args:
+            session: A vaccel.Session instance
+
+        Returns:
+            True if the resource is registered with the session"""
         pass
 
     @abstractmethod

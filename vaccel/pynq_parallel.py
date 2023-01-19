@@ -4,6 +4,12 @@ from vaccel.genop import Genop, VaccelArg, VaccelOpType
 import struct
 
 class Pynq_parallel:
+    """A Pynq parallel model vAccel resource.
+    
+    Attributes:
+        __op__: The genop operation type
+        def_arg_write (bytes): The result of the operation
+    """
 
     __op__ = VaccelOpType.VACCEL_PYNQ_PARALLEL
     
@@ -11,10 +17,15 @@ class Pynq_parallel:
 
     @staticmethod
     def __genop__(arg_read: List[VaccelArg], arg_write: List[VaccelArg], index: int) -> int:
-        """
-        Performs the genop operation provided in arg_read.
+        """Performs the genop operation provided in arg_read.
 
-        Returns the content of the arg_write indicated by index.
+        Args:
+            arg_read : `list` 
+            arg_write : `list`
+            index : `int`
+
+        Returns:
+            The content of the `arg_write` indicated by `index`.
         """
         ses = Session(flags=0)
         Genop.genop(ses, arg_read, arg_write)
@@ -22,20 +33,16 @@ class Pynq_parallel:
 
     @classmethod
     def pynq_parellel(self, a:float,len_a:int):
-        
-        """
-        Pynq parallel using vAccel over genop.
+        """Executes Pynq parallel operation using vAccel over genop.
 
-        Parameters
-        ----------
-        a : `float`
-        len_a : `int`
+        Args:
+            a: A float for the array a
+            len_a: An integer giving the length of the array
 
-        Returns
-        ----------
-        b : `float`
-        add_out : `float`
-        mult_out : `float`
+        Returns:
+            b: A float for the array b
+            add_out: A float for the addition
+            mult_out: A float for the multiplication
         """
         
         arg_read = [VaccelArg(data=int(self.__op__)),
