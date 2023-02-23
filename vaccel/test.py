@@ -3,6 +3,7 @@ from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 from vaccel.minmax import MinMax
+from vaccel.exec import Exec
 from vaccel.sgemm import Sgemm
 from vaccel.pynq_array_copy import Pynq_array_copy
 from vaccel.pynq_parallel import Pynq_parallel
@@ -163,6 +164,15 @@ def test_image_depth():
     print(res)
     print('')
 
+def test_exec_genop():
+    print('Sgemm over genop test')
+    myint: int = 1048576
+    mybytes: bytes = bytes(512 * " ", encoding="utf-8")
+    res = Exec.exec("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    print(res)
+    print('')
+
+
 
 if __name__ == "__main__":
     test_session()
@@ -184,3 +194,4 @@ if __name__ == "__main__":
     test_image_segment()
     test_image_pose()
     test_image_depth()
+    test_exec_genop()
