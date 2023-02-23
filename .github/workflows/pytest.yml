@@ -40,14 +40,14 @@ jobs:
           echo "ARTIFACT_SHA=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         fi
 
-    - name: Update python to 3.7
+    - name: Update python to 3.7 (optional)
       run: |
-        sudo apt install -y python3.7 python3.7-dev python3.7-venv
-
+        sudo apt install -y python3.7 python3.7-dev python3.7-venv || true
+        sudo update-alternatives --set python3 /usr/bin/python3.7 || true
 
     - name: Create python isolated env
       run: |
-        python3.7 -m venv .venv
+        python3 -m venv .venv
 
     - name: Install python dependencies
       run: |

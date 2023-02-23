@@ -66,7 +66,7 @@ class MinMax:
             high_threshold: An integer value for high threshold
 
         Returns:
-            outdata: A float number containing the outdata
+            outdata: The array of floats, sorted
             min: A float number for the min value
             max: A float number for the max value 
         """
@@ -77,5 +77,18 @@ class MinMax:
                     VaccelArg(data=low_threshold),
                     VaccelArg(data=high_threshold)]
         
-        arg_write = [VaccelArg(data=self.def_arg_write), VaccelArg(data=copy.deepcopy(self.def_arg_write)), VaccelArg(data=copy.deepcopy(self.def_arg_write))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=1)
+        out_ndata: float = bytes(indata * 8 * " ", encoding="utf-8")
+        out_min: float = bytes(8 * " ", encoding="utf-8")
+        out_max: float = bytes(8 * " ", encoding="utf-8")
+        arg_write = [VaccelArg(data=out_ndata), VaccelArg(data=out_min), VaccelArg(data=out_max)]
+        some_ret_value = self.__genop__(arg_read=arg_read, arg_write=arg_write, index=2)
+
+        # The array of floats returned by the plugin
+        arg_write1 = arg_write[0].raw_content
+        # min
+        arg_write2: float = struct.unpack('d', arg_write[1].raw_content[:8])[0]
+        # max
+        arg_write3: float = struct.unpack('d', arg_write[2].raw_content[:8])[0]
+
+        return (arg_write1, arg_write2, arg_write3)
+
