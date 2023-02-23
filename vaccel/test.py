@@ -3,6 +3,7 @@ from vaccel.noop import Noop
 from vaccel.genop import Genop, VaccelArg
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 from vaccel.minmax import MinMax
+from vaccel.exec import Exec, Exec_with_resource
 from vaccel.sgemm import Sgemm
 from vaccel.pynq_array_copy import Pynq_array_copy
 from vaccel.pynq_parallel import Pynq_parallel
@@ -163,6 +164,29 @@ def test_image_depth():
     print(res)
     print('')
 
+def test_exec_genop():
+    print('Exec over genop test')
+    myint: int = 1048576
+    mybytes: bytes = bytes(100 * " ", encoding="utf-8")
+    res = Exec.exec("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    print(res)
+    print('')
+
+def test_exec_with_resource():
+    print('Exec with resource over genop test')
+    myint: int = 1048576
+    mybytes: bytes = bytes(100 * " ", encoding="utf-8")
+    res = Exec_with_resource.exec_with_resource("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    print(res)
+    print('')
+
+def test_exec_with_resource_genop():
+    print('Exec with resource over genop test')
+    myint: int = 1048576
+    mybytes: bytes = bytes(100 * " ", encoding="utf-8")
+    res = Exec_with_resource.exec_with_resource_genop("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    print(res)
+    print('')
 
 if __name__ == "__main__":
     test_session()
@@ -184,3 +208,6 @@ if __name__ == "__main__":
     test_image_segment()
     test_image_pose()
     test_image_depth()
+    test_exec_genop()
+    test_exec_with_resource()
+    test_exec_with_resource_genop()
