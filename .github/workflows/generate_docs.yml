@@ -2,7 +2,7 @@ name: Generate docs
 
 on:
   push:
-    branches: [ "main", "feat_cleanup_vectorops"]
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -53,7 +53,7 @@ jobs:
           user_email: 'ananos@nubificus.co.uk'
           user_name: 'ananos'
           commit_msg: '[GHA] Update the doc files for the Python API.'
-          destination_branch: 'feat_update_release'
+          destination_branch: 'feat_python_api'
 
 # TODO:
 # Verify last step works

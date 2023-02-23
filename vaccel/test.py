@@ -27,6 +27,7 @@ def test_noop():
 
 
 imgsource = "/usr/local/share/images/example.jpg"
+minmaxsource = "/usr/local/share/input/input_262144.csv"
 
 
 def test_genop():
@@ -85,7 +86,7 @@ def test_image_depth_genop():
 
 def test_min_max_genop():
     print('Min-Max over genop test')
-    res = MinMax.minmax(indata=262144, ndata=imgsource, low_threshold=10, high_threshold=5000)
+    res = MinMax.minmax(indata=262144, ndata=minmaxsource, low_threshold=10, high_threshold=5000)
     print(res)
     print('')
 
