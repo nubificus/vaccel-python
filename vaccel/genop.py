@@ -26,7 +26,8 @@ class VaccelOpType(Enum):
     #VACCEL_PYNQ_MMULT = 17
     VACCEL_PYNQ_PARALLEL = 18
     VACCEL_PYNQ_VECTOR_ADD = 19
-    VACCEL_FUNCTIONS_NR = 20
+    VACCEL_EXEC_WITH_RESOURCE = 20
+    VACCEL_FUNCTIONS_NR = 21
 
     def __int__(self):
         return self.value

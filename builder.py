@@ -15,7 +15,10 @@ ffibuilder.set_source(
         #include <ops/genop.h>
         #include <ops/image.h>
         #include <resources/tf_saved_model.h>
+        #include <resources/shared_object.h>
         #include <plugin.h>
+        #include <ops/fpga.h>
+        #include <ops/exec.h>
         """,
     libraries=['vaccel-python', 'dl'],
 )
@@ -268,14 +271,28 @@ int vaccel_fpga_parallel(struct vaccel_session *session, float *a, float *b,
 	float *add_out, float *mult_out, size_t len_a);
 """
 )
-# Exec API
+
+#Exec API
 ffibuilder.cdef("""
 int vaccel_exec(struct vaccel_session *sess, const char *library,
                 const char *fn_symbol, struct vaccel_arg *read,
                 size_t nr_read, struct vaccel_arg *write, size_t nr_write);
 """
-                )
+)
 
+#Exec with resource
+ffibuilder.cdef("""
+        struct vaccel_shared_object {
+                struct vaccel_resource *resource;
+                void *plugin_data;
+                ...;
+        };
+
+        int vaccel_exec_with_resource(struct vaccel_session *sess, struct vaccel_shared_object *object,
+		const char *fn_symbol, struct vaccel_arg *read,
+		size_t nr_read, struct vaccel_arg *write, size_t nr_write);
+"""
+)
 
 if __name__ == "__main__":
     ffibuilder.compile(verbose=True)
