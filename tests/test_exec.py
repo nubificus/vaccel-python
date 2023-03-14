@@ -11,5 +11,5 @@ def test_exec_genop():
     assert res == ("")
 
 def test_exec_with_res_genop():
-    res = Exec_with_resource.exec_with_resource(lib, sym , [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    res = Exec_with_resource.exec_with_resource(lib, sym, [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
     assert res == ("")
