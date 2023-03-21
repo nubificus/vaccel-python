@@ -282,10 +282,17 @@ int vaccel_exec(struct vaccel_session *sess, const char *library,
 
 #Exec with resource
 ffibuilder.cdef("""
+        struct vaccel_file {
+	char *path;
+	bool path_owned;
+	uint8_t *data;
+	size_t size;
+        };
+
         struct vaccel_shared_object {
                 struct vaccel_resource *resource;
+                struct vaccel_file file;
                 void *plugin_data;
-                ...;
         };
 
         int vaccel_exec_with_resource(struct vaccel_session *sess, struct vaccel_shared_object *object,

@@ -1,0 +1,6 @@
+Metadata-Version: 2.1
+Name: vaccel-python
+Version: 0.0.1
+Summary: Python bindings with CFFI for libvaccel
+Home-page: https://github.com/nubificus/python-vaccel
+Author: Nubificus Ltd.
