@@ -1,8 +1,9 @@
 from vaccel.session import Session
 from typing import List
-from vaccel.genop import Genop, VaccelArg, VaccelOpType
+from vaccel.genop import Genop, VaccelArg, VaccelOpType, VaccelArgList
 from vaccel._vaccel import lib, ffi
 from vaccel.error import VaccelError
+import os
 import sys 
 from ctypes import *
 
@@ -26,7 +27,7 @@ class Exec_Operation:
     def_arg_write: bytes = bytes(100 * " ", encoding="utf-8")
 
     @staticmethod
-    def __genop__(arg_read: List[VaccelArg], arg_write: List[VaccelArg], index: int) -> str:
+    def __genop__(session, arg_read: List[VaccelArg], arg_write: List[VaccelArg], index: int) -> str:
         """Performs the genop operation provided in arg_read.
         
         Args:
@@ -37,8 +38,7 @@ class Exec_Operation:
         Returns:
             The content of the `arg_write` indicated by `index`.
         """
-        ses = Session(flags=0)
-        Genop.genop(ses, arg_read, arg_write)
+        Genop.genop(session, arg_read, arg_write)
         return arg_write[index].content
 
     @staticmethod
@@ -50,6 +50,7 @@ class Exec_Operation:
     
     def __parse_object__(obj: "str") -> bytes:
         
+        filename = obj
         if not isinstance(obj, str):
             raise TypeError(
                 f"Invalid image type. Expected str or bytes, got {type(obj)}.")
@@ -58,7 +59,8 @@ class Exec_Operation:
             with open(obj, "rb") as objfile:
                 obj = objfile.read()
 
-        return obj
+        size = os.stat(filename).st_size
+        return obj, size
 
 class Exec(Exec_Operation):
     """An Exec model vAccel resource.
@@ -82,13 +84,15 @@ class Exec(Exec_Operation):
             arg_write: A list of outputs
         """
 
+        session = Session(flags=0)
         arg_read_local = [VaccelArg(data=int(self.__op__)),
                     VaccelArg(data=library),VaccelArg(data=symbol)] + arg_read
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read_local, arg_write=arg_write, index=0)
+        ret = self.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
+        return ret
 
 
-class Exec_with_resource(Exec_Operation,Object):
+class Exec_with_resource(Exec_Operation, Object):
     """An Exec with resource model vAccel resource.
 
     Attributes:
@@ -102,40 +106,57 @@ class Exec_with_resource(Exec_Operation,Object):
         """Performs the Exec using vAccel over genop.
 
         Args:
-            object: pointer to a `shared object`-type vaccel resource
+            object: Filename of a shared object to be used with vaccel exec
             symbol: Name of the function contained in the above shared object
             arg_read: A list of inputs
 
         Returns:
             arg_write: A list of outputs
-        """ 
-        #my_object=sys.path.append ('/usr/local/lib/libvaccel-noop.so')
-        #my_object = ffi.cast("struct vaccel_shared_object *",object)
-        #path = "/usr/local/lib/libvaccel-noop.so"
-        #my_object = ctypes.CDLL("{}".format(path).encode())
-
-        #libc=cdll.LoadLibrary(obj)
-        # #libc = CDLL(obj)
-        # obj=bytes(100 * " ", encoding="utf-8")
-        # obj = self.read_file(obj)
-
-        #libc=cdll.LoadLibrary(obj)
-        #libc = CDLL(obj)
-
+        """
+        session = Session(flags=0)
+        sharedobj, size = Exec_Operation.__parse_object__(obj)
+        shared = ffi.new("struct vaccel_shared_object *");
+        sharedobject = ffi.new("char[%d]" % size, sharedobj);
+        sharedobject = ffi.cast("const void *", sharedobject)
+        lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size);
         arg_read_local = [VaccelArg(data=int(self.__op__)),
-                          VaccelArg(data=obj),VaccelArg(data=symbol)] + arg_read
+                          VaccelArg(data=shared),VaccelArg(data=symbol)] + arg_read
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read_local, arg_write=arg_write, index=0)
+        vaccel_args_read = VaccelArgList(arg_read).to_cffi()
+        vaccel_args_write = VaccelArgList(arg_write).to_cffi()
+        nr_read = len(arg_read)
+        nr_write = len(arg_write)
 
+        symbolcdata = ffi.new(f"char[{len(symbol)}]",
+                              bytes(symbol, encoding='utf-8'))
 
-"""
-int vaccel_exec(struct vaccel_session *sess, const char *library,
-                const char *fn_symbol, struct vaccel_arg *read,
-                size_t nr_read, struct vaccel_arg *write, size_t nr_write);
-"""
+        lib.vaccel_sess_register(session._to_inner(), shared.resource)
+        ret = lib.vaccel_exec_with_resource(session._to_inner(), shared, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
+        return arg_write[0].content
 
-"""
-int vaccel_exec_with_resource(struct vaccel_session *sess, struct vaccel_shared_object *object,
-		     const char *fn_symbol, struct vaccel_arg *read,
-		     size_t nr_read, struct vaccel_arg *write, size_t nr_write);
-"""
+    @classmethod
+    def exec_with_resource_genop(self, obj: str, symbol: str, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> str:
+        """Performs the Exec using vAccel over genop.
+
+        Args:
+            object: Filename of a shared object to be used with vaccel exec
+            symbol: Name of the function contained in the above shared object
+            arg_read: A list of inputs
+
+        Returns:
+            arg_write: A list of outputs
+        """
+
+        session = Session(flags=0)
+        sharedobj, size = Exec_Operation.__parse_object__(obj)
+        shared = ffi.new("struct vaccel_shared_object *");
+        sharedobject = ffi.new("char[%d]" % size, sharedobj);
+        sharedobject = ffi.cast("const void *", sharedobject)
+        lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size);
+        lib.vaccel_sess_register(session._to_inner(), shared.resource)
+        rid = lib.vaccel_shared_object_get_id(shared)
+        arg_read_local = [VaccelArg(data=int(self.__op__)),
+                          VaccelArg(data=rid),VaccelArg(data=symbol)] + arg_read
+        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
+        return self.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
+

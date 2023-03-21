@@ -172,33 +172,42 @@ def test_exec_genop():
     print(res)
     print('')
 
+def test_exec_with_resource():
+    print('Exec with resource over genop test')
+    myint: int = 1048576
+    mybytes: bytes = bytes(100 * " ", encoding="utf-8")
+    res = Exec_with_resource.exec_with_resource("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    print(res)
+    print('')
+
 def test_exec_with_resource_genop():
     print('Exec with resource over genop test')
     myint: int = 1048576
     mybytes: bytes = bytes(100 * " ", encoding="utf-8")
-    res = Exec_with_resource.exec_with_resource("/usr/local/lib/libvaccel-exec.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    res = Exec_with_resource.exec_with_resource_genop("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
     print(res)
     print('')
 
 if __name__ == "__main__":
-    # test_session()
-    # test_noop()
-    # # test genop image operations
-    # test_image_class_genop()
-    # test_image_detect_genop()
-    # test_image_segme_genop()
-    # test_image_pose_genop()
-    # test_image_depth_genop()
-    # test_min_max_genop()
-    # test_sgemm_genop()
-    # test_pynq_array_copy_genop()
-    # test_pynq_parallel_genop()
-    # test_pynq_vector_add_genop()
-    # # test static image operations
-    # test_image_classify()
-    # test_image_detect()
-    # test_image_segment()
-    # test_image_pose()
-    # test_image_depth()
+    test_session()
+    test_noop()
+    # test genop image operations
+    test_image_class_genop()
+    test_image_detect_genop()
+    test_image_segme_genop()
+    test_image_pose_genop()
+    test_image_depth_genop()
+    test_min_max_genop()
+    test_sgemm_genop()
+    test_pynq_array_copy_genop()
+    test_pynq_parallel_genop()
+    test_pynq_vector_add_genop()
+    # test static image operations
+    test_image_classify()
+    test_image_detect()
+    test_image_segment()
+    test_image_pose()
+    test_image_depth()
     test_exec_genop()
+    test_exec_with_resource()
     test_exec_with_resource_genop()

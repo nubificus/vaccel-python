@@ -282,20 +282,51 @@ int vaccel_exec(struct vaccel_session *sess, const char *library,
 
 #Exec with resource
 ffibuilder.cdef("""
-        struct vaccel_file {
+struct vaccel_file {
+	/* Path to file */
 	char *path;
+
+	/* Do we own the file? */
 	bool path_owned;
+
+	/* Pointer to the contents of the file in case we hold them
+	 * in a buffer */
 	uint8_t *data;
 	size_t size;
-        };
+};
+struct vaccel_shared_object {
+	/* Underlying resource object */
+	struct vaccel_resource *resource;
 
-        struct vaccel_shared_object {
-                struct vaccel_resource *resource;
-                struct vaccel_file file;
-                void *plugin_data;
-        };
+	/* The protobuf file of the shared object */
+	struct vaccel_file file;
 
-        int vaccel_exec_with_resource(struct vaccel_session *sess, struct vaccel_shared_object *object,
+	/* Plugin specific data */
+	void *plugin_data;
+};
+
+int vaccel_shared_object_new(
+	struct vaccel_shared_object *object,
+	const char *path
+);
+
+int vaccel_shared_object_new_from_buffer(
+	struct vaccel_shared_object *object,
+	const uint8_t *buff,
+	size_t size
+);
+
+int vaccel_shared_object_destroy(struct vaccel_shared_object *object);
+
+vaccel_id_t vaccel_shared_object_get_id(
+	const struct vaccel_shared_object *object
+);
+
+const uint8_t *vaccel_shared_object_get(
+	struct vaccel_shared_object *object, size_t *len
+);
+
+    int vaccel_exec_with_resource(struct vaccel_session *sess, struct vaccel_shared_object *object,
 		const char *fn_symbol, struct vaccel_arg *read,
 		size_t nr_read, struct vaccel_arg *write, size_t nr_write);
 """
