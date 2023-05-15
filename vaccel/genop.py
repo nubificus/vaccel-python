@@ -150,7 +150,7 @@ class Genop:
         print("test del")
 
     @classmethod
-    def genop(self, session: Session, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> List[str]:
+    def genop(self, session: Session, arg_read: List[int], arg_write: List[VaccelArg]) -> List[str]:
         """Vaccel genop.
 
         Args:
