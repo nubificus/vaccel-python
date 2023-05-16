@@ -34,14 +34,15 @@ class VaccelOpType(Enum):
 
 
 class VaccelArg:
-    def __init__(self, data) -> None:
+    def __init__(self, data, size) -> None:
         self.buf = data
         self.info = VaccelArgInfo.from_vaccel_arg(self)
-        self.size = self.info.datasize
+        self.size = size #self.info.datasize
         self.__hidden__ = []
 
     def to_cffi(self):
         arg1buf = None
+        arg1buf = self.buf
         if self.info.datatype == "int":
             arg1buf = ffi.new("int *", self.buf)
 
@@ -58,6 +59,10 @@ class VaccelArg:
         # TODO Handle double data type
         if self.info.datatype == "double":
             arg1buf = ffi.new("double *", self.buf)      
+
+        #if self.info.datatype == "cdata":
+            #arg1buf = ffi.new(f"char[{self.size}]", self.buf)
+        #    arg1buf = ffi.new(f"float *", self.buf)
 
         self.__hidden__.append(arg1buf)
         buf = ffi.cast("void *", arg1buf)
@@ -121,6 +126,8 @@ class VaccelArgInfo:
         if datatype == "void":
             temp1 = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
             temp = ffi.cast(temp1)
+        if datatype == "char *":
+            temp = arg.buf
         datasize = ffi.sizeof(temp)
         return cls(datatype=datatype, datasize=datasize)
 

@@ -5,6 +5,7 @@ from vaccel._vaccel import lib, ffi
 import os
 
 
+__hidden__ = list()
 class Object:
     def __parse_object__(obj: "str") -> bytes:
         """Parses a shared object file and returns its content and size
@@ -43,6 +44,7 @@ class Object:
         sharedobj, size = Object.__parse_object__(obj)
         shared = ffi.new("struct vaccel_shared_object *")
         sharedobject = ffi.new("char[%d]" % size, sharedobj)
+        __hidden__.append(sharedobject)
         sharedobject = ffi.cast("const void *", sharedobject)
         lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size)
         return shared
@@ -151,7 +153,7 @@ class Exec_with_resource(Exec_Operation, Object):
     __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
 
     @classmethod
-    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[int], arg_write: list[bytes]):
+    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[int], arg_write: List[bytes]):
         """Performs the Exec with resource operation
 
         Args:
@@ -177,7 +179,7 @@ class Exec_with_resource(Exec_Operation, Object):
         #return arg_write[0].content
 
     @classmethod
-    def exec_with_resource_genop(self, obj: str, symbol: str, arg_read: List[int], arg_write: list[bytes]) -> str:
+    def exec_with_resource_genop(self, obj: str, symbol: str, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> str:
         """Performs the Exec using vAccel over genop
 
         Args:
@@ -196,5 +198,5 @@ class Exec_with_resource(Exec_Operation, Object):
         #vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
         arg_read_local = [VaccelArg(data=int(self.__op__)),
                           VaccelArg(data=rid), VaccelArg(data=symbol)] + arg_read
-        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
+        #arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
