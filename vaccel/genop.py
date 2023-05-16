@@ -41,11 +41,17 @@ class VaccelArg:
         self.__hidden__ = []
 
     def to_cffi(self):
-        arg1buf = None
+        #arg1buf = None
+        arg1buf = self.buf
+        if "list" in self.info.datatype:
+            intype = self.info.datatype.split("_")[1]
+            length = len(self.buf)
+            arg1buf = ffi.new(f"{intype} [{length}]", self.buf) 
+
         if self.info.datatype == "int":
             arg1buf = ffi.new("int *", self.buf)
 
-        if self.info.datatype == "char []":
+        if self.info.datatype == "char []" or self.info.datatype == "char *":
             arg1buf = ffi.new(f"char[{len(self.buf)}]",
                               bytes(self.buf, encoding='utf-8'))
 
@@ -59,14 +65,19 @@ class VaccelArg:
         if self.info.datatype == "double":
             arg1buf = ffi.new("double *", self.buf)      
 
+        if self.info.datatype == "cdata":
+            arg1buf = ffi.new(f"char[{self.size}]", self.buf)
+
         self.__hidden__.append(arg1buf)
         buf = ffi.cast("void *", arg1buf)
         arg = ffi.new("struct vaccel_arg []", 1)
 
         # hack to keep memory alive
-        self.__hidden__.append(arg)
         arg[0].size = self.size
         arg[0].buf = buf
+        self.__hidden__.append(arg)
+        if (self.info.datatype == "int"):
+            print(buf, self.size, self.buf)
 
         return arg[0]
 
@@ -95,22 +106,33 @@ class VaccelArgInfo:
             datatype = "float"
         if isinstance(arg.buf, bytes):
             datatype = "bytes"
+        if isinstance(arg.buf, list):
+            datatype = type(arg.buf).__name__ + "_" + type(arg.buf[0]).__name__
         #if isinstance(arg.buf, double):
         #    datatype = "double"
         if "cdata" in str(arg.buf).lower():
             datatype = "cdata"
+        print(type(arg.buf))
         return datatype
 
     @classmethod
     def from_vaccel_arg(cls, arg: VaccelArg):
         datatype = VaccelArgInfo.detect_datatype(arg)
 
+        print(datatype)
+        if "list" in datatype:
+            intype = datatype.split("_")[1]
+            length = len(arg.buf)
+            if (intype == "bytes"):
+                intype = "char"
+            print(length)
+            temp = ffi.new(f"{intype} [{length}]", arg.buf) 
         if datatype == "int":
             temp = ffi.new("int *", arg.buf)
         if datatype == "char []":
             temp = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
         if datatype == "float":
-            temp = ffi.new("float *", arg.buf)
+            #temp = ffi.new("float *", arg.buf)
             temp = ffi.new(f"float *", arg.buf)
         if datatype == "double":
             temp = ffi.cast("double *", arg.buf)
@@ -121,6 +143,11 @@ class VaccelArgInfo:
         if datatype == "void":
             temp1 = ffi.new("char []", bytes(arg.buf, encoding="utf-8"))
             temp = ffi.cast(temp1)
+        if datatype == "char *":
+            temp = arg.buf
+        #if datatype == "int":
+        #    datasize = 4
+        #else:
         datasize = ffi.sizeof(temp)
         return cls(datatype=datatype, datasize=datasize)
 
@@ -131,6 +158,7 @@ class VaccelArgList:
 
     def to_cffi(self):
         temp = []
+        #import pdb;pdb.set_trace()
         for arg in self.args:
             this = arg.to_cffi()
             temp.append(this)

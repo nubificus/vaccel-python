@@ -1,52 +1,11 @@
 from vaccel.session import Session
-from typing import List
+from typing import List, Any
 from vaccel.genop import Genop, VaccelArg, VaccelOpType, VaccelArgList
 from vaccel._vaccel import lib, ffi
 import os
 
 
-class Object:
-    def __parse_object__(obj: "str") -> bytes:
-        """Parses a shared object file and returns its content and size
-
-        Args:
-            obj: The path to the shared object file
-
-        Returns:
-            A tuple containing the content of the shared object file as bytes
-            and its size as an integer
-
-        Raises:
-            TypeError: If object is not a string
-        """
-        filename = obj
-        if not isinstance(obj, str):
-            raise TypeError(
-                f"Invalid image type. Expected str or bytes, got {type(obj)}.")
-
-        if isinstance(obj, str):
-            with open(obj, "rb") as objfile:
-                obj = objfile.read()
-
-        size = os.stat(filename).st_size
-        return obj, size
-
-    def create_shared_object(obj: str):
-        """Creates a shared object from a file and returns a pointer to it
-
-        Args:
-            obj: The file path to the object file
-
-        Returns:
-            A pointer to the shared object
-        """
-        sharedobj, size = Object.__parse_object__(obj)
-        shared = ffi.new("struct vaccel_shared_object *")
-        sharedobject = ffi.new("char[%d]" % size, sharedobj)
-        sharedobject = ffi.cast("const void *", sharedobject)
-        lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size)
-        return shared
-
+__hidden__ = list()
 
 class Exec_Operation:
     """An Exec Operation model vAccel resource
@@ -72,15 +31,13 @@ class Exec_Operation:
         Genop.genop(session, arg_read, arg_write)
         return arg_write[index].content
 
-
-class Vaccel_Args:
+class Vaccel_Args(Object):
     """
     A helper class for converting argument lists to the appropriate vAccel format
     """
-
     @staticmethod
-    def vaccel_read_args(args: List[int]) -> List[VaccelArg]:
-        """Convert a list of integers to a list of VaccelArg objects
+    def vaccel_args(arguments):
+        """Convert a list of arguments to a list of VaccelArg objects
 
         Args:
             args : A list of integers
@@ -88,27 +45,46 @@ class Vaccel_Args:
        Returns:
             A list of VaccelArg objects
         """
-        iterable = list(args)
+        iterable = list(arguments)
         new_list = []
         for item in iterable:
             new_item=VaccelArg(data=item)
             new_list.append(new_item)
+            __hidden__.append(new_item)
 
         return VaccelArgList(new_list).to_cffi()
 
-    @staticmethod
-    def vaccel_write_args(args: List[bytes]) -> List[VaccelArg]:
-        """Convert a list of bytes to a list of VaccelArg objects
+class Vaccel_Args_old:
+    """
+    A helper class for converting argument lists to the appropriate vAccel format
+    """
+    def __init__(self, data) -> None:
+        self.raw_arguments = data
+        self.vaccel_arguments = []
+        self.__hidden__ = []
+
+    def vaccel_args(self):
+        """Convert a list of arguments to a list of VaccelArg objects
 
         Args:
-            args : A list of bytes
+            args : A list of integers
 
        Returns:
             A list of VaccelArg objects
         """
-        args = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return VaccelArgList(args).to_cffi()
+        iterable = list(self.raw_arguments)
+        #print(self._raw_arguments)
+        #print(iterable)
+        new_list = []
+        for item in iterable:
+            new_item=VaccelArg(data=item)
+            print(new_item.raw_content)
+            new_list.append(new_item)
+            self.__hidden__.append(new_item)
 
+        #print(new_list)
+        self.vaccel_arguments = VaccelArgList(new_list).to_cffi()
+        return self.vaccel_arguments
 
 class Exec(Exec_Operation):
     """An Exec operation model vAccel resource
@@ -151,7 +127,7 @@ class Exec_with_resource(Exec_Operation, Object):
     __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
 
     @classmethod
-    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[int], arg_write: list[bytes]):
+    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
         """Performs the Exec with resource operation
 
         Args:
@@ -164,8 +140,12 @@ class Exec_with_resource(Exec_Operation, Object):
         """
         session = Session(flags=0)
         shared = self.create_shared_object(obj)
-        vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
-        vaccel_args_write = Vaccel_Args.vaccel_write_args(arg_write)
+        print(arg_read)
+        #readargument = Vaccel_Args(data=arg_read)
+        #writeargument = Vaccel_Args(data=arg_write)
+        vaccel_args_read = Vaccel_Args.vaccel_args(arg_read)
+        vaccel_args_write = Vaccel_Args.vaccel_args(arg_write)
+        #writeargument.vaccel_args(arg_write)
         nr_read = len(arg_read)
         nr_write = len(arg_write)
 
@@ -174,10 +154,10 @@ class Exec_with_resource(Exec_Operation, Object):
 
         lib.vaccel_sess_register(session._to_inner(), shared.resource)
         ret = lib.vaccel_exec_with_resource(session._to_inner(), shared, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
-        #return arg_write[0].content
+        return arg_write
 
     @classmethod
-    def exec_with_resource_genop(self, obj: str, symbol: str, arg_read: List[int], arg_write: list[bytes]) -> str:
+    def exec_with_resource_genop(self, obj: str, symbol: str, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> str:
         """Performs the Exec using vAccel over genop
 
         Args:
@@ -193,8 +173,6 @@ class Exec_with_resource(Exec_Operation, Object):
         shared = self.create_shared_object(obj)
         rid = lib.vaccel_shared_object_get_id(shared)
         
-        #vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
         arg_read_local = [VaccelArg(data=int(self.__op__)),
                           VaccelArg(data=rid), VaccelArg(data=symbol)] + arg_read
-        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)

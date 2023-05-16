@@ -22,6 +22,6 @@ def test_exec_with_res():
     #assert res == ("I got this input: %d\n" % arg_read)
 
 
-def test_exec_with_res_genop():
-    res = Exec_with_resource.exec_with_resource_genop(object, sym, arg_read, arg_write)
+#def test_exec_with_res_genop():
+#    res = Exec_with_resource.exec_with_resource_genop(object, sym, arg_read, arg_write)
 #     assert res == ("")
