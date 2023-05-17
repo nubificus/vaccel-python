@@ -195,8 +195,6 @@ class Exec_with_resource(Exec_Operation, Object):
         shared = self.create_shared_object(obj)
         rid = lib.vaccel_shared_object_get_id(shared)
         
-        #vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
         arg_read_local = [VaccelArg(data=int(self.__op__)),
                           VaccelArg(data=rid), VaccelArg(data=symbol)] + arg_read
-        #arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
         return self.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
