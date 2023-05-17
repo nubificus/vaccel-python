@@ -1,5 +1,5 @@
 from vaccel.session import Session
-from typing import List
+from typing import List, Any
 from vaccel.genop import Genop, VaccelArg, VaccelOpType, VaccelArgList
 from vaccel._vaccel import lib, ffi
 import os
@@ -81,8 +81,8 @@ class Vaccel_Args:
     """
 
     @staticmethod
-    def vaccel_read_args(args: List[int]) -> List[VaccelArg]:
-        """Convert a list of integers to a list of VaccelArg objects
+    def vaccel_args(args: List[Any]) -> List[VaccelArg]:
+        """Convert a list of arguments to a list of VaccelArg objects
 
         Args:
             args : A list of integers
@@ -97,20 +97,6 @@ class Vaccel_Args:
             new_list.append(new_item)
 
         return VaccelArgList(new_list).to_cffi()
-
-    @staticmethod
-    def vaccel_write_args(args: List[bytes]) -> List[VaccelArg]:
-        """Convert a list of bytes to a list of VaccelArg objects
-
-        Args:
-            args : A list of bytes
-
-       Returns:
-            A list of VaccelArg objects
-        """
-        args = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return VaccelArgList(args).to_cffi()
-
 
 class Exec(Exec_Operation):
     """An Exec operation model vAccel resource
@@ -153,7 +139,7 @@ class Exec_with_resource(Exec_Operation, Object):
     __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
 
     @classmethod
-    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[int], arg_write: List[bytes]):
+    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
         """Performs the Exec with resource operation
 
         Args:
@@ -166,8 +152,8 @@ class Exec_with_resource(Exec_Operation, Object):
         """
         session = Session(flags=0)
         shared = self.create_shared_object(obj)
-        vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
-        vaccel_args_write = Vaccel_Args.vaccel_write_args(arg_write)
+        vaccel_args_read = Vaccel_Args.vaccel_args(arg_read)
+        vaccel_args_write = Vaccel_Args.vaccel_args(arg_write)
         nr_read = len(arg_read)
         nr_write = len(arg_write)
 
