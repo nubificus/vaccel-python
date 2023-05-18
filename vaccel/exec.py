@@ -149,11 +149,12 @@ class Exec_with_resource(Exec_Operation, Object):
         __op__: The genop operation type
     """
 
-    
+
     __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
 
     @classmethod
-    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[int], arg_write: List[bytes]):
+    #def exec_with_resource(self, obj: str, symbol: str, arg_read: List[int], arg_write: List[bytes]):
+    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> str:
         """Performs the Exec with resource operation
 
         Args:
@@ -166,8 +167,11 @@ class Exec_with_resource(Exec_Operation, Object):
         """
         session = Session(flags=0)
         shared = self.create_shared_object(obj)
-        vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
-        vaccel_args_write = Vaccel_Args.vaccel_write_args(arg_write)
+        #vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
+        #vaccel_args_write = Vaccel_Args.vaccel_write_args(arg_write)
+        vaccel_args_read = VaccelArgList(arg_read).to_cffi()
+        vaccel_args_write = VaccelArgList(arg_write).to_cffi()
+
         nr_read = len(arg_read)
         nr_write = len(arg_write)
 
@@ -176,7 +180,10 @@ class Exec_with_resource(Exec_Operation, Object):
 
         lib.vaccel_sess_register(session._to_inner(), shared.resource)
         ret = lib.vaccel_exec_with_resource(session._to_inner(), shared, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
+        lib.vaccel_sess_unregister(session._to_inner(), shared.resource)
+        lib.vaccel_shared_object_destroy(shared)
         #return arg_write[0].content
+
 
     @classmethod
     def exec_with_resource_genop(self, obj: str, symbol: str, arg_read: List[VaccelArg], arg_write: List[VaccelArg]) -> str:
