@@ -66,7 +66,7 @@ class VaccelArg:
             arg1buf = ffi.new("double *", self.buf)      
 
         if self.info.datatype == "cdata":
-            arg1buf = ffi.new(f"char[{self.size}]", self.buf)
+            arg1buf = ffi.new(f"{ffi.typeof(self.buf).cname}", self.buf)
 
         self.__hidden__.append(arg1buf)
         buf = ffi.cast("void *", arg1buf)
@@ -76,8 +76,8 @@ class VaccelArg:
         arg[0].size = self.size
         arg[0].buf = buf
         self.__hidden__.append(arg)
-        if (self.info.datatype == "int"):
-            print(buf, self.size, self.buf)
+        #if (self.info.datatype == "int"):
+        #    print(buf, self.size, self.buf)
 
         return arg[0]
 
@@ -112,20 +112,20 @@ class VaccelArgInfo:
         #    datatype = "double"
         if "cdata" in str(arg.buf).lower():
             datatype = "cdata"
-        print(type(arg.buf))
+        #print(type(arg.buf))
         return datatype
 
     @classmethod
     def from_vaccel_arg(cls, arg: VaccelArg):
         datatype = VaccelArgInfo.detect_datatype(arg)
 
-        print(datatype)
+        #print(datatype)
         if "list" in datatype:
             intype = datatype.split("_")[1]
             length = len(arg.buf)
             if (intype == "bytes"):
                 intype = "char"
-            print(length)
+            #print(length)
             temp = ffi.new(f"{intype} [{length}]", arg.buf) 
         if datatype == "int":
             temp = ffi.new("int *", arg.buf)
