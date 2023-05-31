@@ -69,7 +69,6 @@ class VaccelArg:
             arg1buf = ffi.new(f"char[{self.size}]", self.buf)
 
         self.__hidden__.append(arg1buf)
-        print(self.info.datatype)
         buf = ffi.cast("void *", arg1buf)
         arg = ffi.new("struct vaccel_arg []", 1)
 
