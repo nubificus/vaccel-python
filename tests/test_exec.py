@@ -7,7 +7,7 @@ object = "/usr/local/lib/libmytestlib.so"
 sym = "mytestfunc"
 arg_read = [1048576,12323,134366,1212]
 
-arg_write = []
+arg_write = ['']
 
 
 # def test_exec_genop():

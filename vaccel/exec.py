@@ -4,6 +4,7 @@ from typing import List, Any
 from vaccel.genop import Genop, VaccelArg, VaccelOpType, VaccelArgList
 from vaccel._vaccel import lib, ffi
 import os
+import pdb
 
 __hidden__ = list()
 
@@ -112,21 +113,24 @@ class Exec_with_resource(Exec_Operation):
             arg_write: A list of outputs
         """
         session = Session(flags=0)
-        myobject = Object(obj)
-        shared = Object.create_shared_object(obj)
-        Object.register_object(shared,session)
+
+        myobject = Object(session,obj,symbol)
+        shared_obj = myobject.shared
+        symbolcdata = myobject.symbol
+        myobject.register
+
 
         vaccel_args_read = Vaccel_Args.vaccel_args(arg_read)
         vaccel_args_write = Vaccel_Args.vaccel_args(arg_write)
         nr_read = len(vaccel_args_read)
         nr_write = len(vaccel_args_write)
 
-        symbolcdata = myobject.object_symbol(symbol)
 
-
-        ret = lib.vaccel_exec_with_resource(session._to_inner(), shared, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
+        ret = lib.vaccel_exec_with_resource(session._to_inner(), shared_obj, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
         print(arg_write)
         #import pdb;pdb.set_trace()
         print(vaccel_args_write[0].buf)
-        return arg_write 
 
+        myobject.unregister
+        
+        return arg_write 
