@@ -124,7 +124,7 @@ ffibuilder.cdef("""
 
                 /* dimensions of the data */
                 int nr_dims;
-                int64_t *dims;
+                int32_t *dims;
 
                 /* Data type */
                 enum vaccel_tf_data_type data_type;
