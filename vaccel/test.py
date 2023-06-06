@@ -4,6 +4,7 @@ from vaccel.genop import Genop, VaccelArg
 from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
 from vaccel.minmax import MinMax
 from vaccel.exec import Exec, Exec_with_resource
+from vaccel.exec_many import Exec_with_many_resources
 from vaccel.sgemm import Sgemm
 from vaccel.pynq_array_copy import Pynq_array_copy
 from vaccel.pynq_parallel import Pynq_parallel
@@ -174,13 +175,27 @@ def test_exec_genop():
 
 def test_exec_with_resource():
     print('Exec with resource test')
+    object = "/usr/local/lib/libmytestlib.so"
+    symbol = "mytestfunc"
     read_args = [1048576,12,32,43]
     write_args = ["                               ", "         "]
     mybytes: bytes = bytes(100 * " ", encoding="utf-8")
-    res = Exec_with_resource.exec_with_resource("/usr/local/lib/libmytestlib.so", "mytestfunc", read_args, write_args)
+    res = Exec_with_resource.exec_with_resource(object,symbol, read_args, write_args)
+    print(res)
+    print('')
+
+def test_exec_with_many_resources():
+    print('Exec with resource test')
+    objects = ("/usr/local/lib/libmytestlib.so", "/usr/local/lib/libmytestlib.so", "/usr/local/lib/libmytestlib.so")
+    symbols = ("mytestfunc", "mytestfunc", "mytestfunc")
+    read_args = ([13454,2,3,4],[1232344,2],[10495,2,3,4,5])
+    write_args = ["                               ", "         "]
+    mybytes: bytes = bytes(100 * " ", encoding="utf-8")
+    res = Exec_with_many_resources.exec_with_many_resources(objects, symbols, read_args, write_args)
     print(res)
     print('')
 
 
 if __name__ == "__main__":
     test_exec_with_resource()
+    test_exec_with_many_resources()

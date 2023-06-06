@@ -17,6 +17,13 @@ class Object:
         self.unregister = self.unregister_object(self.shared,session)
         self.symbol = self.object_symbol(symbol)
         
+    def many_objects(self,obj):
+        self.my_list = []
+        for i in obj :
+            # self.path, self.size = self.__parse_object__(i)
+            self.my_list.append(i)
+        objects = self.my_list
+        return objects
 
     def __parse_object__(self,obj) -> bytes:
         """Parses a shared object file and returns its content and size
@@ -31,8 +38,7 @@ class Object:
         Raises:
             TypeError: If object is not a string
         """
-        filename = self.filename
-        obj = self.filename
+        filename = obj
         if not isinstance(obj, str):
             raise TypeError(
                 f"Invalid image type. Expected str or bytes, got {type(obj)}.")
@@ -61,29 +67,6 @@ class Object:
         sharedobject = ffi.cast("const void *", sharedobject)
         lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size)
         return shared
-
-
-    def create_shared_objects(objects: List[str]) -> List[str]:
-        """Creates a list of shared objects
-           from a list of file paths
-
-        Args:
-            objects: A list of file paths to the object files
-
-        Returns:
-            A list of pointers to the shared objects
-        """
-        shared_objects = []
-        for obj in objects:
-            sharedobj, size = Object.__parse_object__(obj)
-            shared = ffi.new("struct vaccel_shared_object *")
-            sharedobject = ffi.new("char[%d]" % size, sharedobj)
-            __hidden__.append(sharedobject)
-            sharedobject = ffi.cast("const void *", sharedobject)
-            lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size)
-            shared_objects.append(shared)
-        return shared_objects
-        
     
     def register_object(self,shared,session):
         ret= lib.vaccel_sess_register(session._to_inner(), shared.resource)

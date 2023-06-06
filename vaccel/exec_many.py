@@ -42,7 +42,7 @@ class Exec_with_many_resources(Object):
     __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
 
     @classmethod
-    def exec_with_resources(self, objects: List[str], symbols: List[str], arg_read: List[Any], arg_write: List[Any]):
+    def exec_with_many_resources(self, objects: List[str], symbols: List[str], arg_read: List[Any], arg_write: List[Any]):
         """Performs the Exec using vAccel over genop.
 
         Args:
@@ -53,19 +53,23 @@ class Exec_with_many_resources(Object):
         Returns:
             arg_write: A list of outputs
         """
-        session = Session(flags=0)
-        shared_objects = self.create_shared_objects(objects)
+        # shared_objects = self.create_shared_objects(self,objects)
         #vaccel_args_read = Vaccel_Args.vaccel_read_args(arg_read)
         #vaccel_args_write = Vaccel_Args.vaccel_write_args(arg_write)
-        
+        objects = Object.many_objects(self,objects)
+        symbols = Object.many_objects(self,symbols)
 
-        for shared, symbol, read in zip(shared_objects, symbols, arg_read):
-            lib.vaccel_sess_register(session._to_inner(), shared.resource)
-            symbolcdata = ffi.new(f"char[{len(symbol)}]",
-                                  bytes(symbol, encoding='utf-8'))
+        for object, symbol, read in zip(objects, symbols, arg_read):
+            session = Session(flags=0)
+            print(f"Object: {object}, Symbol: {symbol}, Read: {read}")
+            myobject = Object(session,object,symbol)
+            shared_obj = myobject.shared
+            symbolcdata = myobject.symbol
+            myobject.register
+            
             vaccel_args_read = Vaccel_Args.vaccel_args(read)
             vaccel_args_write = Vaccel_Args.vaccel_args(arg_write)
             nr_read = len(read)
             nr_write = len(arg_write)
-            ret = lib.vaccel_exec_with_resource(session._to_inner(), shared, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
+            ret = lib.vaccel_exec_with_resource(session._to_inner(), shared_obj, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
         #return arg_write[0].content
