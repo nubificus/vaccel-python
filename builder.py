@@ -15,7 +15,10 @@ ffibuilder.set_source(
         #include <ops/genop.h>
         #include <ops/image.h>
         #include <resources/tf_saved_model.h>
+        #include <resources/shared_object.h>
         #include <plugin.h>
+        #include <ops/fpga.h>
+        #include <ops/exec.h>
         """,
     libraries=['vaccel-python', 'dl'],
 )
@@ -121,7 +124,7 @@ ffibuilder.cdef("""
 
                 /* dimensions of the data */
                 int nr_dims;
-                int64_t *dims;
+                int32_t *dims;
 
                 /* Data type */
                 enum vaccel_tf_data_type data_type;
@@ -266,6 +269,66 @@ int vaccel_fpga_vadd(struct vaccel_session *session, float *a, float *b,
 ffibuilder.cdef("""
 int vaccel_fpga_parallel(struct vaccel_session *session, float *a, float *b,
 	float *add_out, float *mult_out, size_t len_a);
+"""
+)
+
+#Exec API
+ffibuilder.cdef("""
+int vaccel_exec(struct vaccel_session *sess, const char *library,
+                const char *fn_symbol, struct vaccel_arg *read,
+                size_t nr_read, struct vaccel_arg *write, size_t nr_write);
+"""
+)
+
+#Exec with resource
+ffibuilder.cdef("""
+struct vaccel_file {
+	/* Path to file */
+	char *path;
+
+	/* Do we own the file? */
+	bool path_owned;
+
+	/* Pointer to the contents of the file in case we hold them
+	 * in a buffer */
+	uint8_t *data;
+	size_t size;
+};
+struct vaccel_shared_object {
+	/* Underlying resource object */
+	struct vaccel_resource *resource;
+
+	/* The protobuf file of the shared object */
+	struct vaccel_file file;
+
+	/* Plugin specific data */
+	void *plugin_data;
+};
+
+int vaccel_shared_object_new(
+	struct vaccel_shared_object *object,
+	const char *path
+);
+
+int vaccel_shared_object_new_from_buffer(
+	struct vaccel_shared_object *object,
+	const uint8_t *buff,
+	size_t size
+);
+
+int vaccel_shared_object_destroy(struct vaccel_shared_object *object);
+
+vaccel_id_t vaccel_shared_object_get_id(
+	const struct vaccel_shared_object *object
+);
+
+const uint8_t *vaccel_shared_object_get(
+	struct vaccel_shared_object *object, size_t *len
+);
+
+    int vaccel_exec_with_resource(struct vaccel_session *sess, struct vaccel_shared_object *object,
+		const char *fn_symbol, struct vaccel_arg *read,
+		size_t nr_read, struct vaccel_arg *write, size_t nr_write);
 """
 )
 
