@@ -7,23 +7,24 @@ import pdb
 
 __hidden__ = list()
 
+
 class Object:
     @classmethod
-    def __init__(self,session,obj,symbol):
+    def __init__(self, session, obj, symbol):
         """Create a new vAccel object"""
         self.filename = obj
         self.session = session
-        self.path,self.size = self.__parse_object__(obj)
+        self.path, self.size = self.__parse_object__(obj)
         self.shared = self.create_shared_object()
         self.register = self.register_object()
         self.symbol = self.object_symbol(symbol)
-        
+
     def __del__(self):
         self.unregister = self.unregister_object()
         self.destroy = self.destroy_shared_object()
 
     @classmethod
-    def __parse_object__(self,obj) -> bytes:
+    def __parse_object__(self, obj) -> bytes:
         """Parses a shared object file and returns its content and size
 
         Args:
@@ -49,7 +50,6 @@ class Object:
         size = os.stat(filename).st_size
         return obj, size
 
-
     @classmethod
     def create_shared_object(self):
         """Creates a shared object from a file and returns a pointer to it
@@ -69,7 +69,6 @@ class Object:
         lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size)
         return shared
 
-
     def create_shared_objects(objects: List[str]) -> List[str]:
         """Creates a list of shared objects
            from a list of file paths
@@ -87,30 +86,30 @@ class Object:
             sharedobject = ffi.new("char[%d]" % size, sharedobj)
             __hidden__.append(sharedobject)
             sharedobject = ffi.cast("const void *", sharedobject)
-            lib.vaccel_shared_object_new_from_buffer(shared, sharedobject, size)
+            lib.vaccel_shared_object_new_from_buffer(
+                shared, sharedobject, size)
             shared_objects.append(shared)
         return shared_objects
-        
-    
+
     @classmethod
     def register_object(self):
-        ret= lib.vaccel_sess_register(self.session._to_inner(), self.shared.resource)
+        ret = lib.vaccel_sess_register(
+            self.session._to_inner(), self.shared.resource)
         return ret
-
 
     @classmethod
     def destroy_shared_object(self):
-        ret= lib.vaccel_shared_object_destroy(self.shared)
+        ret = lib.vaccel_shared_object_destroy(self.shared)
         return ret
 
     @classmethod
     def unregister_object(self):
-        ret = lib.vaccel_sess_unregister(self.session._to_inner(), self.shared.resource)
+        ret = lib.vaccel_sess_unregister(
+            self.session._to_inner(), self.shared.resource)
         return ret
 
-
     @classmethod
-    def object_symbol(self,symbol):
+    def object_symbol(self, symbol):
         symbolcdata = ffi.new(f"char[{len(symbol)}]",
                               bytes(symbol, encoding='utf-8'))
         return symbolcdata

@@ -9,6 +9,9 @@ from vaccel.pynq_array_copy import Pynq_array_copy
 from vaccel.pynq_parallel import Pynq_parallel
 from vaccel.pynq_vector_add import Pynq_vector_add
 from vaccel import image_genop as genimg
+from vaccelpy.exec_resource import ExecResource
+from vaccelpy.exec_genop import Exec as Execv2
+
 
 def test_session():
     print("Session test")
@@ -87,14 +90,16 @@ def test_image_depth_genop():
 
 def test_min_max_genop():
     print('Min-Max over genop test')
-    res = MinMax.minmax(indata=262144, ndata=minmaxsource, low_threshold=10, high_threshold=5000)
+    res = MinMax.minmax(indata=262144, ndata=minmaxsource,
+                        low_threshold=10, high_threshold=5000)
     print(res)
     print('')
 
 
 def test_sgemm_genop():
     print('Sgemm over genop test')
-    res = Sgemm.sgemm(m=512, n=512, k=512, alpha=32412.000000, lda=512, ldb=512, beta=2123.000000)
+    res = Sgemm.sgemm(m=512, n=512, k=512, alpha=32412.000000,
+                      lda=512, ldb=512, beta=2123.000000)
     print(res)
     print('')
 
@@ -164,23 +169,51 @@ def test_image_depth():
     print(res)
     print('')
 
+
 def test_exec_genop():
     print('Exec over genop test')
     myint: int = 1048576
     mybytes: bytes = bytes(100 * " ", encoding="utf-8")
-    res = Exec.exec("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    res = Exec.exec("/usr/local/lib/libmytestlib.so", "mytestfunc",
+                    [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
     print(res)
     print('')
 
+
 def test_exec_with_resource():
     print('Exec with resource test')
-    read_args = [1048576,12,32,43]
+    read_args = [1048576, 12, 32, 43]
     write_args = ["                               ", "         "]
     mybytes: bytes = bytes(100 * " ", encoding="utf-8")
-    res = Exec_with_resource.exec_with_resource("/usr/local/lib/libmytestlib.so", "mytestfunc", read_args, write_args)
+    # write_args = [mybytes]
+    res = Exec_with_resource.exec_with_resource(
+        "/usr/local/lib/libmytestlib.so", "mytestfunc", read_args, write_args)
     print(res)
+    print('')
+
+
+def test_gntouts():
+    read_args = [104856, 12, 32, 43]
+    write_args = ["                               ", "         "]
+    res = ExecResource.run("/usr/local/lib/libmytestlib.so",
+                           "mytestfunc", read_args, write_args)
+    print(res.arg_write)
+    print(res.ret)
+    print('')
+
+
+def test_gntouts_2():
+    print('Exec over genop test')
+    myint: int = 1048576
+    mybytes: bytes = bytes(100 * " ", encoding="utf-8")
+    res = Execv2.run("/usr/local/lib/libmytestlib.so",
+                     "mytestfunc", [myint], [mybytes])
+    print(res.arg_write)
+    print(res.ret)
     print('')
 
 
 if __name__ == "__main__":
-    test_exec_with_resource()
+    # test_exec_with_resource()
+     test_gntouts()
+#    test_gntouts_2()

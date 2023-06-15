@@ -3,16 +3,17 @@ from typing import List
 from vaccel.genop import Genop, VaccelArg, VaccelOpType
 import struct
 
+
 class Pynq_parallel:
     """A Pynq parallel model vAccel resource.
-    
+
     Attributes:
         __op__: The genop operation type
         def_arg_write (bytes): The result of the operation
     """
 
     __op__ = VaccelOpType.VACCEL_PYNQ_PARALLEL
-    
+
     def_arg_write: bytes = bytes(100 * " ", encoding="utf-8")
 
     @staticmethod
@@ -32,7 +33,7 @@ class Pynq_parallel:
         return struct.unpack('d', arg_write[index].raw_content[:8])[0]
 
     @classmethod
-    def pynq_parellel(self, a:float,len_a:int):
+    def pynq_parellel(self, a: float, len_a: int):
         """Executes Pynq parallel operation using vAccel over genop.
 
         Args:
@@ -44,8 +45,9 @@ class Pynq_parallel:
             add_out: A float for the addition
             mult_out: A float for the multiplication
         """
-        
+
         arg_read = [VaccelArg(data=int(self.__op__)),
-                    VaccelArg(data=a),VaccelArg(data=len_a)]
-        arg_write = [VaccelArg(data=self.def_arg_write),VaccelArg(data=self.def_arg_write)]
+                    VaccelArg(data=a), VaccelArg(data=len_a)]
+        arg_write = [VaccelArg(data=self.def_arg_write),
+                     VaccelArg(data=self.def_arg_write)]
         return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
