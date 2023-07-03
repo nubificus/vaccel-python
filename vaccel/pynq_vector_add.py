@@ -33,7 +33,7 @@ class Pynq_vector_add:
         return struct.unpack('d', arg_write[index].raw_content[:8])[0]
 
     @classmethod
-    def pynq_vector_add(self, len_a:int, len_b:int):
+    def pynq_vector_add(cls, len_a:int, len_b:int):
         """Executes Pynq vector add operation using vAccel over genop.
 
         Args:
@@ -46,7 +46,7 @@ class Pynq_vector_add:
             c: A float for the result of the addition
         """
         
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=len_a),VaccelArg(data=len_b)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        arg_write = [VaccelArg(data=cls.def_arg_write)]
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)

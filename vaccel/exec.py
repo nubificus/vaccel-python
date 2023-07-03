@@ -70,7 +70,7 @@ class Exec(Exec_Operation):
     __op__ = VaccelOpType.VACCEL_EXEC
 
     @classmethod
-    def exec(self, library: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
+    def exec(cls, library: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
         """Performs the Exec using vAccel over genop.
 
         Args:
@@ -83,10 +83,10 @@ class Exec(Exec_Operation):
         """
 
         session = Session(flags=0)
-        arg_read_local = [VaccelArg(data=int(self.__op__)),
+        arg_read_local = [VaccelArg(data=int(cls.__op__)),
                           VaccelArg(data=library), VaccelArg(data=symbol)] + arg_read
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        ret = self.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
+        ret = cls.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
         return ret
 
 
@@ -101,7 +101,7 @@ class Exec_with_resource(Exec_Operation):
     __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
 
     @classmethod
-    def exec_with_resource(self, obj: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
+    def exec_with_resource(cls, obj: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
         """Performs the Exec with resource operation
 
         Args:

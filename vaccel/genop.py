@@ -177,8 +177,8 @@ class Genop:
     def __del__(self):
         print("test del")
 
-    @classmethod
-    def genop(self, session: Session, arg_read: List[int], arg_write: List[VaccelArg]) -> List[str]:
+    @staticmethod
+    def genop(session: Session, arg_read: List[int], arg_write: List[VaccelArg]) -> List[str]:
         """Vaccel genop.
 
         Args:

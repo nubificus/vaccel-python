@@ -56,7 +56,7 @@ class MinMax:
         return ndata
 
     @classmethod
-    def minmax(self, indata: int, ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
+    def minmax(cls, indata: int, ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
         """Performs the MinMax operation using vAccel over genop.
 
         Args:
@@ -70,8 +70,8 @@ class MinMax:
             min: A float number for the min value
             max: A float number for the max value 
         """
-        ndata = self.__parse_ndata__(ndata=ndata)
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        ndata = cls.__parse_ndata__(ndata=ndata)
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=ndata),
                     VaccelArg(data=indata),
                     VaccelArg(data=low_threshold),
@@ -81,7 +81,7 @@ class MinMax:
         out_min: float = bytes(8 * " ", encoding="utf-8")
         out_max: float = bytes(8 * " ", encoding="utf-8")
         arg_write = [VaccelArg(data=out_ndata), VaccelArg(data=out_min), VaccelArg(data=out_max)]
-        some_ret_value = self.__genop__(arg_read=arg_read, arg_write=arg_write, index=2)
+        some_ret_value = cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=2)
 
         # The array of floats returned by the plugin
         arg_write1 = arg_write[0].raw_content

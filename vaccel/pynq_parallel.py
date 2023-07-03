@@ -32,7 +32,7 @@ class Pynq_parallel:
         return struct.unpack('d', arg_write[index].raw_content[:8])[0]
 
     @classmethod
-    def pynq_parellel(self, a:float,len_a:int):
+    def pynq_parellel(cls, a:float,len_a:int):
         """Executes Pynq parallel operation using vAccel over genop.
 
         Args:
@@ -45,7 +45,7 @@ class Pynq_parallel:
             mult_out: A float for the multiplication
         """
         
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=a),VaccelArg(data=len_a)]
-        arg_write = [VaccelArg(data=self.def_arg_write),VaccelArg(data=self.def_arg_write)]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        arg_write = [VaccelArg(data=cls.def_arg_write),VaccelArg(data=cls.def_arg_write)]
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
