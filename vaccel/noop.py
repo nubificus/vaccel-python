@@ -8,8 +8,8 @@ class Noop:
     def __del__(self):
         print("test del")
 
-    @classmethod
-    def noop(self, session):
+    @staticmethod
+    def noop(session):
         """Execute noop
         
         Args: 

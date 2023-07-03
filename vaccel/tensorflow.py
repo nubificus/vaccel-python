@@ -171,7 +171,7 @@ class Tensor:
         return self.data[index]
 
     def to_cffi(self):
-        dims = ffi.new("int64_t[%d]" % len(self.dims), self.dims)
+        dims = ffi.new("int32_t[%d]" % len(self.dims), self.dims)
         # hack to keep memory alive
         self.__hidden__.append(dims)
 

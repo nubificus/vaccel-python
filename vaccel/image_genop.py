@@ -58,7 +58,7 @@ class ImageClassify(__ImageOperation__):
     __op__ = VaccelOpType.VACCEL_IMG_CLASS
 
     @classmethod
-    def classify(self, image: "str | bytes"):
+    def classify(cls, image: "str | bytes"):
         """Executes image classification operation using vAccel over genop.
 
         Args:
@@ -67,12 +67,12 @@ class ImageClassify(__ImageOperation__):
         Returns:
             A string containing the classifiaction tag
         """
-        image = self.__parse_image__(image=image)
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        image = cls.__parse_image__(image=image)
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8")),
                      VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 
 class ImageDetect(__ImageOperation__):
@@ -80,7 +80,7 @@ class ImageDetect(__ImageOperation__):
     __op__ = VaccelOpType.VACCEL_IMG_DETEC
 
     @classmethod
-    def detect(self, image: "str | bytes"):
+    def detect(cls, image: "str | bytes"):
         """Executes image detection operation using vAccel over genop.
 
         Args:
@@ -89,11 +89,11 @@ class ImageDetect(__ImageOperation__):
         Returns:
             A string containing the detection result
         """
-        image = self.__parse_image__(image=image)
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        image = cls.__parse_image__(image=image)
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 
 class ImageSegment(__ImageOperation__):
@@ -101,7 +101,7 @@ class ImageSegment(__ImageOperation__):
     __op__ = VaccelOpType.VACCEL_IMG_SEGME
 
     @classmethod
-    def segment(self, image: "str | bytes"):
+    def segment(cls, image: "str | bytes"):
         """Executes image segmentation operation using vAccel over genop.
 
         Args:
@@ -110,11 +110,11 @@ class ImageSegment(__ImageOperation__):
         Returns:
             A string containing the segmentation result
         """
-        image = self.__parse_image__(image=image)
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        image = cls.__parse_image__(image=image)
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 
 class ImagePose(__ImageOperation__):
@@ -122,7 +122,7 @@ class ImagePose(__ImageOperation__):
     __op__ = VaccelOpType.VACCEL_IMG_POSE
 
     @classmethod
-    def pose(self, image: "str | bytes"):
+    def pose(cls, image: "str | bytes"):
         """Executes image pose estimation operation using vAccel over genop.
 
         Args:
@@ -131,11 +131,11 @@ class ImagePose(__ImageOperation__):
         Returns:
             A string containing the pose estimation result
         """
-        image = self.__parse_image__(image=image)
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        image = cls.__parse_image__(image=image)
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
 
 
 class ImageDepth(__ImageOperation__):
@@ -143,7 +143,7 @@ class ImageDepth(__ImageOperation__):
     __op__ = VaccelOpType.VACCEL_IMG_DEPTH
 
     @classmethod
-    def depth(self, image: "str | bytes"):
+    def depth(cls, image: "str | bytes"):
         """Executes image depth estimation operation using vAccel over genop.
 
         Args:
@@ -152,8 +152,8 @@ class ImageDepth(__ImageOperation__):
         Returns:
             A string containing the depth estimation result
         """
-        image = self.__parse_image__(image=image)
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        image = cls.__parse_image__(image=image)
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=image)]
         arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)

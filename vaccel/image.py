@@ -20,7 +20,7 @@ class ImageClassify:
         print("test del")
 
     @classmethod
-    def __classify__(self, session: Session, data: List[int]) -> str:
+    def __classify__(cls, session: Session, data: List[int]) -> str:
         """Executes image classification operation.
 
         Args:
@@ -37,12 +37,12 @@ class ImageClassify:
 
         img = ffi.cast("const void *", data)
 
-        out_text = ffi.new(f"unsigned char[{self.out_size}]")
+        out_text = ffi.new(f"unsigned char[{cls.out_size}]")
 
         out_imgname = ffi.NULL
         len_img = len(data)
 
-        len_out_text = self.out_size
+        len_out_text = cls.out_size
         len_out_imgname = 0
 
         ret = lib.vaccel_image_classification(
@@ -56,7 +56,7 @@ class ImageClassify:
         return out_res
 
     @classmethod
-    def classify_from_filename(self, session: Session, source: str) -> str:
+    def classify_from_filename(cls, session: Session, source: str) -> str:
         """Initialize an ImageClassify model by loading image from filename
 
         Args:
@@ -72,7 +72,7 @@ class ImageClassify:
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
-        res = self.__classify__(session=session, data=pointer)
+        res = cls.__classify__(session=session, data=pointer)
         return res
 
 
@@ -91,8 +91,8 @@ class ImageDetect:
     def __del__(self):
         print("test del")
 
-    @classmethod
-    def __detect__(self, session: Session, data: List[int]) -> str:
+    @staticmethod
+    def __detect__(session: Session, data: List[int]) -> str:
         """Execute image detection operation
         
          Args:
@@ -123,7 +123,7 @@ class ImageDetect:
         return ret
 
     @classmethod
-    def detect_from_filename(self, session: Session, source: str) -> str:
+    def detect_from_filename(cls, session: Session, source: str) -> str:
         """Initialize an ImageDetect model by loading image from filename
                 
         Args:
@@ -139,7 +139,7 @@ class ImageDetect:
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
-        res = self.__detect__(session=session, data=pointer)
+        res = cls.__detect__(session=session, data=pointer)
 
         return res
 
@@ -159,8 +159,8 @@ class ImageSegment:
     def __del__(self):
         print("test del")
 
-    @classmethod
-    def __segment__(self, session: Session, data: List[int]) -> str:
+    @staticmethod
+    def __segment__(session: Session, data: List[int]) -> str:
         """Execute image segmentation operation
         
          Args:
@@ -192,7 +192,7 @@ class ImageSegment:
         return ret
 
     @classmethod
-    def segment_from_filename(self, session: Session, source: str) -> str:
+    def segment_from_filename(cls, session: Session, source: str) -> str:
         """Initialize an ImageSegment model by loading image from filename
                  
         Args:
@@ -208,7 +208,7 @@ class ImageSegment:
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
-        res = self.__segment__(session=session, data=pointer)
+        res = cls.__segment__(session=session, data=pointer)
 
         return res
 
@@ -228,8 +228,8 @@ class ImagePose:
     def __del__(self):
         print("test del")
 
-    @classmethod
-    def __pose__(self, session: Session, data: List[int]) -> str:
+    @staticmethod
+    def __pose__(session: Session, data: List[int]) -> str:
         """Execute image pose operation
         
         Args:
@@ -259,7 +259,7 @@ class ImagePose:
         return ret
 
     @classmethod
-    def pose_from_filename(self, session: Session, source: str) -> str:
+    def pose_from_filename(cls, session: Session, source: str) -> str:
         """Initialize an ImagePose model by loading image from filename
                  
         Args:
@@ -275,7 +275,7 @@ class ImagePose:
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
-        res = self.__pose__(session=session, data=pointer)
+        res = cls.__pose__(session=session, data=pointer)
 
         return res
 
@@ -295,8 +295,8 @@ class ImageDepth:
     def __del__(self):
         print("test del")
 
-    @classmethod
-    def __depth__(self, session: Session, data: List[int]) -> str:
+    @staticmethod
+    def __depth__(session: Session, data: List[int]) -> str:
         """Execute image depth operation
         
          Args:
@@ -326,7 +326,7 @@ class ImageDepth:
         return ret
 
     @classmethod
-    def depth_from_filename(self, session: Session, source: str) -> str:
+    def depth_from_filename(cls, session: Session, source: str) -> str:
         """Initialize an ImageDepth model by loading image from filename
         
         Args:
@@ -342,6 +342,6 @@ class ImageDepth:
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
-        res = self.__depth__(session=session, data=pointer)
+        res = cls.__depth__(session=session, data=pointer)
 
         return res

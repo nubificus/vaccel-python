@@ -32,7 +32,7 @@ class Sgemm:
         return arg_write[index].content
 
     @classmethod
-    def sgemm(self, m:int, n:int, k:int, alpha:float, lda:int, ldb:int, beta:float):
+    def sgemm(cls, m:int, n:int, k:int, alpha:float, lda:int, ldb:int, beta:float):
         """Performs the Sgemm using vAccel over genop.
 
         Args:
@@ -47,9 +47,9 @@ class Sgemm:
         Returns:
             ldc: An integer
         """
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=m),VaccelArg(data=n),VaccelArg(data=k),
                     VaccelArg(data=alpha),VaccelArg(data=lda),
                     VaccelArg(data=ldb),VaccelArg(data=beta)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        arg_write = [VaccelArg(data=cls.def_arg_write)]
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)

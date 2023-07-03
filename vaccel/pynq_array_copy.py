@@ -32,7 +32,7 @@ class Pynq_array_copy:
         return struct.unpack('d', arg_write[index].raw_content[:8])[0]
 
     @classmethod
-    def pynq_arr_copy(self, a:int):
+    def pynq_arr_copy(cls, a:int):
         """Executes Pynq array copy operation using vAccel over genop.
 
         Args:
@@ -43,7 +43,7 @@ class Pynq_array_copy:
             c: An integer giving the length of the array
         """
 
-        arg_read = [VaccelArg(data=int(self.__op__)),
+        arg_read = [VaccelArg(data=int(cls.__op__)),
                     VaccelArg(data=a)]
-        arg_write = [VaccelArg(data=self.def_arg_write)]
-        return self.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
+        arg_write = [VaccelArg(data=cls.def_arg_write)]
+        return cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=0)
