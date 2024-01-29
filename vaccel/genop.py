@@ -73,6 +73,7 @@ class VaccelArg:
         arg = ffi.new("struct vaccel_arg []", 1)
 
         # hack to keep memory alive
+        arg[0].argtype = 0
         arg[0].size = self.size
         arg[0].buf = buf
         self.__hidden__.append(arg)

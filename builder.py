@@ -184,6 +184,7 @@ ffibuilder.cdef("""
 # Genop API
 ffibuilder.cdef("""
         struct vaccel_arg {
+                uint32_t argtype;
                 uint32_t size;
                 void *buf;
         };"""

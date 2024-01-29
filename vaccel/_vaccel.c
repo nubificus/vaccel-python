@@ -3298,6 +3298,7 @@ static void _cffi_checkfld_struct_vaccel_arg(struct vaccel_arg *p)
 {
   /* only to generate compile-time warnings or errors */
   (void)p;
+  (void)((p->argtype) | 0);  /* check that 'struct vaccel_arg.argtype' is an integer */
   (void)((p->size) | 0);  /* check that 'struct vaccel_arg.size' is an integer */
   { void * *tmp = &p->buf; (void)tmp; }
 }
@@ -3477,6 +3478,9 @@ static const struct _cffi_global_s _cffi_globals[] = {
 };
 
 static const struct _cffi_field_s _cffi_fields[] = {
+  { "argtype", offsetof(struct vaccel_arg, argtype),
+               sizeof(((struct vaccel_arg *)0)->argtype),
+               _CFFI_OP(_CFFI_OP_NOOP, 107) },
   { "size", offsetof(struct vaccel_arg, size),
             sizeof(((struct vaccel_arg *)0)->size),
             _CFFI_OP(_CFFI_OP_NOOP, 107) },
@@ -3550,31 +3554,31 @@ static const struct _cffi_field_s _cffi_fields[] = {
 
 static const struct _cffi_struct_union_s _cffi_struct_unions[] = {
   { "vaccel_arg", 173, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct vaccel_arg), offsetof(struct _cffi_align_struct_vaccel_arg, y), 0, 2 },
+    sizeof(struct vaccel_arg), offsetof(struct _cffi_align_struct_vaccel_arg, y), 0, 3 },
   { "vaccel_file", 174, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct vaccel_file), offsetof(struct _cffi_align_struct_vaccel_file, y), 2, 4 },
+    sizeof(struct vaccel_file), offsetof(struct _cffi_align_struct_vaccel_file, y), 3, 4 },
   { "vaccel_op", 175, 0,
-    sizeof(struct vaccel_op), offsetof(struct _cffi_align_struct_vaccel_op, y), 6, 0 },
+    sizeof(struct vaccel_op), offsetof(struct _cffi_align_struct_vaccel_op, y), 7, 0 },
   { "vaccel_plugin", 176, 0,
-    sizeof(struct vaccel_plugin), offsetof(struct _cffi_align_struct_vaccel_plugin, y), 6, 0 },
+    sizeof(struct vaccel_plugin), offsetof(struct _cffi_align_struct_vaccel_plugin, y), 7, 0 },
   { "vaccel_resource", 177, _CFFI_F_OPAQUE,
     (size_t)-1, -1, -1, 0 /* opaque */ },
   { "vaccel_session", 178, 0,
-    sizeof(struct vaccel_session), offsetof(struct _cffi_align_struct_vaccel_session, y), 6, 1 },
+    sizeof(struct vaccel_session), offsetof(struct _cffi_align_struct_vaccel_session, y), 7, 1 },
   { "vaccel_shared_object", 179, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct vaccel_shared_object), offsetof(struct _cffi_align_struct_vaccel_shared_object, y), 7, 3 },
+    sizeof(struct vaccel_shared_object), offsetof(struct _cffi_align_struct_vaccel_shared_object, y), 8, 3 },
   { "vaccel_tf_buffer", 180, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct vaccel_tf_buffer), offsetof(struct _cffi_align_struct_vaccel_tf_buffer, y), 10, 2 },
+    sizeof(struct vaccel_tf_buffer), offsetof(struct _cffi_align_struct_vaccel_tf_buffer, y), 11, 2 },
   { "vaccel_tf_model", 181, 0,
-    sizeof(struct vaccel_tf_model), offsetof(struct _cffi_align_struct_vaccel_tf_model, y), 12, 1 },
+    sizeof(struct vaccel_tf_model), offsetof(struct _cffi_align_struct_vaccel_tf_model, y), 13, 1 },
   { "vaccel_tf_node", 182, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct vaccel_tf_node), offsetof(struct _cffi_align_struct_vaccel_tf_node, y), 13, 2 },
+    sizeof(struct vaccel_tf_node), offsetof(struct _cffi_align_struct_vaccel_tf_node, y), 14, 2 },
   { "vaccel_tf_saved_model", 183, 0,
-    sizeof(struct vaccel_tf_saved_model), offsetof(struct _cffi_align_struct_vaccel_tf_saved_model, y), 15, 1 },
+    sizeof(struct vaccel_tf_saved_model), offsetof(struct _cffi_align_struct_vaccel_tf_saved_model, y), 16, 1 },
   { "vaccel_tf_status", 184, _CFFI_F_CHECK_FIELDS,
-    sizeof(struct vaccel_tf_status), offsetof(struct _cffi_align_struct_vaccel_tf_status, y), 16, 2 },
+    sizeof(struct vaccel_tf_status), offsetof(struct _cffi_align_struct_vaccel_tf_status, y), 17, 2 },
   { "vaccel_tf_tensor", 186, 0,
-    sizeof(struct vaccel_tf_tensor), offsetof(struct _cffi_align_struct_vaccel_tf_tensor, y), 18, 5 },
+    sizeof(struct vaccel_tf_tensor), offsetof(struct _cffi_align_struct_vaccel_tf_tensor, y), 19, 5 },
 };
 
 static const struct _cffi_enum_s _cffi_enums[] = {

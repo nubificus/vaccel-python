@@ -133,4 +133,4 @@ class Exec_with_resource(Exec_Operation):
 
         #myobject.unregister
         
-        return arg_write 
+        return ret
