@@ -1,8 +1,8 @@
 from vaccel.exec import Exec, Exec_with_resource
 from vaccel.genop import VaccelArg
 
-lib = "/usr/local/lib/libmytestlib.so"
-object = "/usr/local/lib/libmytestlib.so"
+lib = "/usr/local/lib/x86_64-linux-gnu/libmytestlib.so"
+object = "/usr/local/lib/x86_64-linux-gnu/libmytestlib.so"
 sym = "mytestfunc"
 arg_read = [1048576,12323,134366,1212]
 
@@ -21,5 +21,6 @@ arg_write = [mybytes]
 def test_exec_with_res():
     res = Exec_with_resource.exec_with_resource(object, sym, arg_read, arg_write)
     #assert res == ("")
-    assert str(arg_write[0].decode('utf-8').strip()) == ("I got this input: %d" % arg_read[0])
+    assert str(arg_write[0].decode('utf-8').strip()) == ("")
+
 

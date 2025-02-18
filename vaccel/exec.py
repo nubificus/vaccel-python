@@ -1,5 +1,5 @@
 from vaccel.session import Session
-from vaccel.shared_object import Object
+from vaccel.resource import Resource
 from typing import List, Any
 from vaccel.genop import Genop, VaccelArg, VaccelOpType, VaccelArgList
 from vaccel._vaccel import lib, ffi
@@ -114,9 +114,9 @@ class Exec_with_resource(Exec_Operation):
         """
         session = Session(flags=0)
 
-        myobject = Object(session,obj,symbol)
-        shared_obj = myobject.shared
-        symbolcdata = myobject.symbol
+        myresource = Resource(session, obj, rtype=0)
+        resource = myresource._inner
+        symbolcdata = Exec_with_resource.object_symbol(symbol)
         #myobject.register
 
 
@@ -126,7 +126,7 @@ class Exec_with_resource(Exec_Operation):
         nr_write = len(vaccel_args_write)
 
 
-        ret = lib.vaccel_exec_with_resource(session._to_inner(), shared_obj, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
+        ret = lib.vaccel_exec_with_resource(session._to_inner(), resource, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
         print(arg_write)
         #import pdb;pdb.set_trace()
         print(vaccel_args_write[0].buf)
@@ -134,3 +134,11 @@ class Exec_with_resource(Exec_Operation):
         #myobject.unregister
         
         return arg_write 
+    
+    @staticmethod
+    def object_symbol(symbol):
+        symbolcdata = ffi.new(f"char[{len(symbol)}]",
+                              bytes(symbol, encoding='utf-8'))
+        return symbolcdata
+
+

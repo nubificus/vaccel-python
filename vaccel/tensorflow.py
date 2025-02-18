@@ -171,7 +171,7 @@ class Tensor:
         return self.data[index]
 
     def to_cffi(self):
-        dims = ffi.new("int32_t[%d]" % len(self.dims), self.dims)
+        dims = ffi.new("int64_t[%d]" % len(self.dims), self.dims)
         # hack to keep memory alive
         self.__hidden__.append(dims)
 
@@ -234,83 +234,25 @@ class Tensor:
 
 
 class TensorFlowModel:
-    """A TensorFlow model vAccel resource"""
-
-    def __init__(self):
-        """Create a TensorFlow model resource"""
-        self._inner = ffi.new("struct vaccel_tf_saved_model *")
-
-    def __del__(self):
-        """Destroy a vAccel TensorFlow model"""
-
-        # lib.vaccel_tf_session_destroy(self._inner)
-        lib.vaccel_tf_saved_model_destroy(self._inner)
-
-    def _get_inner_resource(self):
-        return self._inner.resource
-
-    def from_model_file(self, model_path: str):
-        """Initialize a TensorFlow model by loading it from a .pb file"""
-
-        ret = lib.vaccel_tf_model_new(self._inner, bytes(model_path, 'ascii'))
-        if ret != 0:
-            raise VaccelError(ret, "Could not create model")
-
-    def from_data(self, data: bytes):
-        """Initialize a TensorFlow model from a byte array"""
-
-        ret = lib.vaccel_tf_model_new_from_buffer(self._inner, data)
-        if ret != 0:
-            raise VaccelError(ret, "Could not create model")
-
-    def model_set_path(self, model_path: str):
-        ret = lib.vaccel_tf_saved_model_set_path(
-            self._inner, bytes(model_path, 'ascii'))
-        if ret != 0:
-            raise VaccelError(ret, "Could not set path")
-
-    def model_register(self):
-        ret = lib.vaccel_tf_saved_model_register(self._inner)
-        if ret != 0:
-            raise VaccelError(ret, "Could not register model")
-
-    def from_session(self, session, model_path: str):
+    def load(session, resource):
         status = ffi.new("struct vaccel_tf_status *")
 
         ret = lib.vaccel_tf_session_load(
-            session._to_inner(), self._inner, status)
+            session._to_inner(), resource._inner, status)
         if ret != 0:
-            raise VaccelError(ret, "Could not create model")
+            raise VaccelError(ret, "Could not load tf session")
 
-    def id(self):
-        """Id of the TensorFlow model"""
-        return lib.vaccel_tf_model_get_id(self._inner)
-
-    def is_registered(self, session):
-        """Returns True if the model is registered with session"""
-        return session.has_resource(self)
-
-    def load_graph(self, session):
-        status = ffi.new("struct vaccel_tf_status *")
-        ret = lib.vaccel_tf_model_load_graph(session._to_inner(), self._inner,
-                                             status)
-        if ret != 0:
-            raise VaccelError(ret, "Could not load TensorFlow graph")
-
-    def run(self, session, in_nodes, in_tensors, out_nodes):
+    def run(session, resource, in_nodes, in_tensors, out_nodes):
         _run_options = ffi.new("struct vaccel_tf_buffer *")
         _status = ffi.new("struct vaccel_tf_status *")
         _out_tensors_ = ffi.new("struct vaccel_tf_tensor[%d]" % len(out_nodes))
         _out_tensors = ffi.new("struct vaccel_tf_tensor**", _out_tensors_)
 
-#       _in_nodes = Node._to_carray(in_nodes)
-#       _in_tensors = Tensor._to_carray(in_tensors)
-#       _out_nodes = Node._to_carray(out_nodes)
         _in_nodes = in_nodes[0]._to_carray(in_nodes)
         _in_tensors = in_tensors[0]._to_carray(in_tensors)
         _out_nodes = out_nodes[0]._to_carray(out_nodes)
 
-        ret = lib.vaccel_tf_session_run(session._to_inner(), self._inner, _run_options,
+        ret = lib.vaccel_tf_session_run(session._to_inner(), resource._inner, _run_options,
                                         _in_nodes, _in_tensors, len(in_nodes),
                                         _out_nodes, _out_tensors, len(
                                             out_nodes),

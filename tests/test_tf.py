@@ -1,16 +1,16 @@
 from vaccel.session import Session
 from vaccel.tensorflow import Tensor, TensorType, Node, TensorFlowModel
+from vaccel.resource import Resource
 
 
 def test_tf():
     session = Session(flags=0)
-    a = TensorFlowModel()
 
-    a.model_set_path("/usr/local/share/models/tf/lstm2")
-    a.model_register()
-    session.register_resource(a)
-    a.from_session(session, "/usr/local/share/models/tf/lstm2")
+    model_path = "/usr/local/share/vaccel/models/tf/lstm2"
+    a = Resource(session, model_path, rtype=2)
 
+    TensorFlowModel.load(session, a)
+    
     nname = "serving_default_input_1"
     nid = 0
     n1 = Node(nname, nid)
@@ -27,11 +27,11 @@ def test_tf():
 
     in_tensors = [t]  # int64_t dims[] = {1, 30};
 
-    out = a.run(session, in_nodes, in_tensors, out_nodes)
+    out = TensorFlowModel.run(session, a, in_nodes, in_tensors, out_nodes)
     for t in out:
         print(t.__str__())
 
         offset = t.data
         print(offset)
 
-    session.unregister_resource(a)
+    # a.unregister_resource()
