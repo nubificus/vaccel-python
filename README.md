@@ -12,42 +12,38 @@ To build, first clone the repo:
 git clone https://github.com/nubificus/python-vaccel
 ```
 
-#### vAccelRT
+#### vAccel
 
-In order to build the python bindings for vAccel, we first need a vAccelRT
+In order to build the python bindings for vAccel, we first need a vAccel
 installation. We can either build it from source, or get the latest binary
 release:
 
 ##### Build from source
 
 ```bash
-mkdir -p libs
-git clone https://github.com/cloudkernels/vaccelrt --recursive
-cd vaccelrt
-mkdir build
-cd build
-cmake -DBUILD_PLUGIN_NOOP=yes -DCMAKE_INSTALL_PREFIX=/usr/local ../
-make
-make install
-cd ../../../
+git clone https://github.com/nubificus/vaccel --recursive
+cd vaccel
+meson setup -Dplugin-noop=enabled build
+meson compile -C build
+meson install -C build
+
 ```
 
-The relevant libs & plugins should be in `/usr/local/lib`, along with include
+The relevant libs & plugins should be in `/usr/local/lib/x86_64-linux-gnu`, along with include
 files in `/usr/local/include`.
 
 ##### Get the binary release:
 
-We currently build vaccelrt as a `deb` package, installable in `/usr/local/`. 
-Get the latest deb:
+Get the latest vAccel binaries:
 
 ```
-wget https://s3.nbfc.io/nbfc-assets/github/vaccelrt/master/x86_64/Release-deb/vaccel-0.5.0-Linux.deb
+wget https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/x86_64/release/vaccel-latest-bin.tar.gz
 ```
 
 and install it:
 
 ```
-dpkg -i vaccel-0.5.0-Linux.deb
+sudo tar xfv vaccel-latest-bin.tar.gz --strip-components=2 -C /usr/local
 ```
 
 #### python bindings
@@ -69,8 +65,8 @@ python3 builder.py
 The module should be ready. To test run:
 
 ```bash
-export VACCEL_BACKENDS=/usr/local/lib/libvaccel-noop.so 
-export LD_LIBRARY_PATH=/usr/local/lib 
+export VACCEL_PLUGINS=/usr/local/lib/x86_64-linux-gnu/libvaccel-noop.so 
+export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
 export PYTHONPATH=$PYTHONPATH:. 
 python3 vaccel/test.py
 ```
@@ -92,15 +88,15 @@ pip install dist/vaccel*.tar.gz
 To run the tests:
 
 ```bash
-export VACCEL_BACKENDS=/usr/local/lib/libvaccel-noop.so 
-export LD_LIBRARY_PATH=/usr/local/lib 
+export VACCEL_PLUGINS=/usr/local/lib/x86_64-linux-gnu/libvaccel-noop.so 
+export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
 export PYTHONPATH=$PYTHONPATH:. 
 pytest
 
 
 # Test coverage
-export VACCEL_BACKENDS=/usr/local/lib/libvaccel-noop.so 
-export LD_LIBRARY_PATH=/usr/local/lib 
+export VACCEL_PLUGINS=/usr/local/lib/x86_64-linux-gnu/libvaccel-noop.so 
+export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
 export PYTHONPATH=$PYTHONPATH:. 
 pytest --cov=vaccel tests/
 ```

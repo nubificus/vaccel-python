@@ -9,6 +9,7 @@ from vaccel.pynq_array_copy import Pynq_array_copy
 from vaccel.pynq_parallel import Pynq_parallel
 from vaccel.pynq_vector_add import Pynq_vector_add
 from vaccel import image_genop as genimg
+from vaccel.resource import Resource
 
 def test_session():
     print("Session test")
@@ -27,8 +28,8 @@ def test_noop():
     print('')
 
 
-imgsource = "/usr/local/share/images/example.jpg"
-minmaxsource = "/usr/local/share/input/input_262144.csv"
+imgsource = "/usr/local/share/vaccel/images/example.jpg"
+minmaxsource = "/usr/local/share/vaccel/input/input_262144.csv"
 
 
 def test_genop():
@@ -128,6 +129,15 @@ def test_image_classify():
     print(res)
     print('')
 
+def test_image_classify(model:str):
+    print("Image classify test")
+    ses = Session(flags=3)
+    print(f'Session id is {ses.id()}')
+    mymodel = Resource(ses, model, rtype=2)
+    res1, res2 = ImageClassify.classify_from_filename(session=ses, source=imgsource)
+    print(res1)
+    print(res2)
+    print('')
 
 def test_image_detect():
     print("Image detect test")
@@ -168,7 +178,7 @@ def test_exec_genop():
     print('Exec over genop test')
     myint: int = 1048576
     mybytes: bytes = bytes(100 * " ", encoding="utf-8")
-    res = Exec.exec("/usr/local/lib/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
+    res = Exec.exec("/usr/local/lib/x86_64-linux-gnu/libmytestlib.so", "mytestfunc", [VaccelArg(data=myint)], [VaccelArg(data=mybytes)])
     print(res)
     print('')
 
@@ -177,10 +187,11 @@ def test_exec_with_resource():
     read_args = [1048576,12,32,43]
     write_args = ["                               ", "         "]
     mybytes: bytes = bytes(100 * " ", encoding="utf-8")
-    res = Exec_with_resource.exec_with_resource("/usr/local/lib/libmytestlib.so", "mytestfunc", read_args, write_args)
+    res = Exec_with_resource.exec_with_resource("/usr/local/lib/x86_64-linux-gnu/libmytestlib.so", "mytestfunc", read_args, write_args)
     print(res)
     print('')
 
 
 if __name__ == "__main__":
-    test_exec_with_resource()
+    # test_exec_with_resource()
+    test_image_classify("https://s3.nbfc.io/torch/resnet18.pt")

@@ -39,21 +39,22 @@ class ImageClassify:
 
         out_text = ffi.new(f"unsigned char[{cls.out_size}]")
 
-        out_imgname = ffi.NULL
+        out_imgname = ffi.new(f"unsigned char[{cls.out_size}]")
         len_img = len(data)
 
         len_out_text = cls.out_size
-        len_out_imgname = 0
+        len_out_imgname = cls.out_size
 
         ret = lib.vaccel_image_classification(
             csession, img, out_text, out_imgname, len_img, len_out_text, len_out_imgname)
         if ret != 0:
             raise VaccelError(
                 ret, "Could not execute image classification operation")
-
+        
         out_res = "".join([chr(i) for i in out_text]).rstrip('\x00')
-
-        return out_res
+        out_res2 = "".join([chr(i) for i in out_imgname]).rstrip('\x00')
+        
+        return out_res, out_res2 
 
     @classmethod
     def classify_from_filename(cls, session: Session, source: str) -> str:
@@ -72,8 +73,8 @@ class ImageClassify:
         with open(source, "rb") as imgfile:
             data = imgfile.read()
         pointer = ffi.from_buffer(data)
-        res = cls.__classify__(session=session, data=pointer)
-        return res
+        res1, res2 = cls.__classify__(session=session, data=pointer)
+        return res1, res2
 
 
 class ImageDetect:
