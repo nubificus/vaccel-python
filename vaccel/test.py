@@ -93,13 +93,6 @@ def test_min_max_genop():
     print('')
 
 
-def test_sgemm_genop():
-    print('Sgemm over genop test')
-    res = Sgemm.sgemm(m=512, n=512, k=512, alpha=32412.000000, lda=512, ldb=512, beta=2123.000000)
-    print(res)
-    print('')
-
-
 def test_pynq_array_copy_genop():
     print('Pynq array copy over genop test')
     res = Pynq_array_copy.pynq_arr_copy(a=10)
