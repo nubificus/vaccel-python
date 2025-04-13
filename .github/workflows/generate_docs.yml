@@ -17,20 +17,30 @@ jobs:
     container: gntouts/vacceldoc:0.1.0
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Install vaccel
+        run: |
+          apt-get update
+          apt-get install -y libcurl4-openssl-dev libstb-dev
+          wget https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/x86_64/release/vaccel-latest-bin.tar.gz
+          tar xfv vaccel-latest-bin.tar.gz --strip-components=2 -C /usr/local
+          rm -r vaccel-latest-bin.tar.gz
+          ldconfig
+
       - name: Generate docs
         env:
-          VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
-          LD_LIBRARY_PATH: /usr/local/lib
+          VACCEL_PLUGINS: libvaccel-noop.so
           PYTHONPATH: .
         run: |
           /bin/bash _docs/autogen.sh
+
       - name: Verify generation
         run: |
           ls _docs/docs
-      
+
       # FIXME: add text manipulation steps (?)
       - name: Format generated docs
         shell: bash
@@ -41,6 +51,7 @@ jobs:
           echo "Removing lazydocs watermark"
           sed -i "s/_This file was automatically generated via \[lazydocs\]//g" _docs/docs/*.md
           sed -i "s/(https:\/\/github.com\/ml-tooling\/lazydocs)._//g" _docs/docs/*.md
+
       # FIXME: push to vaccel-docs
       - name: Push to vaccel-docs
         uses: datalbry/copy_folder_to_another_repo_action@1.0.0
@@ -49,10 +60,10 @@ jobs:
         with:
           source_folder: '_docs/docs'
           destination_repo: 'nubificus/vaccel-docs'
-          destination_folder: 'docs/python'
+          destination_folder: 'docs/language-bindings/python-bindings/api-reference'
           user_email: 'ananos@nubificus.co.uk'
           user_name: 'ananos'
-          commit_msg: '[GHA] Update the doc files for the Python API.'
+          commit_msg: '[GHA] Update the doc files for the Python API'
           destination_branch: 'feat_python_api'
 
 # TODO:

@@ -11,13 +11,16 @@ on:
 permissions:
   contents: read
 
+env:
+  RUNNER_ARCH_MAP: '[{"amd64":"x86_64", "arm64":"aarch64", "arm":"armv7l"}]'
+
 jobs:
   build:
-    runs-on: [ self-hosted, "${{ matrix.archconfig }}" ]
+    runs-on: ${{ format('{0}-{1}', 'base-dind-2204', matrix.arch) }}
+
     strategy:
       matrix:
-        archconfig: [ x86_64, aarch64 ]
-        #build_type: [Debug, Release]
+        arch: ['amd64', 'arm64']
       fail-fast: false
 
     steps:
@@ -26,8 +29,13 @@ jobs:
         echo "Cleaning up previous runs"
         sudo rm -rf ${{ github.workspace }}/*
         sudo rm -rf ${{ github.workspace }}/.??*
+
+    - name: Set ARCH
+      run: |
+        echo "ARCH=${{ fromJson(env.RUNNER_ARCH_MAP)[0][matrix.arch] }}" >> $GITHUB_ENV
+
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         submodules: recursive
 
@@ -40,13 +48,10 @@ jobs:
           echo "ARTIFACT_SHA=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
         fi
 
-    - name: Update python to 3.7 (optional)
-      run: |
-        sudo apt install -y python3.7 python3.7-dev python3.7-venv || true
-        sudo update-alternatives --set python3 /usr/bin/python3.7 || true
-
     - name: Create python isolated env
       run: |
+        sudo apt-get update
+        sudo apt-get -y install python3-venv
         python3 -m venv .venv
 
     - name: Install python dependencies
@@ -63,28 +68,16 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         ./.venv/bin/python3 -m flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.venv
 
-    # FIXME: fetch deb from s3 instead of building it locally
-    - name: Build vaccelrt
+    - name: Install vaccel
       run: |
-        git clone https://github.com/cloudkernels/vaccelrt --recursive
-        cd vaccelrt
-        mkdir build
-        cd build
-        cmake ../ -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PLUGIN_NOOP=ON -DBUILD_EXAMPLES=ON
-        make
-        cpack
-
-    - name: Install vaccelrt
-      run: |
-        sudo dpkg -i vaccelrt/build/*.deb
-        # FIXME: make sure rundir exists
-        sudo mkdir -p /run/user/1001
-        sudo chown runner -R /run/user/1001
+        wget "https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/${{ env.ARCH }}/release/vaccel-latest-bin.tar.gz"
+        sudo tar xfv vaccel-latest-bin.tar.gz --strip-components=2 -C /usr/local
+        rm -r vaccel-latest-bin.tar.gz
+        sudo ldconfig
 
     - name: Test with pytest
       env:
-        VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
-        LD_LIBRARY_PATH: /usr/local/lib
+        VACCEL_PLUGINS: libvaccel-noop.so
         PYTHONPATH: .
       run: |
         #python3 -m build
@@ -93,21 +86,19 @@ jobs:
 
     - name: Test with coverage
       env:
-        VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
-        LD_LIBRARY_PATH: /usr/local/lib
+        VACCEL_PLUGINS: libvaccel-noop.so
         PYTHONPATH: .
       run: |
         ./.venv/bin/python3 -m pytest --cov=vaccel tests/
 
     - name: Build pip package
       env:
-        VACCEL_BACKENDS: /usr/local/lib/libvaccel-noop.so
-        LD_LIBRARY_PATH: /usr/local/lib
+        VACCEL_PLUGINS: libvaccel-noop.so
       run: |
         ./.venv/bin/python3 -m build
         VERSION=$(./.venv/bin/python3 setup.py --version)
         PYVER=$(./.venv/bin/python3 --version | awk '{print $2}' | awk -F\. '{print $1 $2 }')
-        echo "wheel_name=vaccel-${VERSION}-${PYVER}-${PYVER}m_Linux_${{ matrix.archconfig }}" >> $GITHUB_ENV
+        echo "wheel_name=vaccel-${VERSION}-${PYVER}-${PYVER}m_Linux_${{ env.ARCH }}" >> $GITHUB_ENV
         echo "built: ${{ env.wheel_name }}"
 
     - name: Upload artifact to s3
@@ -119,7 +110,7 @@ jobs:
         #local-path: dist/${{ env.wheel_name }}
         local-path: dist/
         policy: 1
-        remote-path: nbfc-assets/github/python-vaccel/${{ env.ARTIFACT_SHA }}/${{ matrix.archconfig }}/
+        remote-path: nbfc-assets/github/python-vaccel/${{ env.ARTIFACT_SHA }}/${{ env.ARCH }}/
 
      # FIXME: add pypi publish step
      #- name: Publish package
@@ -130,7 +121,6 @@ jobs:
 
     - name: Cleanup
       run: |
-        sudo apt remove -y vaccel
         # FIXME: remove pip package if installed
         #pip3 uninstall vaccel
         echo "built: ${{ env.wheel_name }}"

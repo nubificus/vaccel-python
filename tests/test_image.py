@@ -7,7 +7,7 @@ imgsource = "/usr/local/share/vaccel/images/example.jpg"
 def test_image_classify():
     ses = Session(flags=3)
     res = ImageClassify.classify_from_filename(session=ses, source=imgsource)
-    assert res == "This is a dummy classification tag!"
+    assert res == ("This is a dummy classification tag!", 'This is a dummy imgname!')
 
 
 def test_image_detect():
