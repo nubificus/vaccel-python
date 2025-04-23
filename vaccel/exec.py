@@ -1,144 +1,120 @@
-from vaccel.session import Session
-from vaccel.resource import Resource
-from typing import List, Any
-from vaccel.genop import Genop, VaccelArg, VaccelOpType, VaccelArgList
-from vaccel._vaccel import lib, ffi
-import os
-import pdb
+"""Exec operations."""
 
-__hidden__ = list()
+from pathlib import Path
+from typing import Any
 
-class Vaccel_Args:
+from ._c_types import CList
+from ._libvaccel import lib
+from .arg import Arg
+from .error import FFIError
+from .resource import Resource
+
+
+class ExecMixin:
+    """Mixin providing the Exec operations for a `Session`.
+
+    This mixin is intended to be used in combination with `BaseSession` and
+    should not be instantiated on its own.
+
+    Intended usage:
+        class Session(BaseSession, ExecMixin):
+            ...
     """
-    A helper class for converting argument lists to the appropriate vAccel format
-    """
 
-    @staticmethod
-    def vaccel_args(args: List[Any]) -> List[VaccelArg]:
-        """Convert a list of arguments to a list of VaccelArg objects
+    def exec(
+        self,
+        library: str | Path,
+        symbol: str,
+        arg_read: list[Any],
+        arg_write: list[Any],
+    ) -> list[Any]:
+        """Performs the Exec operation.
+
+        Wraps the `vaccel_exec()` C operation.
 
         Args:
-            args : A list of integers
-
-       Returns:
-            A list of VaccelArg objects
-        """
-        iterable = list(args)
-
-        new_list = []
-        for item in iterable:
-            new_item=VaccelArg(data=item)
-            new_list.append(new_item)
-            __hidden__.append(new_item)
-
-        return VaccelArgList(new_list).to_cffi()
-
-
-class Exec_Operation:
-    """An Exec Operation model vAccel resource
-
-    Attributes:
-        def_arg_write (bytes): The result of the operation
-    """
-
-    def_arg_write: bytes = bytes(100 * " ", encoding="utf-8")
-
-    @staticmethod
-    def __genop__(session, arg_read: List[VaccelArg], arg_write: List[VaccelArg], index: int) -> str:
-        """Performs the genop operation provided in arg_read.
-
-        Args:
-            arg_read : A list of inputs
-            arg_write : A list of outputs
-            index : An integer
+            library: The path to the shared object containing the function that
+                will be called.
+            symbol: The name of the function contained in the above shared
+                object.
+            arg_read: The input arguments that will be passed to the
+                called function.
+            arg_write: The output arguments that will be passed to the
+                called function.
 
         Returns:
-            The content of the `arg_write` indicated by `index`.
+            The resulting outputs.
+
+        Raises:
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        Genop.genop(session, arg_read, arg_write)
-        #return arg_write[index].content
-        return arg_write
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
+        c_arg_read = CList([Arg(arg) for arg in arg_read])
+        c_arg_write = CList([Arg(arg) for arg in arg_write])
 
-class Exec(Exec_Operation):
-    """An Exec operation model vAccel resource
+        ret = lib.vaccel_exec(
+            self._c_ptr,
+            str(library).encode(),
+            symbol.encode(),
+            c_arg_read._c_ptr,
+            len(c_arg_read),
+            c_arg_write._c_ptr,
+            len(c_arg_write),
+        )
+        if ret != 0:
+            raise FFIError(ret, "Exec operation failed")
 
-    Attributes:
-        __op__: The genop operation type
-    """
+        return [c_arg_write[i].buf for i in range(len(c_arg_write))]
 
-    __op__ = VaccelOpType.VACCEL_EXEC
+    def exec_with_resource(
+        self,
+        resource: Resource,
+        symbol: str,
+        arg_read: list[Any],
+        arg_write: list[Any],
+    ) -> list[Any]:
+        """Performs the Exec with resource operation.
 
-    @classmethod
-    def exec(cls, library: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
-        """Performs the Exec using vAccel over genop.
+        Wraps the `vaccel_exec_with_resource()` C operation.
 
         Args:
-            library: Path to the shared object containing the function that the user wants to call
-            symbol: Name of the function contained in the above shared object
-            arg_read: A list of inputs
+            resource: The resource of the shared object containing the function
+                that will be called.
+            symbol: The name of the function contained in the above shared
+                object.
+            arg_read: The input arguments that will be passed to the
+                called function.
+            arg_write: The output arguments that will be passed to the
+                called function.
 
         Returns:
-            arg_write: A list of outputs
+            The resulting outputs.
+
+        Raises:
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
-        session = Session(flags=0)
-        arg_read_local = [VaccelArg(data=int(cls.__op__)),
-                          VaccelArg(data=library), VaccelArg(data=symbol)] + arg_read
-        arg_write = [VaccelArg(data=bytes(100 * " ", encoding="utf-8"))]
-        ret = cls.__genop__(session, arg_read=arg_read_local, arg_write=arg_write, index=0)
-        return ret
+        c_arg_read = CList([Arg(arg) for arg in arg_read])
+        c_arg_write = CList([Arg(arg) for arg in arg_write])
 
+        ret = lib.vaccel_exec_with_resource(
+            self._c_ptr,
+            resource._c_ptr,
+            symbol.encode(),
+            c_arg_read._c_ptr,
+            len(c_arg_read),
+            c_arg_write._c_ptr,
+            len(c_arg_write),
+        )
+        if ret != 0:
+            raise FFIError(ret, "Exec with resource operation failed")
 
-class Exec_with_resource(Exec_Operation):
-    """An Exec with resource model vAccel resource.
-
-    Attributes:
-        __op__: The genop operation type
-    """
-
-
-    __op__ = VaccelOpType.VACCEL_EXEC_WITH_RESOURCE
-
-    @classmethod
-    def exec_with_resource(cls, obj: str, symbol: str, arg_read: List[Any], arg_write: List[Any]):
-        """Performs the Exec with resource operation
-
-        Args:
-            object: Filename of a shared object to be used with vaccel exec
-            symbol: Name of the function contained in the above shared object
-            arg_read: A list of inputs
-
-        Returns:
-            arg_write: A list of outputs
-        """
-        session = Session(flags=0)
-
-        myresource = Resource(session, obj, rtype=0)
-        resource = myresource._inner
-        symbolcdata = Exec_with_resource.object_symbol(symbol)
-        #myobject.register
-
-
-        vaccel_args_read = Vaccel_Args.vaccel_args(arg_read)
-        vaccel_args_write = Vaccel_Args.vaccel_args(arg_write)
-        nr_read = len(vaccel_args_read)
-        nr_write = len(vaccel_args_write)
-
-
-        ret = lib.vaccel_exec_with_resource(session._to_inner(), resource, symbolcdata, vaccel_args_read, nr_read, vaccel_args_write, nr_write)
-        print(arg_write)
-        #import pdb;pdb.set_trace()
-        print(vaccel_args_write[0].buf)
-
-        #myobject.unregister
-        
-        return arg_write 
-    
-    @staticmethod
-    def object_symbol(symbol):
-        symbolcdata = ffi.new(f"char[{len(symbol)}]",
-                              bytes(symbol, encoding='utf-8'))
-        return symbolcdata
-
-
+        return [c_arg_write[i].buf for i in range(len(c_arg_write))]

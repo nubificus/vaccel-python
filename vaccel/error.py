@@ -1,12 +1,27 @@
+"""Common error types."""
+
 import errno
 
 
-class VaccelError(RuntimeError):
-    """Exception raised when a vAccel runtime error occurs"""
+class FFIError(RuntimeError):
+    """Exception raised when a vAccel runtime error occurs.
 
-    def __init__(self, err_val, message):
-        self.error = err_val
+    Attributes:
+        code (int): The error code associated with the runtime error.
+        message (str): A message describing the error.
+    """
+
+    def __init__(self, error_code: int, message: str):
+        """Initializes a new `FFIError` object.
+
+        Args:
+            error_code: The code associated with the runtime error.
+            message: A message describing the error.
+        """
+        self.code = error_code
         self.message = message
 
     def __str__(self):
-        return "[errno {}] {}: {}".format(self.error, errno.errorcode[self.error], self.message)
+        return (
+            f"[errno {self.code}] {errno.errorcode[self.code]}: {self.message}"
+        )

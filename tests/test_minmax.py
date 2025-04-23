@@ -1,8 +1,20 @@
-from vaccel.minmax import MinMax
+from pathlib import Path
 
-source = "/usr/local/share/vaccel/input/input_2048.csv"
+import pytest
 
-def test_min_max_genop():
-    res = MinMax.minmax(indata=2048, ndata=source, low_threshold=10, high_threshold=5000)
-    #assert res[1] == 10000.0 and res[2] == -1.0
-    assert res[2] == 10000.0 and res[1] == -1.0
+from vaccel import Session
+
+
+@pytest.fixture
+def test_input(vaccel_paths) -> bytes:
+    input_path = vaccel_paths["input"] / "input_2048.csv"
+    with Path(input_path).open("rb") as f:
+        return f.read()
+
+
+def test_min_max_genop(test_input):
+    session = Session()
+    (outdata, min_val, max_val) = session.minmax(test_input, 2048, 5, 100)
+    assert outdata == test_input[: len(outdata)]
+    assert min_val == -1.0
+    assert max_val == 10000.0

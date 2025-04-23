@@ -135,7 +135,7 @@ To see python vAccel bindings in action, let's try the following example:
 
 ### Simple Example
 
-Donwload an adorable kitten photo:
+Download an adorable kitten photo:
 
 ```bash
 wget https://i.imgur.com/aSuOWgU.jpeg -O cat.jpeg
@@ -799,6 +799,9 @@ imagenet:  shutdown complete.
 
 **Note**: _The first time the engine needs to do some autotuning, so it will take some time and drop output similar to the one below_:
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable -->
+
 ```bash
 ...
 [TRT]    Tactic: 0x89c2d153627e52ba Time: 0.0134678
@@ -841,6 +844,8 @@ imagenet:  shutdown complete.
 [TRT]    Adding reformat layer: Reformatted Output Tensor 0 to inception_4a/1x1 + inception_4a/relu_1x1 || inception_4a/3x3_reduce + inception_4a/relu_3x3_reduce || inception_4a/5x5_reduce + inception_4a/relu_5x5_reduce (inception_4a/1x1 + inception_4a/relu_1x1 || inception_4a/3x3_reduce + inception_4a/relu_3x3_reduce || inception_4a/5x5_reduce + inception_4a/relu_5x5_reduce) from Half(7448,1:8,532,38) to Half(29792,196:2,14,1)
 ...
 ```
+
+<!-- markdownlint-restore -->
 
 **Note**: _If you want to avoid that everytime you run the container, keep the networks folder outside the container and bind mount it (eg. in the `/data/code` path). That is, instead of doing `ln -s /usr/local/data/networks .` do a `cp -avf /usr/local/data/networks .`. Thus, every time you re-run the example using this folder, the auto-tuned engine will be there._
 

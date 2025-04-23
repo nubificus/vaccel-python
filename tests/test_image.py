@@ -1,34 +1,45 @@
-from vaccel.session import Session
-from vaccel.image import ImageClassify, ImageDetect, ImageSegment, ImagePose, ImageDepth
+from pathlib import Path
 
-imgsource = "/usr/local/share/vaccel/images/example.jpg"
+import pytest
 
-
-def test_image_classify():
-    ses = Session(flags=3)
-    res = ImageClassify.classify_from_filename(session=ses, source=imgsource)
-    assert res == ("This is a dummy classification tag!", 'This is a dummy imgname!')
+from vaccel import Session
 
 
-def test_image_detect():
-    ses = Session(flags=3)
-    res = ImageDetect.detect_from_filename(session=ses, source=imgsource)
-    assert res == 0
+@pytest.fixture
+def test_image(vaccel_paths) -> bytes:
+    image_path = vaccel_paths["images"] / "example.jpg"
+    with Path(image_path).open("rb") as f:
+        return f.read()
 
 
-def test_image_segment():
-    ses = Session(flags=3)
-    res = ImageSegment.segment_from_filename(session=ses, source=imgsource)
-    assert res == 0
+def test_image_classify(test_image):
+    session = Session()
+    res = session.classify(test_image)
+    assert res == (
+        "This is a dummy classification tag!",
+        "This is a dummy imgname!",
+    )
 
 
-def test_image_pose():
-    ses = Session(flags=3)
-    res = ImagePose.pose_from_filename(session=ses, source=imgsource)
-    assert res == 0
+def test_image_detect(test_image):
+    session = Session()
+    res = session.detect(test_image)
+    assert res == "This is a dummy imgname!"
 
 
-def test_image_depth():
-    ses = Session(flags=3)
-    res = ImageDepth.depth_from_filename(session=ses, source=imgsource)
-    assert res == 0
+def test_image_segment(test_image):
+    session = Session()
+    res = session.segment(test_image)
+    assert res == "This is a dummy imgname!"
+
+
+def test_image_pose(test_image):
+    session = Session()
+    res = session.pose(test_image)
+    assert res == "This is a dummy imgname!"
+
+
+def test_image_depth(test_image):
+    session = Session()
+    res = session.depth(test_image)
+    assert res == "This is a dummy imgname!"

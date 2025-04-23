@@ -4,7 +4,7 @@ This repo defines and builds the vaccel bindings for python. It is WiP and only
 defines a subset of the vAccel API.
 
 
-### building
+## building
 
 To build, first clone the repo:
 
@@ -12,13 +12,13 @@ To build, first clone the repo:
 git clone https://github.com/nubificus/python-vaccel
 ```
 
-#### vAccel
+## vAccel
 
 In order to build the python bindings for vAccel, we first need a vAccel
 installation. We can either build it from source, or get the latest binary
 release:
 
-##### Build from source
+### Build from source
 
 ```bash
 git clone https://github.com/nubificus/vaccel --recursive
@@ -32,21 +32,21 @@ meson install -C build
 The relevant libs & plugins should be in `/usr/local/lib/x86_64-linux-gnu`, along with include
 files in `/usr/local/include`.
 
-##### Get the binary release:
+### Get the binary release
 
 Get the latest vAccel binaries:
 
-```
+```bash
 wget https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/x86_64/release/vaccel-latest-bin.tar.gz
 ```
 
 and install it:
 
-```
+```bash
 sudo tar xfv vaccel-latest-bin.tar.gz --strip-components=2 -C /usr/local
 ```
 
-#### python bindings
+## python bindings
 
 Finally, call the `builder.py` to build the bindings. The required python
 packages to build are: `datestamp cffi wheel setuptools cmake_build_extension`.
@@ -72,14 +72,14 @@ python3 vaccel/test.py
 ```
 Alternatively, you could build the pip package:
 
-```
+```bash
 pip3 install build
 python3 -m build
 ```
 
 and install it:
 
-```
+```bash
 pip install dist/vaccel*.tar.gz
 ```
 

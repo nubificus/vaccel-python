@@ -1,115 +1,153 @@
-from abc import abstractmethod
-from vaccel._vaccel import lib, ffi
-from vaccel.error import VaccelError
-import os
+"""Interface to the `struct vaccel_resource` C object."""
+
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+from ._c_types import CType
+from ._c_types.utils import CEnumBuilder
+from ._libvaccel import ffi, lib
+from .error import FFIError
+
+if TYPE_CHECKING:
+    from vaccel.session import (
+        BaseSession as Session,  # Type hint only, not imported at runtime
+    )
 
 
-class Resource:
-    """A vAccel resource
+enum_builder = CEnumBuilder(lib)
+ResourceType = enum_builder.from_prefix("ResourceType", "VACCEL_RESOURCE_")
 
-    vAccel resources are not exposed as concrete data structures
-    from the vAccel runtime for the end-programmer to use. Instead,
-    they are embedded in concrete resources, e.g. a TensorFlow model,
-    hence this is an abstract class with common methods for all
-    exposed methods of vAccel resources
+
+class Resource(CType):
+    """Wrapper for the `struct vaccel_resource` C object.
+
+    Manages the creation and initialization of a C `struct vaccel_resource` and
+    provides access to it through Python properties.
+
+    Inherits:
+        CType: Abstract base class for defining C data types.
+
+    Attributes:
+        _path (str): The path to the contained file.
+        _type (ResourceType): The type of the resource.
     """
-    @abstractmethod
-    def id(self):
-        """The id of a vAccel resource"""
-        pass
 
-    @abstractmethod
-    def is_registered(self, session):
-        """Checks if the resource is registered with the session
+    def __init__(self, path: str | Path, type_: ResourceType):
+        """Initializes a new `Resource` object.
 
         Args:
-            session: A vaccel.Session instance
+            path: The path to the file that will be represented by the resource.
+            type_: The type of the resource.
+        """
+        # TODO: Allow the use of lists for path  # noqa: FIX002
+        self._path = str(path)
+        self._type = type_
+        self.__sessions = []
+        super().__init__()
+
+    def _init_c_obj(self):
+        """Initializes the underlying C `struct vaccel_resource` object.
+
+        Raises:
+            FFIError: If resource initialization fails.
+        """
+        self._c_obj_ptr = ffi.new("struct vaccel_resource **")
+        ret = lib.vaccel_resource_new(
+            self._c_obj_ptr, self._path.encode(), self._type
+        )
+        if ret != 0:
+            raise FFIError(ret, "Could not initialize resource")
+
+        self._c_obj = self._c_obj_ptr[0]
+        self._c_size = ffi.sizeof("struct vaccel_resource")
+
+    @property
+    def value(self) -> ffi.CData:
+        """Returns the value of the underlying C struct.
 
         Returns:
-            True if the resource is registered with the session"""
-        pass
+            The dereferenced 'struct vaccel_resource`
+        """
+        return self._c_obj[0]
 
-    @abstractmethod
-    def _get_inner_resource(self):
-        pass
+    def _del_c_obj(self):
+        """Deletes the underlying `struct vaccel_resource` C object.
 
-    def __init__(self, session, obj, rtype):
-        self.path = obj
-        # self.filename_len = len(obj)
-        # self.file = self.__create_vaccel_file__()
-        # self.vaccel_files = self.__create_vaccel_file_table__(1)
-        self.session = session
-        self._inner = self.create_resource(rtype)
-        self.register = self.register_resource()
+        Raises:
+            FFIError: If resource deletion fails.
+        """
+        if self._c_obj:
+            ret = lib.vaccel_resource_delete(self._c_obj)
+            if ret != 0:
+                raise FFIError(ret, "Could not delete resource")
+            self._c_obj = None
 
     def __del__(self):
-        self.unregister = self.unregister_resource()
-        self.destroy = self.destroy_resource()
+        for session in self.__sessions:
+            self.unregister(session)
+        self._del_c_obj()
 
-    def __parse_object__(self,obj) -> bytes:
-            """Parses a shared object file and returns its content and size
+    @property
+    def id(self) -> int:
+        """The resource identifier.
 
-            Args:
-                obj: The path to the shared object file
+        Returns:
+            The resource's unique ID.
+        """
+        return int(self._c_obj.id)
 
-            Returns:
-                A tuple containing the content of the shared object file as bytes
-                and its size as an integer
+    @property
+    def remote_id(self) -> int:
+        """The remote resource identifier.
 
-            Raises:
-                TypeError: If object is not a string
-            """
-            filename = self.filename
-            obj = self.filename
-            if not isinstance(obj, str):
-                raise TypeError(
-                    f"Invalid image type. Expected str or bytes, got {type(obj)}.")
+        Returns:
+            The resource's remote ID.
+        """
+        return int(self._c_obj.remote_id)
 
-            if isinstance(obj, str):
-                with open(obj, "rb") as objfile:
-                    obj = objfile.read()
+    def is_registered(self, session: "Session") -> bool:
+        """Checks if the resource is registered with the session.
 
-            size = os.stat(filename).st_size
-            return obj, size
+        Args:
+            session: The session to check for registration.
 
-    def __create_vaccel_files__(self):
-        file = ffi.new("struct vaccel_file *")
-        filename = bytes(self.filename, encoding="utf-8")
-        path = ffi.new("char[%d]" % self.filename_len, filename)
-        lib.vaccel_file_new(file, path)
-        lib.vaccel_file_read(file)
+        Returns:
+            True if the resource is registered with the session.
+        """
+        return session in self.__sessions
 
-        return file
+    def register(self, session: "Session") -> None:
+        """Register the resource with a session.
 
-    def __create_vaccel_file_table__(self, nr_files):
-        table = ffi.new("struct vaccel_file *[%d]" % nr_files, list(self.file))
-        return table
+        Args:
+            session: The session to register the resource with.
+        """
+        ret = lib.vaccel_resource_register(
+            self._c_obj,
+            session._c_ptr,
+        )
+        if ret != 0:
+            raise FFIError(
+                ret,
+                f"Could not register resource {self.id()} "
+                f"with session {session.id()}",
+            )
+        self.__sessions.append(session)
 
-    def create_resource(self, rtype):
-            """Creates a resource from a file and returns a pointer to it
+    def unregister(self, session: "Session") -> None:
+        """Unregister the resource from a session.
 
-            Args:
-                rtype: The resource type
-
-            Returns:
-                A pointer to the resource
-            """
-            sharedobj = bytes(self.path, encoding="utf-8")
-            resource = ffi.new("struct vaccel_resource *")
-            lib.vaccel_resource_init(resource, sharedobj, rtype)
-            return resource
-
-    def register_resource(self):
-        ret = lib.vaccel_resource_register(self._inner, self.session._to_inner())
-        return ret
-
-    def destroy_resource(self):
-        ret= lib.vaccel_resource_release(self._inner)
-        return ret
-
-    def unregister_resource(self):
-        ret = lib.vaccel_resource_unregister(self._inner, self.session._to_inner())
-        return ret
-
-    def _to_inner(self):
-        return self._inner
+        Args:
+            session: The session to unregister the resource from.
+        """
+        ret = lib.vaccel_resource_unregister(
+            self._c_obj,
+            session._c_ptr,
+        )
+        if ret != 0:
+            raise FFIError(
+                ret,
+                f"Could not unregister resource {self.id()} "
+                f"from session {session.id()}",
+            )
+        self.__sessions.remove(session)

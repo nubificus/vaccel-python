@@ -1,37 +1,31 @@
-from vaccel.session import Session
-from vaccel.tensorflow import Tensor, TensorType, Node, TensorFlowModel
-from vaccel.resource import Resource
+import pytest
+
+from vaccel import Resource, ResourceType, Session
+from vaccel.tensorflow import Node, Tensor, TensorType
 
 
-def test_tf():
-    session = Session(flags=0)
+@pytest.fixture
+def test_model(vaccel_paths) -> bytes:
+    return vaccel_paths["models"] / "tf" / "lstm2"
 
-    model_path = "/usr/local/share/vaccel/models/tf/lstm2"
-    a = Resource(session, model_path, rtype=2)
 
-    TensorFlowModel.load(session, a)
-    
-    nname = "serving_default_input_1"
-    nid = 0
-    n1 = Node(nname, nid)
-    in_nodes = [n1]
+def test_tf(test_model):
+    session = Session()
 
-    nname = "StatefulPartitionedCall"
-    nid = 0
-    n2 = Node(nname, nid)
-    out_nodes = [n2]
+    model = Resource(test_model, ResourceType.MODEL)
+    model.register(session)
 
-    t = Tensor([1, 30], TensorType.FLOAT)
-    t.data = [1.0] * 30
-    t.dims = [1, 30]
+    session.tf_model_load(model)
 
-    in_tensors = [t]  # int64_t dims[] = {1, 30};
+    in_nodes = [Node("serving_default_input_1", 0)]
+    out_nodes = [Node("StatefulPartitionedCall", 0)]
 
-    out = TensorFlowModel.run(session, a, in_nodes, in_tensors, out_nodes)
-    for t in out:
-        print(t.__str__())
+    in_tensors = [Tensor([1, 30], TensorType.FLOAT, [1.0] * 30)]
 
-        offset = t.data
-        print(offset)
-
-    # a.unregister_resource()
+    (out_tensors, status) = session.tf_model_run(
+        model, in_nodes, in_tensors, out_nodes
+    )
+    assert status.message == "Operation handled by noop plugin"
+    assert out_tensors[0].dims == in_tensors[0].dims
+    assert out_tensors[0].data_type == in_tensors[0].data_type
+    assert out_tensors[0].data == in_tensors[0].data

@@ -1,4 +1,58 @@
 [build-system]
-requires = ["setuptools", "wheel", "datestamp", "cffi", "cmake_build_extension"]
+requires = ["setuptools", "setuptools-scm", "cffi>=1.0.0", "pkgconfig"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "vaccel"
+description = "Python bindings for vaccel"
+requires-python = ">=3.10"
+authors = [{ name = "Nubificus Ltd." }]
+readme = "README.md"
+dependencies = ["cffi>=1.0.0", "pkgconfig"]
+dynamic = ["version"]
+
+[project.urls]
+"Source Code" = "https://github.com/nubificus/python-vaccel"
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov"]
+dev = ["pytest", "pytest-cov", "ruff"]
+
+[tool.setuptools.packages.find]
+include = ["vaccel*"]
+
+[tool.setuptools_scm]
+version_file = "vaccel/_version.py"
+version_scheme = "release-branch-semver"
+fallback_version = "0.0.1"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.lint]
+extend-select = ["ALL"]
+
+ignore = [
+  "ANN202",
+  "ANN204",
+  "ANN401",
+  "COM812",
+  "D105",
+  "PLR0913",
+  "SLF001",
+  "TD002",
+  "TD003",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**.py" = ["ANN001", "ANN201", "D", "INP001", "PLR2004", "S101", "S311"]
+"examples/**.py" = ["ANN001", "ANN201", "D", "INP001", "T201"]
+"build_ffi.py" = ["ANN001", "ANN201", "S603"]

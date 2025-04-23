@@ -1,348 +1,197 @@
-from vaccel._vaccel import lib, ffi
-from vaccel.error import VaccelError
-from vaccel.session import Session
-from typing import List
+"""Image-related operations."""
+
+from ._c_types import CBytes
+from ._libvaccel import lib
+from .error import FFIError
 
 
-class ImageClassify:
-    """An Image Classify model vAccel resource.
-    
+class ImageMixin:
+    """Mixin providing image operations for a `Session`.
+
+    This mixin is intended to be used in combination with `BaseSession` and
+    should not be instantiated on its own.
+
+    Intended usage:
+        class Session(BaseSession, ImageMixin):
+            ...
+
     Attributes:
-        out_size (int): The maximum length of the output tag
+        _out_len (int): The maximum length of the output buffers
     """
 
-    out_size = 500
+    _out_len = 512
 
-    def __init__(self):
-        print("test init")
+    def classify(self, image: bytes) -> (str, str):
+        """Performs the image classification operation.
 
-    def __del__(self):
-        print("test del")
-
-    @classmethod
-    def __classify__(cls, session: Session, data: List[int]) -> str:
-        """Executes image classification operation.
+        Wraps the `vaccel_image_classification()` C operation.
 
         Args:
-            session: A vaccel.Session instance
-            data: A sequence of integers representing the image
-        
+            image: The image data as a `bytes` object.
+
         Returns:
-            A string containing the classifiaction tag
-        
+            A tuple containing:
+                - The classification tag.
+                - The resulting image filename.
+
         Raises:
-            VaccelError: An error occured while executing the image classification operation
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        csession = session._to_inner()
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
-        img = ffi.cast("const void *", data)
-
-        out_text = ffi.new(f"unsigned char[{cls.out_size}]")
-
-        out_imgname = ffi.new(f"unsigned char[{cls.out_size}]")
-        len_img = len(data)
-
-        len_out_text = cls.out_size
-        len_out_imgname = cls.out_size
+        img = CBytes(image)
+        out_text = CBytes(bytearray(self._out_len))
+        out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_classification(
-            csession, img, out_text, out_imgname, len_img, len_out_text, len_out_imgname)
-        if ret != 0:
-            raise VaccelError(
-                ret, "Could not execute image classification operation")
-        
-        out_res = "".join([chr(i) for i in out_text]).rstrip('\x00')
-        out_res2 = "".join([chr(i) for i in out_imgname]).rstrip('\x00')
-        
-        return out_res, out_res2 
+            self._c_ptr,
+            img._c_ptr,
+            out_text._c_ptr,
+            out_imgname._c_ptr,
+            len(img),
+            len(out_text),
+            len(out_imgname),
+        )
+        if ret:
+            raise FFIError(ret, "Image classification failed")
 
-    @classmethod
-    def classify_from_filename(cls, session: Session, source: str) -> str:
-        """Initialize an ImageClassify model by loading image from filename
+        return out_text.to_str(), out_imgname.to_str()
+
+    def detect(self, image: bytes) -> str:
+        """Performs the image detection operation.
+
+        Wraps the `vaccel_image_detection()` C operation.
 
         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
-        
+            image: The image data as a `bytes` object.
+
         Returns:
-            A string containing the classifiaction tag
-        
+            The resulting image filename.
+
         Raises:
-            VaccelError: An error occured while executing the image classification operation
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        with open(source, "rb") as imgfile:
-            data = imgfile.read()
-        pointer = ffi.from_buffer(data)
-        res1, res2 = cls.__classify__(session=session, data=pointer)
-        return res1, res2
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
-
-class ImageDetect:
-    """An Image Detect model vAccel resource
-
-     Attributes:
-        out_size (int): The maximum length of the output tag
-    """
-
-    out_size = 500
-
-    def __init__(self):
-        print("test init")
-
-    def __del__(self):
-        print("test del")
-
-    @staticmethod
-    def __detect__(session: Session, data: List[int]) -> str:
-        """Execute image detection operation
-        
-         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
-        
-        Returns:
-            A string containing the detection result
-        
-        Raises:
-            VaccelError: An error occured while executing the image detection operation
-        """
-        csession = session._to_inner()
-
-        img = ffi.cast("const void *", data)
-
-        out_imagename = ffi.NULL
-        len_img = len(data)
-
-        len_out_imagename = 0
+        img = CBytes(image)
+        out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_detection(
-            csession, img, out_imagename, len_img, len_out_imagename)
-        if ret != 0:
-            raise VaccelError(
-                ret, "Could not execute image detection operation")
+            self._c_ptr,
+            img._c_ptr,
+            out_imgname._c_ptr,
+            len(img),
+            len(out_imgname),
+        )
+        if ret:
+            raise FFIError(ret, "Image detection failed")
 
-        return ret
+        return out_imgname.to_str()
 
-    @classmethod
-    def detect_from_filename(cls, session: Session, source: str) -> str:
-        """Initialize an ImageDetect model by loading image from filename
-                
+    def segment(self, image: bytes) -> str:
+        """Performs the image segmentation operations.
+
+        Wraps the `vaccel_image_segmentation()` C operation.
+
         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
+            image: The image data as a `bytes` object.
 
         Returns:
-            A string containing the detection result
+            The resulting image filename.
 
         Raises:
-            VaccelError: An error occured while executing the image detection operation
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        with open(source, "rb") as imgfile:
-            data = imgfile.read()
-        pointer = ffi.from_buffer(data)
-        res = cls.__detect__(session=session, data=pointer)
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
-        return res
-
-
-class ImageSegment:
-    """An Image Segment model vAccel resource
-    
-    Attributes:
-        out_size (int): The maximum length of the output tag
-    """
-    
-    out_size = 500
-
-    def __init__(self):
-        print("test init")
-
-    def __del__(self):
-        print("test del")
-
-    @staticmethod
-    def __segment__(session: Session, data: List[int]) -> str:
-        """Execute image segmentation operation
-        
-         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
-        
-        Returns:
-            A string containing the segmentation result
-        
-        Raises:
-            VaccelError: An error occured while executing the image segmentation operation
-        """
-
-        csession = session._to_inner()
-
-        img = ffi.cast("const void *", data)
-
-        out_imagename = ffi.NULL
-        len_img = len(data)
-
-        len_out_imagename = 0
+        img = CBytes(image)
+        out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_segmentation(
-            csession, img, out_imagename, len_img, len_out_imagename)
-        if ret != 0:
-            raise VaccelError(
-                ret, "Could not execute image segmentation operation")
+            self._c_ptr,
+            img._c_ptr,
+            out_imgname._c_ptr,
+            len(img),
+            len(out_imgname),
+        )
+        if ret:
+            raise FFIError(ret, "Image segmentation failed")
 
-        return ret
+        return out_imgname.to_str()
 
-    @classmethod
-    def segment_from_filename(cls, session: Session, source: str) -> str:
-        """Initialize an ImageSegment model by loading image from filename
-                 
+    def pose(self, image: bytes) -> str:
+        """Performs the image pose estimation operation.
+
+        Wraps the `vaccel_image_pose()` C operation.
+
         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
+            image: The image data as a `bytes` object.
 
         Returns:
-            A string containing the segmentation result
+            The resulting image filename.
 
         Raises:
-            VaccelError: An error occured while executing the image segmentation operation
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        with open(source, "rb") as imgfile:
-            data = imgfile.read()
-        pointer = ffi.from_buffer(data)
-        res = cls.__segment__(session=session, data=pointer)
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
-        return res
-
-
-class ImagePose:
-    """An Image Pose model vAccel resource
-    
-    Attributes:
-        out_size (int): The maximum length of the output tag
-    """
-
-    out_size = 500
-
-    def __init__(self):
-        print("test init")
-
-    def __del__(self):
-        print("test del")
-
-    @staticmethod
-    def __pose__(session: Session, data: List[int]) -> str:
-        """Execute image pose operation
-        
-        Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
-
-        Returns:
-            A string containing the pose result
-
-        Raises:
-            VaccelError: An error occured while executing the image pose operation
-        """
-        csession = session._to_inner()
-
-        img = ffi.cast("const void *", data)
-
-        out_imagename = ffi.NULL
-        len_img = len(data)
-
-        len_out_imagename = 0
+        img = CBytes(image)
+        out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_pose(
-            csession, img, out_imagename, len_img, len_out_imagename)
-        if ret != 0:
-            raise VaccelError(ret, "Could not execute image pose operation")
+            self._c_ptr,
+            img._c_ptr,
+            out_imgname._c_ptr,
+            len(img),
+            len(out_imgname),
+        )
+        if ret:
+            raise FFIError(ret, "Image pose estimation failed")
 
-        return ret
+        return out_imgname.to_str()
 
-    @classmethod
-    def pose_from_filename(cls, session: Session, source: str) -> str:
-        """Initialize an ImagePose model by loading image from filename
-                 
+    def depth(self, image: bytes) -> str:
+        """Performs the image depth estimation operation.
+
+        Wraps the `vaccel_image_depth()` C operation.
+
         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
-
-         Returns:
-            A string containing the pose result
-
-        Raises:
-            VaccelError: An error occured while executing the image pose operation
-        """
-        with open(source, "rb") as imgfile:
-            data = imgfile.read()
-        pointer = ffi.from_buffer(data)
-        res = cls.__pose__(session=session, data=pointer)
-
-        return res
-
-
-class ImageDepth:
-    """An Image Depth model vAccel resource
-    
-    Attributes:
-        out_size (int): The maximum length of the output tag
-    """
-
-    out_size = 500
-
-    def __init__(self):
-        print("test init")
-
-    def __del__(self):
-        print("test del")
-
-    @staticmethod
-    def __depth__(session: Session, data: List[int]) -> str:
-        """Execute image depth operation
-        
-         Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
+            image: The image data as a `bytes` object.
 
         Returns:
-            A string containing the depth result
+            The resulting image filename.
 
         Raises:
-            VaccelError: An error occured while executing the image depth operation
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        csession = session._to_inner()
+        if not self._c_ptr:
+            msg = "Uninitialized session"
+            raise RuntimeError(msg)
 
-        img = ffi.cast("const void *", data)
-
-        out_imagename = ffi.NULL
-        len_img = len(data)
-
-        len_out_imagename = 0
+        img = CBytes(image)
+        out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_depth(
-            csession, img, out_imagename, len_img, len_out_imagename)
-        if ret != 0:
-            raise VaccelError(ret, "Could not execute image depth operation")
+            self._c_ptr,
+            img._c_ptr,
+            out_imgname._c_ptr,
+            len(img),
+            len(out_imgname),
+        )
+        if ret:
+            raise FFIError(ret, "Image depth estimation failed")
 
-        return ret
-
-    @classmethod
-    def depth_from_filename(cls, session: Session, source: str) -> str:
-        """Initialize an ImageDepth model by loading image from filename
-        
-        Args:
-            session: A vaccel.Session instance
-            source: A string containing the image's file path
-
-         Returns:
-            A string containing the depth result
-
-        Raises:
-            VaccelError: An error occured while executing the image depth operation
-        """
-        with open(source, "rb") as imgfile:
-            data = imgfile.read()
-        pointer = ffi.from_buffer(data)
-        res = cls.__depth__(session=session, data=pointer)
-
-        return res
+        return out_imgname.to_str()
