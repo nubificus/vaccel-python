@@ -1,94 +1,60 @@
-from vaccel.session import Session
-from typing import List
-from vaccel.genop import Genop, VaccelArg, VaccelOpType
-import struct
-import copy
+"""Minmax operation."""
 
-class MinMax:
-    """A MinMax model vAccel resource.
-    
-    Attributes:
-        def_arg_write (bytes): The result of the operation
-        __op__: The genop operation type
+from ._c_types import CBytes, CFloat
+from ._libvaccel import ffi, lib
+from .error import FFIError
+
+
+class MinmaxMixin:
+    """Mixin providing the Minmax operation for a `Session`.
+
+    This mixin is intended to be used in combination with `BaseSession` and
+    should not be instantiated on its own.
+
+    Intended usage:
+        class Session(BaseSession, MinmaxMixin):
+            ...
     """
 
-    def_arg_write: float = bytes(100 * " ", encoding="utf-8")
+    def minmax(
+        self, indata: bytes, ndata: int, low_threshold: int, high_threshold: int
+    ) -> (bytes, float, float):
+        """Performs the minmax operation.
 
-    __op__ = VaccelOpType.VACCEL_MINMAX
-
-    @staticmethod
-    def __genop__(arg_read: List[VaccelArg], arg_write: List[VaccelArg], index: int) -> str:
-        """Performs the genop operation provided in arg_read.
-
-        Args:
-            arg_read : `list`
-            arg_write : `list`
-            index : `int`
-
-        Returns:
-            The content of the `arg_write` indicated by `index`.
-        """
-        ses = Session(flags=0)
-        Genop.genop(ses, arg_read, arg_write)
-        return struct.unpack('d', arg_write[index].raw_content[:8])[0]
-
-    @staticmethod
-    def __parse_ndata__(ndata: "str | bytes") -> bytes:
-        """Reads data from file.
+        Wraps the `vaccel_minmax()` C operation.
 
         Args:
-            ndata : A string or bytes object 
+            indata: The input data as a `bytes` object.
+            ndata: The number of data to be read provided data object.
+            low_threshold: The threshold for the min value.
+            high_threshold: The threshold for the max value.
 
         Returns:
-            Returns image file content.
+            A tuple containing:
+                - The resulting output data.
+                - The detected min value of the data.
+                - The detected max value of the data.
 
         Raises:
-            TypeError: If ndata object is not a string or bytes object
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        if not isinstance(ndata, str) and not isinstance(ndata, bytes):
-            raise TypeError(
-                f"Invalid ndata type. Expected str or bytes, got {type(ndata)}.")
+        c_indata = CBytes(indata)
+        c_outdata = CBytes(bytearray(ndata * ffi.sizeof("double")))
+        c_min = CFloat(float(0), "double")
+        c_max = CFloat(float(0), "double")
 
-        if isinstance(ndata, str):
-            with open(ndata, "rb") as ndatafile:
-                ndata = ndatafile.read()
+        ret = lib.vaccel_minmax(
+            self._c_ptr,
+            c_indata._as_c_array("double"),
+            ndata,
+            low_threshold,
+            high_threshold,
+            c_outdata._as_c_array("double"),
+            c_min._c_ptr,
+            c_max._c_ptr,
+        )
+        if ret != 0:
+            raise FFIError(ret, "Minmax operation failed")
 
-        return ndata
-
-    @classmethod
-    def minmax(cls, indata: int, ndata: "str | bytes", low_threshold: "int", high_threshold: "int"):
-        """Performs the MinMax operation using vAccel over genop.
-
-        Args:
-            indata: An integer giving the number of inputs
-            ndata: A string or bytes object containing the ndata file path
-            low_theshold: An integer value for low threshold
-            high_threshold: An integer value for high threshold
-
-        Returns:
-            outdata: The array of floats, sorted
-            min: A float number for the min value
-            max: A float number for the max value 
-        """
-        ndata = cls.__parse_ndata__(ndata=ndata)
-        arg_read = [VaccelArg(data=int(cls.__op__)),
-                    VaccelArg(data=ndata),
-                    VaccelArg(data=indata),
-                    VaccelArg(data=low_threshold),
-                    VaccelArg(data=high_threshold)]
-        
-        out_ndata: float = bytes(indata * 8 * " ", encoding="utf-8")
-        out_min: float = bytes(8 * " ", encoding="utf-8")
-        out_max: float = bytes(8 * " ", encoding="utf-8")
-        arg_write = [VaccelArg(data=out_ndata), VaccelArg(data=out_min), VaccelArg(data=out_max)]
-        some_ret_value = cls.__genop__(arg_read=arg_read, arg_write=arg_write, index=2)
-
-        # The array of floats returned by the plugin
-        arg_write1 = arg_write[0].raw_content
-        # min
-        arg_write2: float = struct.unpack('d', arg_write[1].raw_content[:8])[0]
-        # max
-        arg_write3: float = struct.unpack('d', arg_write[2].raw_content[:8])[0]
-
-        return (arg_write1, arg_write2, arg_write3)
-
+        return (c_outdata.value, c_min.value, c_max.value)

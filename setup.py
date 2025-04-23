@@ -1,17 +1,10 @@
-from setuptools import setup, find_packages
-from platform import uname
-from datestamp import stamp
+"""A setuptools based setup module.
 
-package = 'vaccel-python'
-platform = uname()
+This module is only necessary for building the CFFI module library.
+"""
 
-setup(name=package,
-      url='https://github.com/nubificus/python-vaccel',
-      author='Nubificus Ltd.',
-      packages=find_packages(),
-      setuptools_git_versioning={ "enabled": True, },
-      setup_requires=["setuptools-git-versioning<2"],
-      description=('Python bindings with CFFI for libvaccel'),
-      install_requires=["cffi>=1.0.0"],
-      cffi_modules=["builder.py:ffibuilder"],
-      )
+from setuptools import setup
+
+setup(
+    cffi_modules=["build_ffi.py:compile_ffi"],
+)

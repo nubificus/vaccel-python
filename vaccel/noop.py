@@ -1,22 +1,29 @@
-from vaccel._vaccel import lib
+"""Debug operation."""
+
+from ._libvaccel import lib
+from .error import FFIError
 
 
-class Noop:
-    def __init__(self):
-        print("test init")
+class NoopMixin:
+    """Mixin providing the NoOp operation for a `Session`.
 
-    def __del__(self):
-        print("test del")
+    This mixin is intended to be used in combination with `BaseSession` and
+    should not be instantiated on its own.
 
-    @staticmethod
-    def noop(session):
-        """Execute noop
-        
-        Args: 
-            session: A vaccel.Session instance
+    Intended usage:
+        class Session(BaseSession, NoopMixin):
+            ...
+    """
 
-        Returns:
-            A string containing the noop result
+    def noop(self) -> None:
+        """Performs the NoOp operation.
+
+        Wraps the `vaccel_noop()` C operation.
+
+        Raises:
+            RuntimeError: If the `Session` is uninitialized.
+            FFIError: If the C operation fails.
         """
-        csession = session._to_inner()
-        return lib.vaccel_noop(csession)
+        ret = lib.vaccel_noop(self._c_ptr)
+        if ret != 0:
+            raise FFIError(ret, "NoOp operation failed")

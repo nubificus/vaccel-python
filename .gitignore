@@ -4,8 +4,14 @@ libs/install
 build
 **.so
 **.o
+**.c
 __pycache__/
 .pytest_cache/
 env/
 .coverage
 _docs/docs
+_version.py
+/[.]*venv*
+.eggs
+*.egg-info
+/dist
