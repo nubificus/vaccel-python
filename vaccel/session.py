@@ -12,6 +12,8 @@ from .minmax import MinmaxMixin
 from .noop import NoopMixin
 from .resource import Resource
 from .tensorflow import TensorflowMixin
+from .tflite import TensorflowLiteMixin
+from .torch import TorchMixin
 
 
 class BaseSession(CType):
@@ -128,6 +130,8 @@ class Session(
     FpgaMixin,
     MinmaxMixin,
     TensorflowMixin,
+    TensorflowLiteMixin,
+    TorchMixin,
 ):
     """Extended session with operations' functionalities.
 
