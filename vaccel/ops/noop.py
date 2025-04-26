@@ -1,7 +1,7 @@
 """Debug operation."""
 
-from ._libvaccel import lib
-from .error import FFIError
+from vaccel._libvaccel import lib
+from vaccel.error import FFIError
 
 
 class NoopMixin:

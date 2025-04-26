@@ -1,8 +1,8 @@
 """Blas operations."""
 
-from ._c_types import CList
-from ._libvaccel import lib
-from .error import FFIError
+from vaccel._c_types import CList
+from vaccel._libvaccel import lib
+from vaccel.error import FFIError
 
 
 class BlasMixin:

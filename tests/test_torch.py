@@ -1,7 +1,7 @@
 import pytest
 
 from vaccel import Resource, ResourceType, Session
-from vaccel.torch import Tensor, TensorType
+from vaccel.ops.torch import Tensor, TensorType
 
 
 @pytest.fixture

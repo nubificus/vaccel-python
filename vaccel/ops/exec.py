@@ -3,11 +3,11 @@
 from pathlib import Path
 from typing import Any
 
-from ._c_types import CList
-from ._libvaccel import lib
-from .arg import Arg
-from .error import FFIError
-from .resource import Resource
+from vaccel._c_types import CList
+from vaccel._libvaccel import lib
+from vaccel.arg import Arg
+from vaccel.error import FFIError
+from vaccel.resource import Resource
 
 
 class ExecMixin:
