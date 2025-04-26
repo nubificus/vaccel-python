@@ -2,18 +2,18 @@
 
 from ._c_types import CType
 from ._libvaccel import ffi, lib
-from .blas import BlasMixin
 from .error import FFIError
-from .exec import ExecMixin
-from .fpga import FpgaMixin
-from .genop import GenopMixin
-from .image import ImageMixin
-from .minmax import MinmaxMixin
-from .noop import NoopMixin
+from .ops.blas import BlasMixin
+from .ops.exec import ExecMixin
+from .ops.fpga import FpgaMixin
+from .ops.genop import GenopMixin
+from .ops.image import ImageMixin
+from .ops.minmax import MinmaxMixin
+from .ops.noop import NoopMixin
+from .ops.tf import TFMixin
+from .ops.tflite import TFLiteMixin
+from .ops.torch import TorchMixin
 from .resource import Resource
-from .tensorflow import TensorflowMixin
-from .tflite import TensorflowLiteMixin
-from .torch import TorchMixin
 
 
 class BaseSession(CType):
@@ -129,8 +129,8 @@ class Session(
     BlasMixin,
     FpgaMixin,
     MinmaxMixin,
-    TensorflowMixin,
-    TensorflowLiteMixin,
+    TFMixin,
+    TFLiteMixin,
     TorchMixin,
 ):
     """Extended session with operations' functionalities.

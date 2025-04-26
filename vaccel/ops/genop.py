@@ -1,9 +1,9 @@
 """Generic operation."""
 
-from ._c_types import CList
-from ._libvaccel import lib
-from .arg import Arg
-from .error import FFIError
+from vaccel._c_types import CList
+from vaccel._libvaccel import lib
+from vaccel.arg import Arg
+from vaccel.error import FFIError
 
 
 class GenopMixin:

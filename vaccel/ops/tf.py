@@ -2,11 +2,11 @@
 
 from typing import Any, ClassVar
 
-from ._c_types import CBytes, CList, CStr, CType
-from ._c_types.utils import CEnumBuilder
-from ._libvaccel import ffi, lib
-from .error import FFIError
-from .resource import Resource
+from vaccel._c_types import CBytes, CList, CStr, CType
+from vaccel._c_types.utils import CEnumBuilder
+from vaccel._libvaccel import ffi, lib
+from vaccel.error import FFIError
+from vaccel.resource import Resource
 
 enum_builder = CEnumBuilder(lib)
 TensorType = enum_builder.from_prefix("TensorType", "VACCEL_TF_")
@@ -458,7 +458,7 @@ class Buffer(CType):
         return f"<Buffer size={self.size}>"
 
 
-class TensorflowMixin:
+class TFMixin:
     """Mixin providing Tensorflow operations for a `Session`.
 
     This mixin is intended to be used in combination with `BaseSession` and

@@ -2,11 +2,11 @@
 
 from typing import Any, ClassVar
 
-from ._c_types import CInt, CList, CType
-from ._c_types.utils import CEnumBuilder
-from ._libvaccel import ffi, lib
-from .error import FFIError
-from .resource import Resource
+from vaccel._c_types import CInt, CList, CType
+from vaccel._c_types.utils import CEnumBuilder
+from vaccel._libvaccel import ffi, lib
+from vaccel.error import FFIError
+from vaccel.resource import Resource
 
 enum_builder = CEnumBuilder(lib)
 TensorType = enum_builder.from_prefix("TensorType", "VACCEL_TFLITE_")
@@ -192,7 +192,7 @@ class Tensor(CType):
         return f"<Tensor dims={self.dims} data_type={self.data_type}>"
 
 
-class TensorflowLiteMixin:
+class TFLiteMixin:
     """Mixin providing Tensorflow Lite operations for a `Session`.
 
     This mixin is intended to be used in combination with `BaseSession` and
