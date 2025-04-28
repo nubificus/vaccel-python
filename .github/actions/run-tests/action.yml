@@ -1,0 +1,49 @@
+name: Run Tests
+description: Run project tests and generate coverage report
+
+inputs:
+  build-path:
+    default: 'build'
+  source-path:
+    default: '.'
+  # ignored
+  valgrind:
+    default: 'false'
+  coverage:
+    default: 'false'
+  # ignored
+  gcov:
+    default: 'gcov'
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      working-directory: ${{ inputs.source-path }}
+      run: |
+        # FIXME: This should be in the vaccel coverage workflow
+        if ! dpkg -s vaccel &> /dev/null; then
+          wget "https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/x86_64/release/vaccel_latest_amd64.deb"
+          sudo apt install ./vaccel_latest_amd64.deb
+          rm vaccel_latest_amd64.deb
+        fi
+        ./.venv/bin/pip install .[test]
+      shell: bash
+
+    - name: Run tests
+      working-directory: ${{ inputs.source-path }}
+      run: ./.venv/bin/python3 -m pytest
+      shell: bash
+
+    - name: Calculate coverage
+      working-directory: ${{ inputs.source-path }}
+      if: ${{ inputs.coverage == 'true' }}
+      run: |
+        ./.venv/bin/pip install tomli
+        pkg_name=$(./.venv/bin/python3 -c \
+          "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['name'])")
+        ./.venv/bin/python3 -m pytest \
+          --cov-report term \
+          --cov-report xml:"${{ inputs.build-path }}/coverage.xml" \
+          --cov="${pkg_name}" tests/
+      shell: bash

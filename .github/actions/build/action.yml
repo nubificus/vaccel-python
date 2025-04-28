@@ -1,0 +1,78 @@
+name: Build Project
+description: Build and install project
+
+inputs:
+  # ignored
+  coverage:
+    default: 'false'
+  # ignored
+  options:
+    default: ''
+  # ignored
+  prefix:
+    default: ${{ github.workspace }}/opt
+  # ignored
+  pkgconfig-prefix:
+    default: ''
+  build-path:
+    default: 'build'
+  source-path:
+    default: '.'
+  # ignored
+  build-type:
+    default: 'plain'
+  # ignored
+  build:
+    default: ''
+  install:
+    default: 'false'
+  dist:
+    default: 'false'
+  # ignored
+  subprojects:
+    default: 'true'
+  # ignored
+  dist-tests:
+    default: 'false'
+  # ignored
+  install-deb:
+    default: 'false'
+
+outputs:
+  dist-path:
+    value: ${{ steps.build.outputs.dist-path }}
+
+runs:
+  using: composite
+  steps:
+    - name: Create python virtual env
+      working-directory: ${{ inputs.source-path }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-venv libffi-dev
+        python3 -m venv .venv
+      shell: bash
+
+    - name: Install dependencies
+      working-directory: ${{ inputs.source-path }}
+      run: |
+        ./.venv/bin/pip install --upgrade pip
+        ./.venv/bin/pip install build abi3audit
+      shell: bash
+
+    - name: Generate distribution artifacts
+      id: dist
+      working-directory: ${{ inputs.source-path }}
+      if: ${{ inputs.dist == 'true' }}
+      run: |
+        ./.venv/bin/python3 -m build -o "${{ inputs.build-path }}"
+        ./.venv/bin/abi3audit -v \
+          $(find "${{ inputs.build-path }}" -name "*.whl")
+        echo "dist-path=${{ inputs.build-path }}" >> "$GITHUB_OUTPUT"
+      shell: bash
+
+    - name: Install project
+      working-directory: ${{ inputs.source-path }}
+      if: ${{ inputs.install == 'true' }}
+      run: ./.venv/bin/pip install .
+      shell: bash
