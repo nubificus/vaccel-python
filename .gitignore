@@ -1,7 +1,7 @@
 libs/build
 libs/install
 .ccls-cache
-build
+/build*
 **.so
 **.o
 **.c

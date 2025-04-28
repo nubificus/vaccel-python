@@ -1,0 +1,61 @@
+name: Build and Verify
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [synchronize, labeled]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-build:
+    name: Test Build
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test') }}
+    uses: nubificus/vaccel/.github/workflows/test-build.yml@main
+    with:
+      options: ''
+      valgrind: false
+    secrets: inherit
+
+  verify-build:
+    name: Verify Build
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test') }}
+    uses: nubificus/vaccel/.github/workflows/verify-build.yml@main
+    with:
+      package: 'python'
+      options: ''
+      valgrind: false
+      skip-examples: true
+      upload-subpath: 'python'
+    secrets: inherit
+
+  validate-files-and-commits:
+    name: Validate Files and Commits
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test') }}
+    uses: nubificus/vaccel/.github/workflows/validate-files-and-commits.yml@main
+    secrets: inherit
+
+  validate-code:
+    name: Validate Code
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test') }}
+    uses: nubificus/vaccel/.github/workflows/validate-code.yml@main
+    with:
+      skip-cppcheck: true
+    secrets: inherit
+
+  generate-api-reference:
+    needs: [test-build, verify-build, validate-files-and-commits, validate-code]
+    name: Generate API Reference
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'ok-to-test') }}
+    uses: ./.github/workflows/generate-api-reference.yml
+    secrets: inherit
+
+  generate-coverage:
+    needs: [generate-api-reference]
+    name: Generate Coverage Report
+    uses: nubificus/vaccel/.github/workflows/coverage-report.yml@main
+    with:
+      comment-diff: true
