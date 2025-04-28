@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Interface to the `struct vaccel_resource` C object."""
 
 from pathlib import Path

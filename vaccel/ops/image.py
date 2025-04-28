@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Image-related operations."""
 
 from vaccel._c_types import CBytes

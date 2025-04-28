@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Utilities for C type conversions."""
 
 from enum import IntEnum
