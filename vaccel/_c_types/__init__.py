@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 from .types import CAny, CType
 from .wrappers.cbytes import CBytes
 from .wrappers.cfloat import CFloat

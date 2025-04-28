@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Common interfaces for C types."""
 
 from abc import ABC, abstractmethod

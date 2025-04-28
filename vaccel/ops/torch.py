@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Torch operations."""
 
 from typing import Any, ClassVar

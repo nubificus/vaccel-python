@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Generic operation."""
 
 from vaccel._c_types import CList

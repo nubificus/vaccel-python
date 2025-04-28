@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """C type interface for `str` objects."""
 
 from pathlib import Path

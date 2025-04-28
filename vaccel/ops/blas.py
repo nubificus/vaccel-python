@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Blas operations."""
 
 from vaccel._c_types import CList

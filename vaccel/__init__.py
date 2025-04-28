@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """Python API for vAccel."""
 
 from ._version import __version__

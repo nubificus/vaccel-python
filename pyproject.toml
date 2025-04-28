@@ -8,6 +8,7 @@ description = "Python bindings for vaccel"
 requires-python = ">=3.10"
 authors = [{ name = "Nubificus Ltd." }]
 readme = "README.md"
+license = "Apache-2.0"
 dependencies = ["cffi>=1.0.0", "pkgconfig"]
 dynamic = ["version"]
 

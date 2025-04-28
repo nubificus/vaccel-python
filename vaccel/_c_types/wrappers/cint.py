@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 """C type interface for `int` objects."""
 
 from vaccel._c_types.types import CType, to_ctype
