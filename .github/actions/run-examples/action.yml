@@ -1,0 +1,29 @@
+name: Run Examples
+description: Run vaccel examples
+
+inputs:
+  # ignored
+  prefix:
+    default: ${{ github.workspace }}/opt
+  # ignored
+  valgrind:
+    default: 'false'
+  # ignored
+  package:
+    default: 'vaccel'
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure run dir exists
+      run: |
+        uid=$(id -u)
+        [ -d "/run/user/${uid}" ] && exit 0
+        sudo mkdir -p "/run/user/${uid}"
+        sudo chown -R  "${uid}" "/run/user/${uid}"
+      shell: bash
+
+    - name: Run examples
+      run: |
+        ./.venv/bin/python3 run-examples.py
+      shell: bash
