@@ -28,7 +28,6 @@ jobs:
       package: 'python'
       options: ''
       valgrind: false
-      skip-examples: true
       upload-subpath: 'python'
     secrets: inherit
 

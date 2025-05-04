@@ -40,7 +40,7 @@ inputs:
 
 outputs:
   dist-path:
-    value: ${{ steps.build.outputs.dist-path }}
+    value: ${{ steps.dist.outputs.dist-path }}
 
 runs:
   using: composite

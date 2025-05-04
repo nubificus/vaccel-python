@@ -56,4 +56,5 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "tests/**.py" = ["ANN001", "ANN201", "D", "INP001", "PLR2004", "S101", "S311"]
 "examples/**.py" = ["ANN001", "ANN201", "D", "INP001", "T201"]
+"run-examples.py" = ["ANN001", "ANN201", "D", "INP001", "S603", "T201"]
 "build_ffi.py" = ["ANN001", "ANN201", "S603"]
