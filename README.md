@@ -1,102 +1,75 @@
-# python bindings for vaccel
+# Python bindings for vAccel
 
-This repo defines and builds the vaccel bindings for python. It is WiP and only
-defines a subset of the vAccel API.
+[Python](https://www.python.org/) bindings for vAccel wrap the vAccel C API and
+provide a native Python API to vAccel operations. The bindings are currently a
+WiP, supporting a subset of the vAccel operations.
 
+You can find more information about these bindings and everything vAccel in the
+[Documentation](https://docs.vaccel.org).
 
-## building
+## Installation
 
-To build, first clone the repo:
+The bindings are implemented in the `vaccel` Python package. The package is
+installable with `pip` by using the provided Wheels or from source.
 
-```bash
-git clone https://github.com/nubificus/python-vaccel
+### Requirements
+
+- To use the `vaccel` Python package you need a valid vAccel installation. You
+  can find more information on how to install vAccel in the
+  [Installation](https://docs.vaccel.org/latest/getting-started/installation)
+  page.
+
+- This package requires Python 3.10 or newer. Verify your Python version with:
+  ```sh
+  python3 --version
+  ```
+  and update Python as needed using the
+  [official instructions](https://docs.python.org/3/using/index.html)
+
+### Wheel
+
+You can get the latest `vaccel` Wheel package from the
+[Releases](https://github.com/nubificus/vaccel-python/releases) page.
+
+```sh
+# Replace `x86_64` with `aarch64` or `armv7l` to get packages for the relevant
+# architectures
+wget https://github.com/nubificus/vaccel-python/releases/download/v0.1.0/vaccel-0.1.0-cp310-abi3-linux_x86_64.whl
+pip install vaccel-0.1.0-cp310-abi3-linux_x86_64.whl
 ```
 
-## vAccel
+### Latest artifacts
 
-In order to build the python bindings for vAccel, we first need a vAccel
-installation. We can either build it from source, or get the latest binary
-release:
+To install the Wheel artifact of the latest `vaccel` revision:
 
-### Build from source
-
-```bash
-git clone https://github.com/nubificus/vaccel --recursive
-cd vaccel
-meson setup -Dplugin-noop=enabled build
-meson compile -C build
-meson install -C build
-
+```sh
+# Replace `x86_64` with `aarch64` or `armv7l` to get packages for the relevant
+# architectures
+wget https://s3.nbfc.io/nbfc-assets/github/python-vaccel/main/x86_64/vaccel-latest-cp310-abi3-linux_x86_64.whl
+pip install vaccel-latest-cp310-abi3-linux_x86_64.whl
 ```
 
-The relevant libs & plugins should be in `/usr/local/lib/x86_64-linux-gnu`, along with include
-files in `/usr/local/include`.
+### Building from source
 
-### Get the binary release
+You can build the package from source directly and install it using `pip`:
 
-Get the latest vAccel binaries:
-
-```bash
-wget https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/x86_64/release/vaccel-latest-bin.tar.gz
+```sh
+pip install git+https://github.com/nubificus/vaccel-python
 ```
 
-and install it:
+## Running the examples
 
-```bash
-sudo tar xfv vaccel-latest-bin.tar.gz --strip-components=2 -C /usr/local
+Examples of using the package are provided in the `examples` directory.
+
+After cloning the repo:
+
+```sh
+git clone https://github.com/nubificus/vaccel-python
+cd vaccel-python
 ```
 
-## python bindings
+you can run all the available examples with sample arguments using:
 
-Finally, call the `builder.py` to build the bindings. The required python
-packages to build are: `datestamp cffi wheel setuptools cmake_build_extension`.
-To install them use:
-
-```bash
-pip3 install datestamp cffi wheel setuptools cmake_build_extension
-```
-
-and run the builder:
-
-```bash
-python3 builder.py
-```
-
-The module should be ready. To test run:
-
-```bash
-export VACCEL_PLUGINS=/usr/local/lib/x86_64-linux-gnu/libvaccel-noop.so 
-export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
-export PYTHONPATH=$PYTHONPATH:. 
-python3 vaccel/test.py
-```
-Alternatively, you could build the pip package:
-
-```bash
-pip3 install build
-python3 -m build
-```
-
-and install it:
-
-```bash
-pip install dist/vaccel*.tar.gz
-```
-
-## Test
-
-To run the tests:
-
-```bash
-export VACCEL_PLUGINS=/usr/local/lib/x86_64-linux-gnu/libvaccel-noop.so 
-export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
-export PYTHONPATH=$PYTHONPATH:. 
-pytest
-
-
-# Test coverage
-export VACCEL_PLUGINS=/usr/local/lib/x86_64-linux-gnu/libvaccel-noop.so 
-export LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
-export PYTHONPATH=$PYTHONPATH:. 
-pytest --cov=vaccel tests/
+```sh
+python3 run-examples.py
 ```
