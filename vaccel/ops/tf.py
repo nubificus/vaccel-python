@@ -399,16 +399,16 @@ class Buffer(CType):
             FFIError: If buffer initialization fails.
         """
         self._c_data = CBytes(self._data)
-        self._c_obj_ptr = ffi.new("vaccel_tf_buffer **")
+        self._c_obj_ptr = ffi.new("struct vaccel_tf_buffer **")
 
         ret = lib.vaccel_tf_buffer_new(
-            self._c_obj, self._c_data._c_ptr, len(self._c_data)
+            self._c_obj_ptr, self._c_data._c_ptr, len(self._c_data)
         )
         if ret != 0:
             raise FFIError(ret, "Could not initialize buffer")
 
         self._c_obj = self._c_obj_ptr[0]
-        self._c_size = ffi.sizeof("struct vaccel_tf_status")
+        self._c_size = ffi.sizeof("struct vaccel_tf_buffer")
 
     @property
     def value(self) -> ffi.CData:
