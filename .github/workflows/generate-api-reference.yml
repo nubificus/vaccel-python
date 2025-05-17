@@ -93,8 +93,6 @@ jobs:
           workflow-logs: json-output
 
       - name: Print remote request info
-        env:
-          LOGS: ${{ steps.trigger-update.outputs.workflow-logs }}
         run: |
           remote_repo="${{ inputs.target-repo-owner }}/${{ inputs.target-repo-name }}"
           remote_id="${{ steps.trigger-update.outputs.workflow-id }}"
@@ -104,8 +102,12 @@ jobs:
             >> "$GITHUB_STEP_SUMMARY"
           [[ "${{ inputs.deploy }}" == 'false' ]] && exit 0
 
+          logs=$(cat <<'EOF'
+          ${{ steps.trigger-update.outputs.workflow-logs }}
+          EOF
+          )
           pr_number=$(
-            echo "$LOGS" | jq -r '
+            echo "$logs" | jq -r '
               .["Update Repo / Verify Build"]
               | map(select(
                   .message != null
@@ -116,7 +118,7 @@ jobs:
             '
           )
           pr_operation=$(
-            echo "$LOGS" | jq -r '
+            echo "$logs" | jq -r '
               .["Update Repo / Verify Build"]
               | map(select(
                   .message != null
@@ -127,7 +129,7 @@ jobs:
             '
           )
           pr_url=$(
-            echo "$LOGS" | jq -r '
+            echo "$logs" | jq -r '
               .["Update Repo / Verify Build"]
               | map(select(
                   .message != null
@@ -137,6 +139,7 @@ jobs:
               | .[1]
             '
           )
+          echo ""
           echo "${pr_operation^} PR: ${pr_url}"
           echo "- ${pr_operation^} PR [${remote_repo}#${pr_number}](${pr_url})" \
             >> "$GITHUB_STEP_SUMMARY"
