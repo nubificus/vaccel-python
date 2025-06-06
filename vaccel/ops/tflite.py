@@ -2,13 +2,16 @@
 
 """Tensorflow Lite operations."""
 
+import logging
 from typing import Any, ClassVar
 
 from vaccel._c_types import CInt, CList, CType
 from vaccel._c_types.utils import CEnumBuilder
 from vaccel._libvaccel import ffi, lib
-from vaccel.error import FFIError
+from vaccel.error import FFIError, NullPointerError
 from vaccel.resource import Resource
+
+logger = logging.getLogger(__name__)
 
 enum_builder = CEnumBuilder(lib)
 TensorType = enum_builder.from_prefix("TensorType", "VACCEL_TFLITE_")
@@ -27,9 +30,9 @@ class Tensor(CType):
         _dims (list[int]): The dims of the tensor.
         _data (list[Any]): The data of the tensor.
         _data_type (TensorType): The type of the tensor.
-        _c_obj_ptr (ffi.CData or None): A double pointer to the underlying
+        _c_obj_ptr (ffi.CData): A double pointer to the underlying
             `struct vaccel_tflite_tensor` C object.
-        _c_obj_data (ffi.CData or None): A pointer to the data of the underlying
+        _c_obj_data (ffi.CData): A pointer to the data of the underlying
             `struct vaccel_tflite_tensor` C object.
 
     """
@@ -59,8 +62,8 @@ class Tensor(CType):
         self._dims = dims
         self._data = data
         self._data_type = data_type
-        self._c_obj_ptr = None
-        self._c_obj_data = None
+        self._c_obj_ptr = ffi.NULL
+        self._c_obj_data = ffi.NULL
         super().__init__()
 
     def _init_c_obj(self):
@@ -99,18 +102,25 @@ class Tensor(CType):
         Returns:
             The dereferenced 'struct vaccel_tflite_tensor`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
-    def __del__(self):
+    def _del_c_obj(self):
         """Deletes the underlying `struct vaccel_tflite_tensor` C object.
 
         Raises:
             FFIError: If tensor deletion fails.
         """
-        if hasattr(self, "_c_obj") and self._c_obj:
-            ret = lib.vaccel_tflite_tensor_delete(self._c_obj)
-            if ret != 0:
-                raise FFIError(ret, "Could not delete tensor")
+        ret = lib.vaccel_tflite_tensor_delete(self._c_ptr_or_raise)
+        if ret != 0:
+            raise FFIError(ret, "Could not delete tensor")
+
+    def __del__(self):
+        try:
+            self._del_c_obj()
+        except NullPointerError:
+            pass
+        except FFIError:
+            logger.exception("Failed to clean up Tensor")
 
     @property
     def _c_data_size(self):
@@ -127,7 +137,10 @@ class Tensor(CType):
         Returns:
             The dims of the tensor.
         """
-        return [int(self._c_obj.dims[i]) for i in range(self._c_obj.nr_dims)]
+        return [
+            int(self._c_ptr_or_raise.dims[i])
+            for i in range(self._c_ptr_or_raise.nr_dims)
+        ]
 
     @property
     def data(self) -> list | str:
@@ -136,9 +149,11 @@ class Tensor(CType):
         Returns:
             The data of the tensor.
         """
-        typed_c_data = ffi.cast(f"{self._c_data_type} *", self._c_obj.data)
+        typed_c_data = ffi.cast(
+            f"{self._c_data_type} *", self._c_ptr_or_raise.data
+        )
         return ffi.unpack(
-            typed_c_data, int(self._c_obj.size / self._c_data_size)
+            typed_c_data, int(self._c_ptr_or_raise.size / self._c_data_size)
         )
 
     @property
@@ -148,7 +163,7 @@ class Tensor(CType):
         Returns:
             The data type of the tensor.
         """
-        return TensorType(self._c_obj.data_type)
+        return TensorType(self._c_ptr_or_raise.data_type)
 
     @classmethod
     def from_c_obj(cls, c_obj: ffi.CData) -> "Tensor":
@@ -171,7 +186,7 @@ class Tensor(CType):
         inst._dims = None
         inst._data = None
         inst._data_type = None
-        inst._c_obj_ptr = None
+        inst._c_obj_ptr = ffi.NULL
         return inst
 
     @classmethod
@@ -214,14 +229,11 @@ class TFLiteMixin:
             resource: A resource with the model to load.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
-        ret = lib.vaccel_tflite_session_load(self._c_ptr, resource._c_ptr)
+        ret = lib.vaccel_tflite_session_load(
+            self._c_ptr_or_raise, resource._c_ptr
+        )
         if ret != 0:
             raise FFIError(ret, "Tensorflow Lite model loading failed")
 
@@ -246,19 +258,14 @@ class TFLiteMixin:
                 - The status of the operation execution.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         c_in_tensors = CList.from_ptrs(in_tensors)
         c_out_tensors = CList.from_ptrs([Tensor.empty()] * nr_out_tensors)
         status = CInt(0, "uint8_t")
 
         ret = lib.vaccel_tflite_session_run(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             resource._c_ptr,
             c_in_tensors._c_ptr,
             len(c_in_tensors),
@@ -284,13 +291,10 @@ class TFLiteMixin:
             The status of the operation execution.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
-        ret = lib.vaccel_tflite_session_delete(self._c_ptr, resource._c_ptr)
+        ret = lib.vaccel_tflite_session_delete(
+            self._c_ptr_or_raise, resource._c_ptr
+        )
         if ret != 0:
             raise FFIError(ret, "Tensorflow Lite model delete failed")

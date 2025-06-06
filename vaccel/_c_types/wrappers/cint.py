@@ -40,9 +40,9 @@ class CInt(CType):
         self._c_size = ffi.sizeof(self._ctype_str)
 
     @property
-    def value(self) -> ffi.CData:
+    def value(self) -> int:
         """Returns the python representation of the data."""
-        return int(self._c_obj[0])
+        return int(self._c_ptr_or_raise[0])
 
     # Comparison Methods
     def __eq__(self, other: "CInt | int"):

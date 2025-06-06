@@ -30,14 +30,13 @@ class FpgaMixin:
             A copy of the matrix A.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
         c_a = CList(a)
         c_out_a = CList([0] * len(a))
 
         ret = lib.vaccel_fpga_arraycopy(
-            self._c_ptr, c_a._c_ptr, c_out_a._c_ptr, len(c_a)
+            self._c_ptr_or_raise, c_a._c_ptr, c_out_a._c_ptr, len(c_a)
         )
         if ret != 0:
             raise FFIError(ret, "FPGA array copy failed")
@@ -57,7 +56,6 @@ class FpgaMixin:
             The multiplication result of matrices A and B.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
         c_a = CList(a)
@@ -65,7 +63,7 @@ class FpgaMixin:
         c_c = CList([float(0)] * len(a))
 
         ret = lib.vaccel_fpga_mmult(
-            self._c_ptr, c_a._c_ptr, c_b._c_ptr, c_c._c_ptr, len(c_a)
+            self._c_ptr_or_raise, c_a._c_ptr, c_b._c_ptr, c_c._c_ptr, len(c_a)
         )
         if ret != 0:
             raise FFIError(ret, "FPGA matrix multiplication failed")
@@ -89,7 +87,6 @@ class FpgaMixin:
                 - The result of the multiplication of matrices A and B.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
         c_a = CList(a)
@@ -98,7 +95,7 @@ class FpgaMixin:
         c_mult_output = CList([float(0)] * len(a))
 
         ret = lib.vaccel_fpga_parallel(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             c_a._c_ptr,
             c_b._c_ptr,
             c_add_output._c_ptr,
@@ -128,7 +125,6 @@ class FpgaMixin:
             The addition result of matrices A and B.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
         c_a = CList(a)
@@ -136,7 +132,12 @@ class FpgaMixin:
         c_c = CList([float(0)] * len(a))
 
         ret = lib.vaccel_fpga_vadd(
-            self._c_ptr, c_a._c_ptr, c_b._c_ptr, c_c._c_ptr, len(c_a), len(c_b)
+            self._c_ptr_or_raise,
+            c_a._c_ptr,
+            c_b._c_ptr,
+            c_c._c_ptr,
+            len(c_a),
+            len(c_b),
         )
         if ret != 0:
             raise FFIError(ret, "FPGA vector addition failed")

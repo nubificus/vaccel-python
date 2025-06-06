@@ -2,13 +2,16 @@
 
 """Torch operations."""
 
+import logging
 from typing import Any, ClassVar
 
 from vaccel._c_types import CBytes, CList, CType
 from vaccel._c_types.utils import CEnumBuilder
 from vaccel._libvaccel import ffi, lib
-from vaccel.error import FFIError
+from vaccel.error import FFIError, NullPointerError
 from vaccel.resource import Resource
+
+logger = logging.getLogger(__name__)
 
 enum_builder = CEnumBuilder(lib)
 TensorType = enum_builder.from_prefix("TensorType", "VACCEL_TORCH_")
@@ -27,9 +30,9 @@ class Tensor(CType):
         _dims (list[int]): The dims of the tensor.
         _data (list[Any]): The data of the tensor.
         _data_type (TensorType): The type of the tensor.
-        _c_obj_ptr (ffi.CData or None): A double pointer to the underlying
+        _c_obj_ptr (ffi.CData): A double pointer to the underlying
             `struct vaccel_torch_tensor` C object.
-        _c_obj_data (ffi.CData or None): A pointer to the data of the underlying
+        _c_obj_data (ffi.CData): A pointer to the data of the underlying
             `struct vaccel_torch_tensor` C object.
 
     """
@@ -54,8 +57,8 @@ class Tensor(CType):
         self._dims = dims
         self._data = data
         self._data_type = data_type
-        self._c_obj_ptr = None
-        self._c_obj_data = None
+        self._c_obj_ptr = ffi.NULL
+        self._c_obj_data = ffi.NULL
         super().__init__()
 
     def _init_c_obj(self):
@@ -94,18 +97,25 @@ class Tensor(CType):
         Returns:
             The dereferenced 'struct vaccel_torch_tensor`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
-    def __del__(self):
+    def _del_c_obj(self):
         """Deletes the underlying `struct vaccel_torch_tensor` C object.
 
         Raises:
             FFIError: If tensor deletion fails.
         """
-        if hasattr(self, "_c_obj") and self._c_obj:
-            ret = lib.vaccel_torch_tensor_delete(self._c_obj)
-            if ret != 0:
-                raise FFIError(ret, "Could not delete tensor")
+        ret = lib.vaccel_torch_tensor_delete(self._c_ptr_or_raise)
+        if ret != 0:
+            raise FFIError(ret, "Could not delete tensor")
+
+    def __del__(self):
+        try:
+            self._del_c_obj()
+        except NullPointerError:
+            pass
+        except FFIError:
+            logger.exception("Failed to clean up Tensor")
 
     @property
     def _c_data_size(self):
@@ -122,7 +132,10 @@ class Tensor(CType):
         Returns:
             The dims of the tensor.
         """
-        return [int(self._c_obj.dims[i]) for i in range(self._c_obj.nr_dims)]
+        return [
+            int(self._c_ptr_or_raise.dims[i])
+            for i in range(self._c_ptr_or_raise.nr_dims)
+        ]
 
     @property
     def data(self) -> list | str:
@@ -131,9 +144,11 @@ class Tensor(CType):
         Returns:
             The data of the tensor.
         """
-        typed_c_data = ffi.cast(f"{self._c_data_type} *", self._c_obj.data)
+        typed_c_data = ffi.cast(
+            f"{self._c_data_type} *", self._c_ptr_or_raise.data
+        )
         return ffi.unpack(
-            typed_c_data, int(self._c_obj.size / self._c_data_size)
+            typed_c_data, int(self._c_ptr_or_raise.size / self._c_data_size)
         )
 
     @property
@@ -143,7 +158,7 @@ class Tensor(CType):
         Returns:
             The data type of the tensor.
         """
-        return TensorType(self._c_obj.data_type)
+        return TensorType(self._c_ptr_or_raise.data_type)
 
     @classmethod
     def from_c_obj(cls, c_obj: ffi.CData) -> "Tensor":
@@ -166,7 +181,7 @@ class Tensor(CType):
         inst._dims = None
         inst._data = None
         inst._data_type = None
-        inst._c_obj_ptr = None
+        inst._c_obj_ptr = ffi.NULL
         return inst
 
     @classmethod
@@ -201,7 +216,7 @@ class Buffer(CType):
     Attributes:
         _data (bytes | bytearray): The data of the buffer.
         _c_data (CBytes): The encapsulated buffer data passed to the C struct.
-        _c_obj_ptr (ffi.CData or None): A double pointer to the underlying
+        _c_obj_ptr (ffi.CData): A double pointer to the underlying
             `struct vaccel_torch_buffer` C object.
     """
 
@@ -213,7 +228,7 @@ class Buffer(CType):
         """
         self._data = data
         self._c_data = None
-        self._c_obj_ptr = None
+        self._c_obj_ptr = ffi.NULL
         super().__init__()
 
     def _init_c_obj(self):
@@ -241,24 +256,33 @@ class Buffer(CType):
         Returns:
             The dereferenced 'struct vaccel_torch_buffer`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
-    def __del__(self):
+    def _del_c_obj(self):
         """Deletes the underlying `struct vaccel_torch_buffer` C object.
 
         Raises:
             FFIError: If buffer deletion fails.
         """
-        if hasattr(self, "_c_obj") and self._c_obj:
-            c_data = ffi.new("void **")
-            c_size = ffi.new("size_t *")
-            ret = lib.vaccel_torch_buffer_take_data(self._c_obj, c_data, c_size)
-            if ret != 0:
-                raise FFIError(ret, "Failed to take ownership of buffer data")
+        c_data = ffi.new("void **")
+        c_size = ffi.new("size_t *")
+        ret = lib.vaccel_torch_buffer_take_data(
+            self._c_ptr_or_raise, c_data, c_size
+        )
+        if ret != 0:
+            raise FFIError(ret, "Failed to take ownership of buffer data")
 
-            ret = lib.vaccel_torch_buffer_delete(self._c_obj)
-            if ret != 0:
-                raise FFIError(ret, "Could not delete buffer")
+        ret = lib.vaccel_torch_buffer_delete(self._c_ptr_or_raise)
+        if ret != 0:
+            raise FFIError(ret, "Could not delete buffer")
+
+    def __del__(self):
+        try:
+            self._del_c_obj()
+        except NullPointerError:
+            pass
+        except FFIError:
+            logger.exception("Failed to clean up Buffer")
 
     @property
     def size(self) -> int:
@@ -267,7 +291,7 @@ class Buffer(CType):
         Returns:
             The size of the buffer.
         """
-        return int(self._c_obj.size)
+        return int(self._c_ptr_or_raise.size)
 
     @property
     def data(self) -> bytes:
@@ -278,7 +302,7 @@ class Buffer(CType):
         """
         if not self._obj.data or self.size == 0:
             return b""
-        return ffi.buffer(self._c_obj.data, self.size)[:]
+        return ffi.buffer(self._c_ptr_or_raise.data, self.size)[:]
 
     def __repr__(self):
         return f"<Buffer size={self.size}>"
@@ -316,13 +340,8 @@ class TorchMixin:
             The output tensors
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         run_options_ptr = (
             ffi.NULL if run_options is None else run_options._c_ptr
         )
@@ -330,7 +349,7 @@ class TorchMixin:
         c_out_tensors = CList.from_ptrs([Tensor.empty()] * nr_out_tensors)
 
         ret = lib.vaccel_torch_jitload_forward(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             resource._c_ptr,
             run_options_ptr,
             c_in_tensors._c_ptr,

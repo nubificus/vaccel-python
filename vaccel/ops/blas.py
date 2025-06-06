@@ -51,19 +51,14 @@ class BlasMixin:
             The resulting matrix C in row-major order with shape (m, n).
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         c_a = CList(a)
         c_b = CList(b)
         c_c = CList([float(0)] * m * n)
 
         ret = lib.vaccel_sgemm(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             m,
             n,
             k,

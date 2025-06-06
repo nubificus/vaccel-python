@@ -23,9 +23,8 @@ class NoopMixin:
         Wraps the `vaccel_noop()` C operation.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        ret = lib.vaccel_noop(self._c_ptr)
+        ret = lib.vaccel_noop(self._c_ptr_or_raise)
         if ret != 0:
             raise FFIError(ret, "NoOp operation failed")

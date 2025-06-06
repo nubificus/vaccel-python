@@ -35,7 +35,7 @@ class CStr(CType):
         self._c_size = ffi.sizeof(self._c_obj)
 
     @property
-    def value(self) -> ffi.CData:
+    def value(self) -> str:
         """Returns the python representation of the data."""
         return self.as_str()
 
@@ -61,11 +61,11 @@ class CStr(CType):
 
     def as_bytes(self) -> bytes:
         """Returns the string as a Python bytes object (same as C string)."""
-        return ffi.string(self._c_obj)
+        return ffi.string(self._c_ptr_or_raise)
 
     def as_str(self) -> str:
         """Returns the Python string, ensuring it matches the C string."""
-        return ffi.string(self._c_obj).decode()
+        return ffi.string(self._c_ptr_or_raise).decode()
 
     def update(self, new_str: str | bytes):
         """Modifies the string and updates the C representation."""
