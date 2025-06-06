@@ -6,7 +6,7 @@ from typing import Any
 
 from ._c_types import CAny, CType
 from ._libvaccel import ffi
-from .error import ptr_or_raise
+from .error import NullPointerError, ptr_or_raise
 
 
 class Arg(CType):
@@ -69,18 +69,7 @@ class Arg(CType):
                 if self._c_obj != ffi.NULL
                 else "NULL"
             )
-            c_buf = (
-                f"0x{int(ffi.cast('uintptr_t', self._c_obj.buf)):x}"
-                if ffi.NULL not in (self._c_obj, self._c_obj.buf)
-                else "NULL"
-            )
-            c_size = self._c_obj.size if self._c_obj != ffi.NULL else 0
-        except (AttributeError, TypeError) as e:
-            return f"<Arg (error in __repr__): {e}>"
-        else:
-            return (
-                f"<Arg buf={self.buf!r} "
-                f"_c_ptr={_c_ptr} "
-                f"c_buf={c_buf} "
-                f"c_size={c_size}>"
-            )
+            size = self._c_obj.size if self._c_obj != ffi.NULL else 0
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return f"<{self.__class__.__name__} size={size} at {_c_ptr}>"
