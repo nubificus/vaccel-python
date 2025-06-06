@@ -15,7 +15,7 @@ from .ops.image import ImageMixin
 from .ops.minmax import MinmaxMixin
 from .ops.noop import NoopMixin
 from .ops.tf import TFMixin
-from .ops.tflite import TFLiteMixin
+from .ops.tf.lite import TFLiteMixin
 from .ops.torch import TorchMixin
 from .resource import Resource
 
