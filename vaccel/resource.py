@@ -2,19 +2,21 @@
 
 """Interface to the `struct vaccel_resource` C object."""
 
+import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from ._c_types import CType
 from ._c_types.utils import CEnumBuilder
 from ._libvaccel import ffi, lib
-from .error import FFIError
+from .error import FFIError, NullPointerError
 
 if TYPE_CHECKING:
     from vaccel.session import (
         BaseSession as Session,  # Type hint only, not imported at runtime
     )
 
+logger = logging.getLogger(__name__)
 
 enum_builder = CEnumBuilder(lib)
 ResourceType = enum_builder.from_prefix("ResourceType", "VACCEL_RESOURCE_")
@@ -70,7 +72,7 @@ class Resource(CType):
         Returns:
             The dereferenced 'struct vaccel_resource`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
     def _del_c_obj(self):
         """Deletes the underlying `struct vaccel_resource` C object.
@@ -78,16 +80,24 @@ class Resource(CType):
         Raises:
             FFIError: If resource deletion fails.
         """
-        if self._c_obj:
-            ret = lib.vaccel_resource_delete(self._c_obj)
-            if ret != 0:
-                raise FFIError(ret, "Could not delete resource")
-            self._c_obj = None
+        ret = lib.vaccel_resource_delete(self._c_ptr_or_raise)
+        if ret != 0:
+            raise FFIError(ret, "Could not delete resource")
+        self._c_obj = ffi.NULL
 
     def __del__(self):
-        for session in self.__sessions:
-            self.unregister(session)
-        self._del_c_obj()
+        try:
+            for session in self.__sessions:
+                if (
+                    not session
+                    or not session._c_ptr
+                    or session._c_ptr == ffi.NULL
+                ):
+                    continue
+                self.unregister(session)
+            self._del_c_obj()
+        except (FFIError, NullPointerError):
+            logger.exception("Failed to clean up Resource")
 
     @property
     def id(self) -> int:
@@ -96,7 +106,7 @@ class Resource(CType):
         Returns:
             The resource's unique ID.
         """
-        return int(self._c_obj.id)
+        return int(self._c_ptr_or_raise.id)
 
     @property
     def remote_id(self) -> int:
@@ -105,7 +115,7 @@ class Resource(CType):
         Returns:
             The resource's remote ID.
         """
-        return int(self._c_obj.remote_id)
+        return int(self._c_ptr_or_raise.remote_id)
 
     def is_registered(self, session: "Session") -> bool:
         """Checks if the resource is registered with the session.
@@ -123,9 +133,12 @@ class Resource(CType):
 
         Args:
             session: The session to register the resource with.
+
+        Raises:
+            FFIError: If resource registration fails.
         """
         ret = lib.vaccel_resource_register(
-            self._c_obj,
+            self._c_ptr_or_raise,
             session._c_ptr,
         )
         if ret != 0:
@@ -141,9 +154,12 @@ class Resource(CType):
 
         Args:
             session: The session to unregister the resource from.
+
+        Raises:
+            FFIError: If resource unregistration fails.
         """
         ret = lib.vaccel_resource_unregister(
-            self._c_obj,
+            self._c_ptr_or_raise,
             session._c_ptr,
         )
         if ret != 0:

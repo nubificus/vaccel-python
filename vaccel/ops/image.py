@@ -37,19 +37,14 @@ class ImageMixin:
                 - The resulting image filename.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         img = CBytes(image)
         out_text = CBytes(bytearray(self._out_len))
         out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_classification(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             img._c_ptr,
             out_text._c_ptr,
             out_imgname._c_ptr,
@@ -74,18 +69,13 @@ class ImageMixin:
             The resulting image filename.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         img = CBytes(image)
         out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_detection(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             img._c_ptr,
             out_imgname._c_ptr,
             len(img),
@@ -108,18 +98,13 @@ class ImageMixin:
             The resulting image filename.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         img = CBytes(image)
         out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_segmentation(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             img._c_ptr,
             out_imgname._c_ptr,
             len(img),
@@ -142,18 +127,13 @@ class ImageMixin:
             The resulting image filename.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         img = CBytes(image)
         out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_pose(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             img._c_ptr,
             out_imgname._c_ptr,
             len(img),
@@ -176,18 +156,13 @@ class ImageMixin:
             The resulting image filename.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         img = CBytes(image)
         out_imgname = CBytes(bytearray(self._out_len))
 
         ret = lib.vaccel_image_depth(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             img._c_ptr,
             out_imgname._c_ptr,
             len(img),

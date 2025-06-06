@@ -48,18 +48,13 @@ class ExecMixin:
             The resulting outputs.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         c_arg_read = CList([Arg(arg) for arg in arg_read])
         c_arg_write = CList([Arg(arg) for arg in arg_write])
 
         ret = lib.vaccel_exec(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             str(library).encode(),
             symbol.encode(),
             c_arg_read._c_ptr,
@@ -97,18 +92,13 @@ class ExecMixin:
             The resulting outputs.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
-        if not self._c_ptr:
-            msg = "Uninitialized session"
-            raise RuntimeError(msg)
-
         c_arg_read = CList([Arg(arg) for arg in arg_read])
         c_arg_write = CList([Arg(arg) for arg in arg_write])
 
         ret = lib.vaccel_exec_with_resource(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             resource._c_ptr,
             symbol.encode(),
             c_arg_read._c_ptr,

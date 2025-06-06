@@ -42,9 +42,9 @@ class CFloat(CType):
         self._c_size = ffi.sizeof(self._ctype_str)
 
     @property
-    def value(self) -> ffi.CData:
+    def value(self) -> float:
         """Returns the python representation of the data."""
-        return float(self._c_obj[0])
+        return float(self._c_ptr_or_raise[0])
 
     # Comparison Methods
     def __eq__(self, other: "CFloat | float"):

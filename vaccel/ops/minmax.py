@@ -38,7 +38,6 @@ class MinmaxMixin:
                 - The detected max value of the data.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
         c_indata = CBytes(indata)
@@ -47,7 +46,7 @@ class MinmaxMixin:
         c_max = CFloat(float(0), "double")
 
         ret = lib.vaccel_minmax(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             c_indata._as_c_array("double"),
             ndata,
             low_threshold,
