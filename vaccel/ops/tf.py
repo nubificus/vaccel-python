@@ -107,6 +107,23 @@ class Node(CType):
         """
         return int(self._c_ptr_or_raise.id[0])
 
+    def __repr__(self):
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            node_name = self.name
+            node_id = self.id
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} name={node_name!r} "
+            f"id={node_id} "
+            f"at {c_ptr}>"
+        )
+
 
 class Tensor(CType):
     """Wrapper for the `struct vaccel_tf_tensor` C object.
@@ -297,7 +314,21 @@ class Tensor(CType):
         return inst
 
     def __repr__(self):
-        return f"<Tensor dims={self.dims} data_type={self.data_type}>"
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            dims = self.dims
+            data_type = self.data_type.name
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} dims={dims} "
+            f"data_type={data_type} "
+            f"at {c_ptr}>"
+        )
 
 
 class Status(CType):
@@ -391,7 +422,21 @@ class Status(CType):
         return CStr.from_c_obj(self._c_ptr_or_raise.message).value
 
     def __repr__(self):
-        return f"<Status code={self.code} message={self.message!r}>"
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            code = self.code
+            message = self.message
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} code={code} "
+            f"message={message!r} "
+            f"at {c_ptr}>"
+        )
 
 
 class Buffer(CType):
@@ -495,7 +540,16 @@ class Buffer(CType):
         return ffi.buffer(self._c_ptr_or_raise.data, self.size)[:]
 
     def __repr__(self):
-        return f"<Buffer size={self.size}>"
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            size = self.size
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return f"<{self.__class__.__name__} size={size} at {c_ptr}>"
 
 
 class TFMixin:

@@ -206,7 +206,21 @@ class Tensor(CType):
         return inst
 
     def __repr__(self):
-        return f"<Tensor dims={self.dims} data_type={self.data_type}>"
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            dims = self.dims
+            data_type = self.data_type.name
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} dims={dims} "
+            f"data_type={data_type} "
+            f"at {c_ptr}>"
+        )
 
 
 class TFLiteMixin:

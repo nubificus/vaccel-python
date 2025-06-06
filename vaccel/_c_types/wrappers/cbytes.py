@@ -4,6 +4,7 @@
 
 from vaccel._c_types.types import CType, to_ctype
 from vaccel._libvaccel import ffi
+from vaccel.error import NullPointerError
 
 
 class CBytes(CType):
@@ -61,6 +62,18 @@ class CBytes(CType):
 
     def __bytes__(self):
         return bytes(self._data)
+
+    def __repr__(self):
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            size = len(self)
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return f"<{self.__class__.__name__} size={size} at {c_ptr}>"
 
 
 @to_ctype.register
