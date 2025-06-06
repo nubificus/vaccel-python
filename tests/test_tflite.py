@@ -3,7 +3,7 @@
 import pytest
 
 from vaccel import Resource, ResourceType, Session
-from vaccel.ops.tflite import Tensor, TensorType
+from vaccel.ops.tf.lite import Tensor, TensorType
 
 
 @pytest.fixture
