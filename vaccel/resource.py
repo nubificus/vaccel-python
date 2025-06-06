@@ -144,8 +144,8 @@ class Resource(CType):
         if ret != 0:
             raise FFIError(
                 ret,
-                f"Could not register resource {self.id()} "
-                f"with session {session.id()}",
+                f"Could not register resource {self.id} "
+                f"with session {session.id}",
             )
         self.__sessions.append(session)
 
@@ -165,7 +165,7 @@ class Resource(CType):
         if ret != 0:
             raise FFIError(
                 ret,
-                f"Could not unregister resource {self.id()} "
-                f"from session {session.id()}",
+                f"Could not unregister resource {self.id} "
+                f"from session {session.id}",
             )
         self.__sessions.remove(session)
