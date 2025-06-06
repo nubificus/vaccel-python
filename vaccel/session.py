@@ -132,6 +132,25 @@ class BaseSession(CType):
             != 0
         )
 
+    def __repr__(self):
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            session_id = self.id
+            remote_id = self.remote_id
+            flags = self.flags
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} id={session_id} "
+            f"remote_id={remote_id} "
+            f"flags=0x{flags:x} "
+            f"at {c_ptr}>"
+        )
+
 
 class Session(
     BaseSession,

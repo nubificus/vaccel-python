@@ -4,6 +4,7 @@
 
 from vaccel._c_types.types import CType, to_ctype
 from vaccel._libvaccel import ffi
+from vaccel.error import NullPointerError
 
 
 class CFloat(CType):
@@ -137,6 +138,23 @@ class CFloat(CType):
     # Boolean Context
     def __bool__(self):
         return bool(self.value)
+
+    def __repr__(self):
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            value = self.value
+            c_type = self._precision
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} value={value!r} "
+            f"c_type={c_type} "
+            f"at {c_ptr}>"
+        )
 
 
 @to_ctype.register

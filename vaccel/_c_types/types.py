@@ -7,7 +7,7 @@ from functools import singledispatch
 from typing import Any
 
 from vaccel._libvaccel import ffi
-from vaccel.error import ptr_or_raise
+from vaccel.error import NullPointerError, ptr_or_raise
 
 
 class CType(ABC):
@@ -54,10 +54,15 @@ class CType(ABC):
     # TODO: Add from_c_obj  # noqa: FIX002
 
     def __repr__(self):
-        return (
-            f"<{self.__class__.__name__} "
-            f"value={self.value!r} size={self.c_size}>"
-        )
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return f"<{self.__class__.__name__} at {c_ptr}>"
 
 
 class CAny(CType):
@@ -98,7 +103,11 @@ class CAny(CType):
         return self._wrapped.value
 
     def __repr__(self):
-        return f"<CAny wrapping {self._wrapped!r}>"
+        try:
+            wrapped = self._wrapped
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return f"<{self.__class__.__name__} wrapping {wrapped!r}>"
 
 
 @singledispatch

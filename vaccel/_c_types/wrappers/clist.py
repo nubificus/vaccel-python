@@ -7,6 +7,7 @@ from typing import Any
 
 from vaccel._c_types.types import CType, to_ctype
 from vaccel._libvaccel import ffi
+from vaccel.error import NullPointerError
 
 
 class CList(CType):
@@ -191,7 +192,21 @@ class CList(CType):
         return str(self.value)
 
     def __repr__(self):
-        return f"<CList[{len(self)}] {self.value}>"
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            length = len(self)
+            c_type = self._ctype_str
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} len={length} "
+            f"c_type={c_type} "
+            f"at {c_ptr}>"
+        )
 
 
 @to_ctype.register(tuple)

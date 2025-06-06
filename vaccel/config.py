@@ -155,3 +155,26 @@ class Config(CType):
             True if version mismatch is ignored.
         """
         return bool(self._c_ptr_or_raise.version_ignore)
+
+    def __repr__(self):
+        try:
+            c_ptr = (
+                f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
+                if self._c_obj != ffi.NULL
+                else "NULL"
+            )
+            plugins = self.plugins
+            log_level = self.log_level
+            log_file = self.log_file or "None"
+            profiling = self.profiling_enabled
+            version_ignore = self.version_ignore
+        except (AttributeError, TypeError, NullPointerError):
+            return f"<{self.__class__.__name__} (uninitialized or invalid)>"
+        return (
+            f"<{self.__class__.__name__} plugins={plugins!r} "
+            f"log_level={log_level} "
+            f"log_file={log_file!r} "
+            f"profiling_enabled={profiling} "
+            f"version_ignore={version_ignore} "
+            f"at {c_ptr}>"
+        )
