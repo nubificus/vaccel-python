@@ -6,6 +6,9 @@ from abc import ABC, abstractmethod
 from functools import singledispatch
 from typing import Any
 
+from vaccel._libvaccel import ffi
+from vaccel.error import ptr_or_raise
+
 
 class CType(ABC):
     """Abstract base class for defining C data types.
@@ -16,7 +19,7 @@ class CType(ABC):
     """
 
     def __init__(self):
-        self._c_obj = None
+        self._c_obj = ffi.NULL
         self._c_size = None
         self._init_c_obj()
 
@@ -28,6 +31,15 @@ class CType(ABC):
     def _c_ptr(self):
         """Returns the C pointer representation of the object."""
         return self._c_obj
+
+    @property
+    def _c_ptr_or_raise(self):
+        """Returns the C pointer representation of the object, raising if NULL.
+
+        Raises:
+            NullPointerError: If the pointer is NULL.
+        """
+        return ptr_or_raise(self._c_obj, f"{self.__class__.__name__}._c_obj")
 
     @property
     def c_size(self) -> int:
