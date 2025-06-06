@@ -37,17 +37,17 @@ class CBytes(CType):
         self._c_size = len(self._c_obj)
 
     @property
-    def value(self) -> ffi.CData:
+    def value(self) -> bytes | bytearray | memoryview:
         """Returns the python representation of the data."""
         return self._data
 
     def _as_c_array(self, c_type: str = "char") -> ffi.CData:
         """Returns a typed C array pointer (e.g., int*, uint8_t*, etc)."""
-        return ffi.cast(f"{c_type} *", self._c_obj)
+        return ffi.cast(f"{c_type} *", self._c_ptr_or_raise)
 
     def to_str(self) -> str:
         """Converts the current C array to a Python string."""
-        return ffi.string(self._c_obj).decode()
+        return ffi.string(self._c_ptr_or_raise).decode()
 
     def __len__(self):
         return len(self._data)

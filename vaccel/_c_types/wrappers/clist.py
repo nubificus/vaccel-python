@@ -69,7 +69,7 @@ class CList(CType):
     @property
     def value(self) -> list[ffi.CData]:
         """Returns the python representation of the list."""
-        return [self._c_obj[i] for i in range(len(self._items))]
+        return [self._c_ptr_or_raise[i] for i in range(len(self._items))]
 
     @classmethod
     def from_ptrs(cls, items: Sequence[Any]) -> "CList":
@@ -140,7 +140,7 @@ class CList(CType):
             msg = f"Expected {self._item_type}, got {type(c_value)}"
             raise TypeError(msg)
         self._items[idx] = c_value
-        self._c_obj[idx] = c_value.value
+        self._c_ptr_or_raise[idx] = c_value.value
 
     def __getitem__(self, idx: int):
         return self._items[idx]

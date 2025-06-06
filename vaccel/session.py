@@ -2,9 +2,11 @@
 
 """Interface to the `struct vaccel_session` C object."""
 
+import logging
+
 from ._c_types import CType
 from ._libvaccel import ffi, lib
-from .error import FFIError
+from .error import FFIError, NullPointerError
 from .ops.blas import BlasMixin
 from .ops.exec import ExecMixin
 from .ops.fpga import FpgaMixin
@@ -16,6 +18,8 @@ from .ops.tf import TFMixin
 from .ops.tflite import TFLiteMixin
 from .ops.torch import TorchMixin
 from .resource import Resource
+
+logger = logging.getLogger(__name__)
 
 
 class BaseSession(CType):
@@ -61,7 +65,7 @@ class BaseSession(CType):
         Returns:
             The dereferenced 'struct vaccel_session`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
     def _del_c_obj(self):
         """Releases the underlying C `struct vaccel_session` object.
@@ -69,14 +73,21 @@ class BaseSession(CType):
         Raises:
             FFIError: If session release fails.
         """
-        if self._c_obj:
-            ret = lib.vaccel_session_release(self._c_obj)
-            if ret != 0:
-                raise FFIError(ret, "Could not release session")
-            self._c_obj = None
+        ret = lib.vaccel_session_release(self._c_ptr_or_raise)
+        if ret != 0:
+            raise FFIError(ret, "Could not release session")
+        self._c_obj = ffi.NULL
 
     def __del__(self):
-        self._del_c_obj()
+        try:
+            if self.id < 0:
+                return
+
+            self._del_c_obj()
+        except NullPointerError:
+            pass
+        except FFIError:
+            logger.exception("Failed to clean up BaseSession")
 
     @property
     def id(self) -> int:
@@ -85,7 +96,7 @@ class BaseSession(CType):
         Returns:
             The session's unique ID.
         """
-        return int(self._c_obj.id)
+        return int(self._c_ptr_or_raise.id)
 
     @property
     def remote_id(self) -> int:
@@ -94,7 +105,7 @@ class BaseSession(CType):
         Returns:
             The session's remote ID.
         """
-        return int(self._c_obj.remote_id)
+        return int(self._c_ptr_or_raise.remote_id)
 
     @property
     def flags(self) -> int:
@@ -103,7 +114,7 @@ class BaseSession(CType):
         Returns:
             The flags set during session creation.
         """
-        return int(self._c_obj.flags)
+        return int(self._c_ptr_or_raise.flags)
 
     def has_resource(self, resource: Resource) -> bool:
         """Check if a resource is registered with the session.
@@ -116,7 +127,7 @@ class BaseSession(CType):
         """
         return (
             lib.vaccel_session_has_resource(
-                self._c_obj, resource._get_inner_resource()
+                self._c_ptr_or_raise, resource._c_ptr
             )
             != 0
         )

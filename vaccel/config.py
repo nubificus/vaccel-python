@@ -2,9 +2,13 @@
 
 """Interface to the `struct vaccel_config` C object."""
 
+import logging
+
 from ._c_types import CStr, CType
 from ._libvaccel import ffi, lib
-from .error import FFIError
+from .error import FFIError, NullPointerError
+
+logger = logging.getLogger(__name__)
 
 
 class Config(CType):
@@ -49,7 +53,7 @@ class Config(CType):
         self._log_file = log_file
         self._profiling_enabled = profiling_enabled
         self._version_ignore = version_ignore
-        self._c_obj_ptr = None
+        self._c_obj_ptr = ffi.NULL
         super().__init__()
 
     def _init_c_obj(self):
@@ -83,7 +87,7 @@ class Config(CType):
         Returns:
             The dereferenced 'struct vaccel_config`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
     def _del_c_obj(self):
         """Deletes the underlying `struct vaccel_config` C object.
@@ -91,14 +95,18 @@ class Config(CType):
         Raises:
             FFIError: If resource deletion fails.
         """
-        if self._c_obj:
-            ret = lib.vaccel_config_delete(self._c_obj)
-            if ret != 0:
-                raise FFIError(ret, "Could not delete resource")
-            self._c_obj = None
+        ret = lib.vaccel_config_delete(self._c_ptr_or_raise)
+        if ret != 0:
+            raise FFIError(ret, "Could not delete resource")
+        self._c_obj = ffi.NULL
 
     def __del__(self):
-        self._del_c_obj()
+        try:
+            self._del_c_obj()
+        except NullPointerError:
+            pass
+        except FFIError:
+            logger.exception("Failed to clean up Config")
 
     @property
     def plugins(self) -> str:
@@ -107,7 +115,7 @@ class Config(CType):
         Returns:
             The config's plugins.
         """
-        return CStr.from_c_obj(self._c_obj.plugins).value
+        return CStr.from_c_obj(self._c_ptr_or_raise.plugins).value
 
     @property
     def log_level(self) -> int:
@@ -116,7 +124,7 @@ class Config(CType):
         Returns:
             The config's log level.
         """
-        return int(self._c_obj.log_level)
+        return int(self._c_ptr_or_raise.log_level)
 
     @property
     def log_file(self) -> str | None:
@@ -125,9 +133,10 @@ class Config(CType):
         Returns:
             The config's log file.
         """
-        if self._c_obj.log_file == ffi.NULL:
+        log_file = self._c_ptr_or_raise.log_file
+        if log_file == ffi.NULL:
             return None
-        return CStr.from_c_obj(self._c_obj.log_file).value
+        return CStr.from_c_obj(log_file).value
 
     @property
     def profiling_enabled(self) -> bool:
@@ -136,7 +145,7 @@ class Config(CType):
         Returns:
             True if profiling is enabled.
         """
-        return bool(self._c_obj.profiling_enabled)
+        return bool(self._c_ptr_or_raise.profiling_enabled)
 
     @property
     def version_ignore(self) -> bool:
@@ -145,4 +154,4 @@ class Config(CType):
         Returns:
             True if version mismatch is ignored.
         """
-        return bool(self._c_obj.version_ignore)
+        return bool(self._c_ptr_or_raise.version_ignore)

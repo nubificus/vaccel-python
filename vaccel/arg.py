@@ -6,6 +6,7 @@ from typing import Any
 
 from ._c_types import CAny, CType
 from ._libvaccel import ffi
+from .error import ptr_or_raise
 
 
 class Arg(CType):
@@ -44,7 +45,7 @@ class Arg(CType):
         Returns:
             The dereferenced 'struct vaccel_arg`
         """
-        return self._c_obj[0]
+        return self._c_ptr_or_raise[0]
 
     @property
     def buf(self) -> Any:
@@ -57,23 +58,23 @@ class Arg(CType):
         Returns:
             The buffer value from the C `struct vaccel_arg`.
         """
-        return self._c_data.value
+        return ptr_or_raise(
+            self._c_data, f"{self.__class__.__name__}._c_data"
+        ).value
 
     def __repr__(self):
-        if not hasattr(self, "_c_data") or not hasattr(self, "_c_obj"):
-            return "<Arg (incomplete)>"
         try:
             _c_ptr = (
                 f"0x{int(ffi.cast('uintptr_t', self._c_obj)):x}"
-                if self._c_obj
-                else "None"
+                if self._c_obj != ffi.NULL
+                else "NULL"
             )
             c_buf = (
                 f"0x{int(ffi.cast('uintptr_t', self._c_obj.buf)):x}"
-                if self._c_obj.buf
-                else "None"
+                if ffi.NULL not in (self._c_obj, self._c_obj.buf)
+                else "NULL"
             )
-            c_size = self._c_obj.size if self._c_obj.size else 0
+            c_size = self._c_obj.size if self._c_obj != ffi.NULL else 0
         except (AttributeError, TypeError) as e:
             return f"<Arg (error in __repr__): {e}>"
         else:

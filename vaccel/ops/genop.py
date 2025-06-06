@@ -29,14 +29,13 @@ class GenopMixin:
             arg_write: The output arguments of the operation. Modified in place.
 
         Raises:
-            RuntimeError: If the `Session` is uninitialized.
             FFIError: If the C operation fails.
         """
         c_args_read = CList(arg_read)
         c_args_write = CList(arg_write)
 
         ret = lib.vaccel_genop(
-            self._c_ptr,
+            self._c_ptr_or_raise,
             c_args_read._c_ptr,
             len(c_args_read),
             c_args_write._c_ptr,
