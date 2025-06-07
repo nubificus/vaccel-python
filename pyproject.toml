@@ -16,8 +16,8 @@ dynamic = ["version"]
 "Source Code" = "https://github.com/nubificus/python-vaccel"
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov"]
-dev = ["pytest", "pytest-cov", "ruff"]
+test = ["pytest", "pytest-cov", "numpy"]
+dev = ["pytest", "pytest-cov", "numpy", "ruff"]
 
 [tool.setuptools.packages.find]
 include = ["vaccel*"]
