@@ -5,7 +5,7 @@
 import logging
 from typing import Any, ClassVar
 
-from vaccel._c_types import CType
+from vaccel._c_types import CBytes, CType
 from vaccel._c_types.utils import CEnumBuilder
 from vaccel._libvaccel import ffi, lib
 from vaccel.error import FFIError, NullPointerError
@@ -26,14 +26,16 @@ class Tensor(CType):
         CType: Abstract base class for defining C data types.
 
     Attributes:
-        _dims (list[int]): The dims of the tensor.
-        _data (list[Any]): The data of the tensor.
-        _data_type (TensorType): The type of the tensor.
+        _dims (list[int] | None): The dims of the tensor; None if empty.
+        _data (list[Any] | bytes | bytearray | None): The data of the tensor;
+            None if empty.
+        _data_type (TensorType | None): The type of the tensor; None if empty.
+        _c_data (CBytes | None): The encapsulated buffer data passed to the C
+            struct; only set when `Tenor.from_buffer()` is used.
         _c_obj_ptr (ffi.CData): A double pointer to the underlying
-            `struct vaccel_tflite_tensor` C object.
+            `struct vaccel_torch_tensor` C object.
         _c_obj_data (ffi.CData): A pointer to the data of the underlying
-            `struct vaccel_tflite_tensor` C object.
-
+            `struct vaccel_torch_tensor` C object.
     """
 
     _size_dict: ClassVar[dict[TensorType, (int, str)]] = {
@@ -61,6 +63,7 @@ class Tensor(CType):
         self._dims = dims
         self._data = data
         self._data_type = data_type
+        self._c_data = None
         self._c_obj_ptr = ffi.NULL
         self._c_obj_data = ffi.NULL
         super().__init__()
@@ -84,12 +87,16 @@ class Tensor(CType):
         self._c_obj = self._c_obj_ptr[0]
         self._c_size = ffi.sizeof("struct vaccel_tflite_tensor")
 
-        self._c_obj_data = ffi.new(
-            f"{self._c_data_type}[{len(self._data)}]", self._data
-        )
+        if self._c_obj_data != ffi.NULL and self._c_data:
+            data_size = self._c_data.c_size
+        else:
+            self._c_obj_data = ffi.new(
+                f"{self._c_data_type}[{len(self._data)}]", self._data
+            )
+            data_size = self._c_data_size * len(self._data)
 
         ret = lib.vaccel_tflite_tensor_set_data(
-            self._c_obj, self._c_obj_data, self._c_data_size * len(self._data)
+            self._c_obj, self._c_obj_data, data_size
         )
         if ret != 0:
             raise FFIError(ret, "Could not set tensor data")
@@ -148,12 +155,45 @@ class Tensor(CType):
         Returns:
             The data of the tensor.
         """
-        typed_c_data = ffi.cast(
-            f"{self._c_data_type} *", self._c_ptr_or_raise.data
-        )
+        if self._c_data:
+            typed_c_data = self._c_data._as_c_array(self._c_data_type)
+        else:
+            typed_c_data = ffi.cast(
+                f"{self._c_data_type} *", self._c_ptr_or_raise.data
+            )
         return ffi.unpack(
             typed_c_data, int(self._c_ptr_or_raise.size / self._c_data_size)
         )
+
+    def as_bytelike(self) -> bytes | bytearray | memoryview:
+        """Returns the tensor data buffer as a byte-like object.
+
+        Returns:
+            The data of the tensor as a byte-like object.
+        """
+        if self._c_data is not None:
+            return self._c_data.value
+        return CBytes.from_c_obj(
+            self._c_ptr_or_raise.data, self._c_ptr_or_raise.size
+        ).value
+
+    def as_memoryview(self) -> memoryview:
+        """Returns the tensor data buffer as memoryview.
+
+        Returns:
+            The data of the tensor as memoryview.
+        """
+        data = self.as_bytelike()
+        return data if isinstance(data, memoryview) else memoryview(data)
+
+    def to_bytes(self) -> bytes:
+        """Returns the tensor data buffer as bytes.
+
+        Returns:
+            The data of the tensor as bytes.
+        """
+        data = self.as_bytelike()
+        return data if isinstance(data, bytes) else bytes(data)
 
     @property
     def data_type(self) -> TensorType:
@@ -180,24 +220,56 @@ class Tensor(CType):
             raise TypeError(msg)
 
         inst = cls.__new__(cls)
-        inst._c_obj = c_obj
-        inst._c_size = ffi.sizeof(inst._c_obj)
         inst._dims = None
         inst._data = None
         inst._data_type = None
+        inst._c_data = None
         inst._c_obj_ptr = ffi.NULL
+        inst._c_obj_data = ffi.NULL
+        inst._c_obj = c_obj
+        inst._c_size = ffi.sizeof(inst._c_obj)
+        return inst
+
+    @classmethod
+    def from_buffer(
+        cls,
+        dims: list[int],
+        data_type: TensorType,
+        data: bytes | bytearray | memoryview,
+    ) -> "Tensor":
+        """Initializes a new `Tensor` object from byte-like data.
+
+        Args:
+            dims: The dims to be passed to the C struct.
+            data_type: The data_type to be passed to the C struct.
+            data: The data to be passed to the C struct.
+
+        Returns:
+            A new `Tensor` object
+        """
+        inst = cls.__new__(cls)
+        inst._dims = dims
+        inst._data = data
+        inst._data_type = data_type
+        inst._c_data = CBytes(inst._data)
+        inst._c_obj_ptr = ffi.NULL
+        inst._c_obj_data = inst._c_data._c_ptr
+        super().__init__(inst)
         return inst
 
     @classmethod
     def empty(cls) -> "Tensor":
         """Initializes a new empty `Tensor` object.
 
-        The object a NULL pointer in place of the C struct.
+        The object has a NULL pointer in place of the C struct.
 
         Returns:
             A new `Tensor` object
         """
         inst = cls.__new__(cls)
+        inst._dims = None
+        inst._data = None
+        inst._data_type = None
         inst._c_obj_ptr = ffi.new("struct vaccel_tflite_tensor **")
         inst._c_obj = inst._c_obj_ptr[0]
         inst._c_obj_ptr[0] = ffi.NULL

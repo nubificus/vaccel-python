@@ -42,6 +42,31 @@ class CBytes(CType):
         """Returns the python representation of the data."""
         return self._data
 
+    @classmethod
+    def from_c_obj(cls, c_obj: ffi.CData, c_size: int) -> "CBytes":
+        """Initializes a new `CBytes` object from a C string pointer.
+
+        Args:
+            c_obj: A pointer to a C object or array.
+            c_size: The size of the C object or array.
+
+        Returns:
+            A new `CBytes` object
+
+        Raises:
+            TypeError: If `c_obj` is not a C pointer or array.
+        """
+        type_str = ffi.getctype(ffi.typeof(c_obj))
+        if not type_str.endswith((" *", "[]")):
+            msg = f"Expected a pointer or array type, got '{type_str}'"
+            raise TypeError(msg)
+
+        inst = cls.__new__(cls)
+        inst._c_obj = c_obj
+        inst._c_size = c_size
+        inst._data = memoryview(ffi.buffer(inst._c_obj, c_size))
+        return inst
+
     def _as_c_array(self, c_type: str = "char") -> ffi.CData:
         """Returns a typed C array pointer (e.g., int*, uint8_t*, etc)."""
         return ffi.cast(f"{c_type} *", self._c_ptr_or_raise)
