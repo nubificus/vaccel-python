@@ -15,11 +15,13 @@ def test_model(vaccel_paths) -> bytes:
 @pytest.fixture(scope="module")
 def test_tensor() -> dict:
     data = [1.0] * 30
+    data_np = np.array(data, dtype=np.float32)
     return {
-        "dims": [1, 30],
+        "dims": [30],
         "data": data,
         "type": TensorType.FLOAT,
-        "data_bytes": np.array(data, dtype=np.float32).tobytes(),
+        "data_np": data_np,
+        "data_bytes": np.ascontiguousarray(data_np).tobytes(),
     }
 
 
@@ -33,6 +35,7 @@ def test_tensor_plain(test_tensor):
     assert tensor.as_bytelike() == test_tensor["data_bytes"]
     assert tensor.as_memoryview() == test_tensor["data_bytes"]
     assert tensor.to_bytes() == test_tensor["data_bytes"]
+    assert tensor.as_numpy().all() == test_tensor["data_np"].all()
 
 
 def test_tensor_from_buffer(test_tensor):
@@ -45,6 +48,18 @@ def test_tensor_from_buffer(test_tensor):
     assert tensor.as_bytelike() == test_tensor["data_bytes"]
     assert tensor.as_memoryview() == test_tensor["data_bytes"]
     assert tensor.to_bytes() == test_tensor["data_bytes"]
+    assert tensor.as_numpy().all() == test_tensor["data_np"].all()
+
+
+def test_tensor_from_numpy(test_tensor):
+    tensor = Tensor.from_numpy(test_tensor["data_np"])
+    assert tensor.dims == test_tensor["dims"]
+    assert tensor.data_type == test_tensor["type"]
+    assert tensor.data == test_tensor["data"]
+    assert tensor.as_bytelike() == test_tensor["data_np"]
+    assert tensor.as_memoryview() == memoryview(test_tensor["data_np"])
+    assert tensor.to_bytes() == test_tensor["data_bytes"]
+    assert tensor.as_numpy().all() == test_tensor["data_np"].all()
 
 
 def test_torch(test_tensor, test_model):
@@ -61,26 +76,8 @@ def test_torch(test_tensor, test_model):
     assert out_tensors[0].dims == in_tensors[0].dims
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
-    assert out_tensors[0].as_bytelike() == in_tensors[0].as_bytelike()
-
-
-def test_torch_from_buffer(test_tensor, test_model):
-    session = Session()
-
-    model = Resource(test_model, ResourceType.MODEL)
-    model.register(session)
-
-    in_tensors = [
-        Tensor.from_buffer(
-            test_tensor["dims"], test_tensor["type"], test_tensor["data_bytes"]
-        )
-    ]
-
-    out_tensors = session.torch_jitload_forward(model, in_tensors)
-    assert out_tensors[0].dims == in_tensors[0].dims
-    assert out_tensors[0].data_type == in_tensors[0].data_type
-    assert out_tensors[0].data == in_tensors[0].data
-    assert out_tensors[0].as_bytelike() == in_tensors[0].as_bytelike()
+    assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+    assert out_tensors[0].as_numpy().all() == in_tensors[0].as_numpy().all()
 
 
 def test_torch_with_run_options(test_tensor, test_model):
@@ -101,4 +98,41 @@ def test_torch_with_run_options(test_tensor, test_model):
     assert out_tensors[0].dims == in_tensors[0].dims
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
-    assert out_tensors[0].as_bytelike() == in_tensors[0].as_bytelike()
+    assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+    assert out_tensors[0].as_numpy().all() == in_tensors[0].as_numpy().all()
+
+
+def test_torch_from_buffer(test_tensor, test_model):
+    session = Session()
+
+    model = Resource(test_model, ResourceType.MODEL)
+    model.register(session)
+
+    in_tensors = [
+        Tensor.from_buffer(
+            test_tensor["dims"], test_tensor["type"], test_tensor["data_bytes"]
+        )
+    ]
+
+    out_tensors = session.torch_jitload_forward(model, in_tensors)
+    assert out_tensors[0].dims == in_tensors[0].dims
+    assert out_tensors[0].data_type == in_tensors[0].data_type
+    assert out_tensors[0].data == in_tensors[0].data
+    assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+    assert out_tensors[0].as_numpy().all() == in_tensors[0].as_numpy().all()
+
+
+def test_torch_from_numpy(test_tensor, test_model):
+    session = Session()
+
+    model = Resource(test_model, ResourceType.MODEL)
+    model.register(session)
+
+    in_tensors = [Tensor.from_numpy(test_tensor["data_np"])]
+
+    out_tensors = session.torch_jitload_forward(model, in_tensors)
+    assert out_tensors[0].dims == in_tensors[0].dims
+    assert out_tensors[0].data_type == in_tensors[0].data_type
+    assert out_tensors[0].data == in_tensors[0].data
+    assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+    assert out_tensors[0].as_numpy().all() == in_tensors[0].as_numpy().all()

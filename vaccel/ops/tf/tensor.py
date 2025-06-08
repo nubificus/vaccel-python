@@ -3,17 +3,152 @@
 """Interface to the `struct vaccel_tf_tensor` C object."""
 
 import logging
-from typing import Any, ClassVar
+from typing import Any, Final
 
-from vaccel._c_types import CBytes, CType
+from vaccel._c_types import CBytes, CNumpyArray, CType
 from vaccel._c_types.utils import CEnumBuilder
 from vaccel._libvaccel import ffi, lib
 from vaccel.error import FFIError, NullPointerError
+
+try:
+    import numpy as np
+
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 logger = logging.getLogger(__name__)
 
 enum_builder = CEnumBuilder(lib)
 TensorType = enum_builder.from_prefix("TensorType", "VACCEL_TF_")
+
+
+class TensorTypeMapper:
+    """Utility for mapping between `TensorType` and other common types."""
+
+    _TENSOR_TYPE_TO_C: Final[dict[TensorType, (str, int)]] = {
+        TensorType.FLOAT: ("float", ffi.sizeof("float")),
+        TensorType.DOUBLE: ("double", ffi.sizeof("double")),
+        TensorType.INT32: ("int32_t", ffi.sizeof("int32_t")),
+        TensorType.UINT8: ("uint8_t", ffi.sizeof("uint8_t")),
+        TensorType.INT16: ("int16_t", ffi.sizeof("int16_t")),
+        TensorType.INT8: ("int8_t", ffi.sizeof("int8_t")),
+        TensorType.INT64: ("int64_t", ffi.sizeof("int64_t")),
+        TensorType.BOOL: ("bool", ffi.sizeof("bool")),
+        TensorType.UINT16: ("uint16_t", ffi.sizeof("uint16_t")),
+        TensorType.UINT32: ("uint32_t", ffi.sizeof("uint32_t")),
+        TensorType.UINT64: ("uint64_t", ffi.sizeof("uint64_t")),
+    }
+
+    @classmethod
+    def type_to_c_type(cls, tensor_type: TensorType) -> str:
+        """Converts a `TensorType` to a C type string.
+
+        Args:
+            tensor_type: The tensor type value.
+
+        Returns:
+            A corresponding C type as a string (e.g., "float", "int64_t").
+
+        Raises:
+            ValueError: If the `tensor_type` value is not supported.
+        """
+        if tensor_type not in cls._TENSOR_TYPE_TO_C:
+            supported = ", ".join(str(d) for d in cls._TENSOR_TYPE_TO_C)
+            msg = (
+                f"Unsupported TensorType: {tensor_type}. Supported: {supported}"
+            )
+            raise ValueError(msg)
+        return cls._TENSOR_TYPE_TO_C[tensor_type][0]
+
+    @classmethod
+    def type_to_c_size(cls, tensor_type: TensorType) -> int:
+        """Converts a `TensorType` to a C type size (in bytes).
+
+        Args:
+            tensor_type: The tensor type value.
+
+        Returns:
+            A corresponding C type size in bytes.
+
+        Raises:
+            ValueError: If the `tensor_type` value is not supported.
+        """
+        if tensor_type not in cls._TENSOR_TYPE_TO_C:
+            supported = ", ".join(str(d) for d in cls._TENSOR_TYPE_TO_C)
+            msg = (
+                f"Unsupported TensorType: {tensor_type}. Supported: {supported}"
+            )
+            raise ValueError(msg)
+        return cls._TENSOR_TYPE_TO_C[tensor_type][1]
+
+    if HAS_NUMPY:
+        _NUMPY_TO_TENSOR_TYPE = {
+            np.dtype("float32"): TensorType.FLOAT,
+            np.dtype("float64"): TensorType.DOUBLE,
+            np.dtype("int32"): TensorType.INT32,
+            np.dtype("uint8"): TensorType.UINT8,
+            np.dtype("int16"): TensorType.INT16,
+            np.dtype("int8"): TensorType.INT8,
+            np.dtype("int64"): TensorType.INT64,
+            np.dtype("bool"): TensorType.BOOL,
+            np.dtype("uint16"): TensorType.UINT16,
+            np.dtype("uint32"): TensorType.UINT32,
+            np.dtype("uint64"): TensorType.UINT64,
+        }
+        _TENSOR_TYPE_TO_NUMPY = {v: k for k, v in _NUMPY_TO_TENSOR_TYPE.items()}
+
+    @classmethod
+    def type_from_numpy(cls, dtype: "np.dtype") -> TensorType:
+        """Converts a NumPy `dtype` to `TensorType`.
+
+        Args:
+            dtype: A NumPy `dtype` object or something convertible to
+                `np.dtype`.
+
+        Returns:
+            A corresponding tensor type value.
+
+        Raises:
+            NotImplementedError: If NumPy is not installed.
+            ValueError: If the `dtype` value is not supported.
+        """
+        if not HAS_NUMPY:
+            msg = "NumPy is not available"
+            raise NotImplementedError(msg)
+
+        dtype = np.dtype(dtype)
+        if dtype not in cls._NUMPY_TO_TENSOR_TYPE:
+            supported = ", ".join(str(d) for d in cls._NUMPY_TO_TENSOR_TYPE)
+            msg = f"Unsupported NumPy dtype: {dtype}. Supported: {supported}"
+            raise ValueError(msg)
+
+        return cls._NUMPY_TO_TENSOR_TYPE[dtype]
+
+    @classmethod
+    def type_to_numpy(cls, ttype: TensorType) -> "np.dtype":
+        """Converts a `TensorType` to a NumPy `dtype`.
+
+        Args:
+            ttype: A `TensorType` enum value.
+
+        Returns:
+            A corresponding NumPy `dtype` object.
+
+        Raises:
+            NotImplementedError: If NumPy is not installed.
+            ValueError: If the `TensorType` value is not supported.
+        """
+        if not HAS_NUMPY:
+            msg = "NumPy is not available"
+            raise NotImplementedError(msg)
+
+        if ttype not in cls._TENSOR_TYPE_TO_NUMPY:
+            supported = ", ".join(str(t) for t in cls._TENSOR_TYPE_TO_NUMPY)
+            msg = f"Unsupported TensorType: {ttype}. Supported: {supported}"
+            raise ValueError(msg)
+
+        return cls._TENSOR_TYPE_TO_NUMPY[ttype]
 
 
 class Tensor(CType):
@@ -27,30 +162,16 @@ class Tensor(CType):
 
     Attributes:
         _dims (list[int] | None): The dims of the tensor; None if empty.
-        _data (list[Any] | bytes | bytearray | None): The data of the tensor;
-            None if empty.
+        _data (list[Any] | bytes | bytearray | np.ndarray | None): The data of
+            the tensor; None if empty.
         _data_type (TensorType | None): The type of the tensor; None if empty.
-        _c_data (CBytes | None): The encapsulated buffer data passed to the C
-            struct; only set when `Tenor.from_buffer()` is used.
+        _c_data (CBytes | CNumpyArray | None): The encapsulated buffer data
+            passed to the C struct.
         _c_obj_ptr (ffi.CData): A double pointer to the underlying
             `struct vaccel_torch_tensor` C object.
         _c_obj_data (ffi.CData): A pointer to the data of the underlying
             `struct vaccel_torch_tensor` C object.
     """
-
-    _size_dict: ClassVar[dict[TensorType, (int, str)]] = {
-        TensorType.FLOAT: (ffi.sizeof("float"), "float"),
-        TensorType.DOUBLE: (ffi.sizeof("double"), "double"),
-        TensorType.INT32: (ffi.sizeof("int32_t"), "int32_t"),
-        TensorType.UINT8: (ffi.sizeof("uint8_t"), "uint8_t"),
-        TensorType.INT16: (ffi.sizeof("int16_t"), "int16_t"),
-        TensorType.INT8: (ffi.sizeof("int8_t"), "int8_t"),
-        TensorType.INT64: (ffi.sizeof("int64_t"), "int64_t"),
-        TensorType.BOOL: (ffi.sizeof("bool"), "bool"),
-        TensorType.UINT16: (ffi.sizeof("uint16_t"), "uint16_t"),
-        TensorType.UINT32: (ffi.sizeof("uint32_t"), "uint32_t"),
-        TensorType.UINT64: (ffi.sizeof("uint64_t"), "uint64_t"),
-    }
 
     def __init__(self, dims: list[int], data_type: TensorType, data: list[Any]):
         """Initializes a new `Tensor` object.
@@ -87,13 +208,17 @@ class Tensor(CType):
         self._c_obj = self._c_obj_ptr[0]
         self._c_size = ffi.sizeof("struct vaccel_tf_tensor")
 
-        if self._c_obj_data != ffi.NULL and self._c_data:
-            data_size = self._c_data.c_size
-        else:
-            self._c_obj_data = ffi.new(
-                f"{self._c_data_type}[{len(self._data)}]", self._data
+        if self._c_obj_data != ffi.NULL:
+            data_size = (
+                self._c_data.c_size if self._c_data else len(self._c_obj_data)
             )
-            data_size = self._c_data_size * len(self._data)
+        else:
+            c_type_str = TensorTypeMapper.type_to_c_type(self._data_type)
+            self._c_obj_data = ffi.new(
+                f"{c_type_str}[{len(self._data)}]", self._data
+            )
+            c_type_size = TensorTypeMapper.type_to_c_size(self._data_type)
+            data_size = c_type_size * len(self._data)
 
         ret = lib.vaccel_tf_tensor_set_data(
             self._c_obj, self._c_obj_data, data_size
@@ -129,14 +254,6 @@ class Tensor(CType):
             logger.exception("Failed to clean up Tensor")
 
     @property
-    def _c_data_size(self):
-        return self._size_dict[self.data_type][0]
-
-    @property
-    def _c_data_type(self):
-        return self._size_dict[self.data_type][1]
-
-    @property
     def dims(self) -> list[int]:
         """The tensor dims.
 
@@ -149,20 +266,33 @@ class Tensor(CType):
         ]
 
     @property
-    def data(self) -> list | str:
+    def shape(self) -> list[int]:
+        """The tensor shape.
+
+        Alias of `Tensor.dims`.
+
+        Returns:
+            The shape of the tensor.
+        """
+        return self.dims
+
+    @property
+    def data(self) -> list:
         """The tensor data.
 
         Returns:
             The data of the tensor.
         """
+        c_type_str = TensorTypeMapper.type_to_c_type(self.data_type)
         if self._c_data:
-            typed_c_data = self._c_data._as_c_array(self._c_data_type)
+            typed_c_data = self._c_data._as_c_array(c_type_str)
         else:
             typed_c_data = ffi.cast(
-                f"{self._c_data_type} *", self._c_ptr_or_raise.data
+                f"{c_type_str} *", self._c_ptr_or_raise.data
             )
+        c_type_size = TensorTypeMapper.type_to_c_size(self.data_type)
         return ffi.unpack(
-            typed_c_data, int(self._c_ptr_or_raise.size / self._c_data_size)
+            typed_c_data, int(self._c_ptr_or_raise.size / c_type_size)
         )
 
     def as_bytelike(self) -> bytes | bytearray | memoryview:
@@ -172,7 +302,9 @@ class Tensor(CType):
             The data of the tensor as a byte-like object.
         """
         if self._c_data is not None:
-            return self._c_data.value
+            if isinstance(self._c_data, CBytes):
+                return self._c_data.value
+            return self._c_data.as_memoryview()
         return CBytes.from_c_obj(
             self._c_ptr_or_raise.data, self._c_ptr_or_raise.size
         ).value
@@ -270,6 +402,7 @@ class Tensor(CType):
         inst._dims = None
         inst._data = None
         inst._data_type = None
+        inst._c_data = None
         inst._c_obj_ptr = ffi.new("struct vaccel_tf_tensor **")
         inst._c_obj = inst._c_obj_ptr[0]
         inst._c_obj_ptr[0] = ffi.NULL
@@ -292,3 +425,51 @@ class Tensor(CType):
             f"data_type={data_type} "
             f"at {c_ptr}>"
         )
+
+    @classmethod
+    def from_numpy(cls, data: "np.ndarray") -> "Tensor":
+        """Initializes a new `Tensor` object from a NumPy array.
+
+        Args:
+            data: The NumPy array containing the tensor data.
+
+        Returns:
+            A new `Tensor` object
+
+        Raises:
+            NotImplementedError: If NumPy is not installed.
+        """
+        if not HAS_NUMPY:
+            msg = "NumPy is not available"
+            raise NotImplementedError(msg)
+
+        inst = cls.__new__(cls)
+        inst._dims = list(data.shape)
+        inst._data = data
+        inst._data_type = TensorTypeMapper.type_from_numpy(inst._data.dtype)
+        inst._c_data = CNumpyArray(inst._data)
+        inst._c_obj_ptr = ffi.NULL
+        inst._c_obj_data = inst._c_data._c_ptr
+        super().__init__(inst)
+        return inst
+
+    def as_numpy(self) -> "np.ndarray":
+        """Returns the tensor data buffer as a NumPy array.
+
+        Returns:
+            The data of the tensor as a NumPy array.
+        """
+        if not HAS_NUMPY:
+            msg = "NumPy is not available"
+            raise NotImplementedError(msg)
+
+        if isinstance(self._c_data, CNumpyArray):
+            return self._c_data.value
+
+        dtype = TensorTypeMapper.type_to_numpy(self.data_type)
+        return CNumpyArray.from_c_obj(
+            self._c_ptr_or_raise.data,
+            self._c_ptr_or_raise.size,
+            self.shape,
+            dtype,
+        ).value
