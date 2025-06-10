@@ -17,6 +17,13 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
+try:
+    import torch
+
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+
 logger = logging.getLogger(__name__)
 
 enum_builder = CEnumBuilder(lib)
@@ -36,6 +43,7 @@ class TensorTypeMapper:
     }
 
     _NUMPY_TO_TENSOR_TYPE: Final[dict["np.dtype", TensorType]] = {}
+    _TORCH_TO_TENSOR_TYPE: Final[dict["torch.dtype", TensorType]] = {}
 
     @classmethod
     def type_to_c_type(cls, tensor_type: TensorType) -> str:
@@ -114,6 +122,40 @@ class TensorTypeMapper:
             msg = f"Unsupported NumPy dtype: {dtype}. Supported: {supported}"
             raise ValueError(msg)
         return cls._NUMPY_TO_TENSOR_TYPE[dtype]
+
+    if HAS_TORCH:
+        _TORCH_TO_TENSOR_TYPE = {
+            torch.uint8: TensorType.BYTE,
+            torch.int8: TensorType.CHAR,
+            torch.int16: TensorType.SHORT,
+            torch.int32: TensorType.INT,
+            torch.int64: TensorType.LONG,
+            torch.float32: TensorType.FLOAT,
+        }
+
+    @classmethod
+    def type_from_torch(cls, dtype: "torch.dtype") -> TensorType:
+        """Converts a PyTorch `dtype` to `TensorType`.
+
+        Args:
+            dtype: A PyTorch `dtype` object.
+
+        Returns:
+            A corresponding tensor type value.
+
+        Raises:
+            NotImplementedError: If PyTorch is not installed.
+            ValueError: If the `dtype` value is not supported.
+        """
+        if not HAS_TORCH:
+            msg = "PyTorch is not available"
+            raise NotImplementedError(msg)
+
+        if dtype not in cls._TORCH_TO_TENSOR_TYPE:
+            supported = ", ".join(str(d) for d in cls._TORCH_TO_TENSOR_TYPE)
+            msg = f"Unsupported PyTorch dtype: {dtype}. Supported: {supported}"
+            raise ValueError(msg)
+        return cls._TORCH_TO_TENSOR_TYPE[dtype]
 
 
 class Tensor(CType):
@@ -402,5 +444,35 @@ class Tensor(CType):
         inst._c_data = None
         inst._c_obj_ptr = ffi.NULL
         inst._c_obj_data = ffi.from_buffer(inst._data)
+        super().__init__(inst)
+        return inst
+
+    @classmethod
+    def from_torch(cls, data: "torch.tensor") -> "Tensor":
+        """Initializes a new `Tensor` object from a PyTorch tensor.
+
+        Args:
+            data: The PyTorch tensor containing the tensor data.
+
+        Returns:
+            A new `Tensor` object
+
+        Raises:
+            NotImplementedError: If PyTorch is not installed.
+        """
+        if not HAS_TORCH:
+            msg = "PyTorch is not available"
+            raise NotImplementedError(msg)
+
+        inst = cls.__new__(cls)
+        inst._dims = list(data.shape)
+        inst._data = data.contiguous().cpu()
+        inst._data_type = TensorTypeMapper.type_from_torch(inst._data.dtype)
+        inst._c_obj_ptr = ffi.NULL
+        data_ptr_int = inst._data.untyped_storage().data_ptr()
+        data_ptr = ffi.cast("void *", data_ptr_int)
+        data_size = inst._data.untyped_storage().nbytes()
+        inst._c_data = CBytes.from_c_obj(data_ptr, data_size)
+        inst._c_obj_data = inst._c_data._c_ptr
         super().__init__(inst)
         return inst
