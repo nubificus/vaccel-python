@@ -17,7 +17,9 @@ dynamic = ["version"]
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "numpy"]
+test-full = ["pytest", "pytest-cov", "numpy", "torch>=2.5.0"]
 dev = ["pytest", "pytest-cov", "numpy", "ruff"]
+dev-full = ["pytest", "pytest-cov", "numpy", "ruff", "torch>=2.5.0"]
 
 [tool.setuptools.packages.find]
 include = ["vaccel*"]

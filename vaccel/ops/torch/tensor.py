@@ -17,6 +17,13 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
+try:
+    import torch
+
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
+
 logger = logging.getLogger(__name__)
 
 enum_builder = CEnumBuilder(lib)
@@ -139,6 +146,67 @@ class TensorTypeMapper:
             raise ValueError(msg)
 
         return cls._TENSOR_TYPE_TO_NUMPY[ttype]
+
+    if HAS_TORCH:
+        _TORCH_TO_TENSOR_TYPE = {
+            torch.uint8: TensorType.BYTE,
+            torch.int8: TensorType.CHAR,
+            torch.int16: TensorType.SHORT,
+            torch.int32: TensorType.INT,
+            torch.int64: TensorType.LONG,
+            torch.float32: TensorType.FLOAT,
+        }
+        _TENSOR_TYPE_TO_TORCH = {v: k for k, v in _TORCH_TO_TENSOR_TYPE.items()}
+
+    @classmethod
+    def type_from_torch(cls, dtype: "torch.dtype") -> TensorType:
+        """Converts a PyTorch `dtype` to `TensorType`.
+
+        Args:
+            dtype: A PyTorch `dtype` object.
+
+        Returns:
+            A corresponding tensor type value.
+
+        Raises:
+            NotImplementedError: If PyTorch is not installed.
+            ValueError: If the `dtype` value is not supported.
+        """
+        if not HAS_TORCH:
+            msg = "PyTorch is not available"
+            raise NotImplementedError(msg)
+
+        if dtype not in cls._TORCH_TO_TENSOR_TYPE:
+            supported = ", ".join(str(d) for d in cls._TORCH_TO_TENSOR_TYPE)
+            msg = f"Unsupported PyTorch dtype: {dtype}. Supported: {supported}"
+            raise ValueError(msg)
+
+        return cls._TORCH_TO_TENSOR_TYPE[dtype]
+
+    @classmethod
+    def type_to_torch(cls, ttype: TensorType) -> "torch.dtype":
+        """Converts a `TensorType` to a PyTorch `dtype`.
+
+        Args:
+            ttype: A `TensorType` enum value.
+
+        Returns:
+            A corresponding PyTorch `dtype` object.
+
+        Raises:
+            NotImplementedError: If PyTorch is not installed.
+            ValueError: If the `TensorType` value is not supported.
+        """
+        if not HAS_TORCH:
+            msg = "PyTorch is not available"
+            raise NotImplementedError(msg)
+
+        if ttype not in cls._TENSOR_TYPE_TO_TORCH:
+            supported = ", ".join(str(t) for t in cls._TENSOR_TYPE_TO_TORCH)
+            msg = f"Unsupported TensorType: {ttype}. Supported: {supported}"
+            raise ValueError(msg)
+
+        return cls._TENSOR_TYPE_TO_TORCH[ttype]
 
 
 class Tensor(CType):
@@ -463,3 +531,54 @@ class Tensor(CType):
             self.shape,
             dtype,
         ).value
+
+    @classmethod
+    def from_torch(cls, data: "torch.Tensor") -> "Tensor":
+        """Initializes a new `Tensor` object from a PyTorch tensor.
+
+        Args:
+            data: The PyTorch tensor containing the tensor data.
+
+        Returns:
+            A new `Tensor` object
+
+        Raises:
+            NotImplementedError: If PyTorch is not installed.
+        """
+        if not HAS_TORCH:
+            msg = "PyTorch is not available"
+            raise NotImplementedError(msg)
+
+        inst = cls.__new__(cls)
+        inst._dims = list(data.shape)
+        inst._data = data.contiguous().cpu()
+        inst._data_type = TensorTypeMapper.type_from_torch(inst._data.dtype)
+        inst._c_obj_ptr = ffi.NULL
+        data_ptr_int = inst._data.untyped_storage().data_ptr()
+        data_ptr = ffi.cast("void *", data_ptr_int)
+        data_size = inst._data.untyped_storage().nbytes()
+        inst._c_data = CBytes.from_c_obj(data_ptr, data_size)
+        inst._c_obj_data = inst._c_data._c_ptr
+        super().__init__(inst)
+        return inst
+
+    def as_torch(self) -> "torch.Tensor":
+        """Returns the tensor as a PyTorch tensor.
+
+        Returns:
+            The tensor as a PyTorch tensor.
+
+        Raises:
+            NotImplementedError: If PyTorch is not installed.
+        """
+        if not HAS_TORCH:
+            msg = "PyTorch is not available"
+            raise NotImplementedError(msg)
+
+        if isinstance(self._data, torch.Tensor):
+            return self._data
+
+        dtype = TensorTypeMapper.type_to_torch(self.data_type)
+        buf = ffi.buffer(self._c_ptr_or_raise.data, self._c_ptr_or_raise.size)
+
+        return torch.frombuffer(buf, dtype=dtype).reshape(self.shape)

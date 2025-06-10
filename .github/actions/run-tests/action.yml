@@ -27,7 +27,13 @@ runs:
           sudo apt install ./vaccel_latest_amd64.deb
           rm vaccel_latest_amd64.deb
         fi
-        ./.venv/bin/pip install .[test]
+
+        arch=$(python3 -c "import platform; print(platform.architecture()[0])")
+        if [[ "${arch}" == "32bit" ]]; then
+          ./.venv/bin/pip install .[test]
+        else
+          ./.venv/bin/pip install .[test-full]
+        fi
       shell: bash
 
     - name: Run tests
