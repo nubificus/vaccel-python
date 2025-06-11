@@ -9,6 +9,8 @@ from vaccel._c_types.types import CType, to_ctype
 from vaccel._libvaccel import ffi
 from vaccel.error import NullPointerError
 
+from .cstr import CStr
+
 
 class CList(CType):
     """Wrapper for `list` objects.
@@ -53,6 +55,8 @@ class CList(CType):
     def _infer_ctype_str(self, item: CType) -> str:
         ptr = item._c_ptr
         ctype = ffi.getctype(ffi.typeof(ptr))
+        if isinstance(self._items[0], CStr):
+            return ctype.replace("[]", " *")
         return ctype.replace(" *", "")
 
     def _init_c_obj(self):
@@ -61,6 +65,9 @@ class CList(CType):
             for item in self._items
         ):
             self._c_obj = ffi.new(f"{self._ctype_str}[{len(self._items)}]")
+        elif "*" in self._ctype_str:
+            ptrs = [item._c_ptr for item in self._items]
+            self._c_obj = ffi.new(f"{self._ctype_str}[{len(ptrs)}]", ptrs)
         else:
             values = [item.value for item in self._items]
             self._c_obj = ffi.new(f"{self._ctype_str}[{len(values)}]", values)

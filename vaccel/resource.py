@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._c_types import CType
+from ._c_types import CList, CType
 from ._c_types.utils import CEnumBuilder
 from ._libvaccel import ffi, lib
 from .error import FFIError, NullPointerError
@@ -32,19 +32,26 @@ class Resource(CType):
         CType: Abstract base class for defining C data types.
 
     Attributes:
-        _path (str): The path to the contained file.
+        _paths (list[Path] | list[str] | Path | str): The path(s) to the
+            contained file(s).
         _type (ResourceType): The type of the resource.
     """
 
-    def __init__(self, path: str | Path, type_: ResourceType):
+    def __init__(
+        self, paths: list[Path] | list[str] | Path | str, type_: ResourceType
+    ):
         """Initializes a new `Resource` object.
 
         Args:
-            path: The path to the file that will be represented by the resource.
+            paths: The path(s) to the file(s) that will be represented by the
+                resource.
             type_: The type of the resource.
         """
-        # TODO: Allow the use of lists for path  # noqa: FIX002
-        self._path = str(path)
+        if isinstance(paths, list):
+            self._paths = [str(path) for path in paths]
+        else:
+            self._paths = [str(paths)]
+        self._c_paths = CList(self._paths)
         self._type = type_
         self.__sessions = []
         super().__init__()
@@ -56,8 +63,11 @@ class Resource(CType):
             FFIError: If resource initialization fails.
         """
         self._c_obj_ptr = ffi.new("struct vaccel_resource **")
-        ret = lib.vaccel_resource_new(
-            self._c_obj_ptr, self._path.encode(), self._type
+        ret = lib.vaccel_resource_multi_new(
+            self._c_obj_ptr,
+            self._c_paths._c_ptr,
+            len(self._c_paths),
+            self._type,
         )
         if ret != 0:
             raise FFIError(ret, "Could not initialize resource")
@@ -180,14 +190,14 @@ class Resource(CType):
             )
             resource_id = self.id
             remote_id = self.remote_id
-            path = self._path
+            paths = self._paths
             type_name = getattr(self._type, "name", repr(self._type))
         except (AttributeError, TypeError, NullPointerError):
             return f"<{self.__class__.__name__} (uninitialized or invalid)>"
         return (
             f"<{self.__class__.__name__} id={resource_id} "
             f"remote_id={remote_id} "
-            f"path={path!r} "
+            f"paths={paths!r} "
             f"type={type_name} "
             f"at {c_ptr}>"
         )
