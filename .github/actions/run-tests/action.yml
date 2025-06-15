@@ -27,6 +27,9 @@ runs:
           sudo apt install ./vaccel_latest_amd64.deb
           rm vaccel_latest_amd64.deb
         fi
+        # Hack for building NumPy correctly for our arm runners
+        ./.venv/bin/pip install meson>=1.6.1 meson-python
+        ./.venv/bin/pip install --no-build-isolation numpy
         ./.venv/bin/pip install .[test]
       shell: bash
 
