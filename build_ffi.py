@@ -9,7 +9,7 @@ import cffi
 import pkgconfig
 
 PKG = "vaccel"
-PKG_MIN_VERSION = "0.6.1"
+PKG_MIN_VERSION = "0.7.0"
 MODULE_NAME = f"{PKG}._lib{PKG}"
 HEADER_INCLUDE = f'#include "{PKG}.h"'
 
