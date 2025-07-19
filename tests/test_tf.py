@@ -100,6 +100,8 @@ def test_tf(test_nodes, test_tensor, test_model):
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
 
+    session.tf_model_unload(model)
+
 
 def test_tf_with_run_options(test_nodes, test_tensor, test_model):
     session = Session()
@@ -126,6 +128,8 @@ def test_tf_with_run_options(test_nodes, test_tensor, test_model):
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+
+    session.tf_model_unload(model)
 
 
 def test_tf_from_buffer(test_nodes, test_tensor, test_model):
@@ -154,6 +158,8 @@ def test_tf_from_buffer(test_nodes, test_tensor, test_model):
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
 
+    session.tf_model_unload(model)
+
 
 def test_tf_from_numpy(test_nodes, test_tensor, test_model):
     session = Session()
@@ -176,3 +182,5 @@ def test_tf_from_numpy(test_nodes, test_tensor, test_model):
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+
+    session.tf_model_unload(model)

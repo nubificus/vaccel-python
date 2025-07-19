@@ -22,16 +22,31 @@ class TorchMixin:
             ...
     """
 
-    def torch_jitload_forward(
+    def torch_model_load(self, resource: Resource) -> None:
+        """Performs the Torch model load operation.
+
+        Wraps the `vaccel_torch_model_load()` C operation.
+
+        Args:
+            resource: A resource with the model to load.
+
+        Raises:
+            FFIError: If the C operation fails.
+        """
+        ret = lib.vaccel_torch_model_load(self._c_ptr_or_raise, resource._c_ptr)
+        if ret != 0:
+            raise FFIError(ret, "Torch model load failed")
+
+    def torch_model_run(
         self,
         resource: Resource,
         in_tensors: list[Tensor],
         nr_out_tensors: int = 1,
         run_options: Buffer | None = None,
     ) -> list[Tensor]:
-        """Performs the Torch jitload forward operation.
+        """Performs the Torch model run operation.
 
-        Wraps the `vaccel_torch_jitload_forward()` C operation.
+        Wraps the `vaccel_torch_model_run()` C operation.
 
         Args:
             resource: A resource with the model to run.
@@ -51,7 +66,7 @@ class TorchMixin:
         c_in_tensors = CList.from_ptrs(in_tensors)
         c_out_tensors = CList.from_ptrs([Tensor.empty()] * nr_out_tensors)
 
-        ret = lib.vaccel_torch_jitload_forward(
+        ret = lib.vaccel_torch_model_run(
             self._c_ptr_or_raise,
             resource._c_ptr,
             run_options_ptr,
