@@ -56,50 +56,100 @@ def handle_atomic_declaration(line: str) -> str | None:
     return None
 
 
-def handle_deprecated_function(line: str, *, in_function: bool) -> (bool, bool):
-    """Handle removal of deprecated function declarations."""
-    deprecated_re = re.compile(r"__attribute__\(\(deprecated\b")
+def remove_deprecated_functions(src: str) -> str:
+    """Remove deprecated function declarations."""
+    out, i, n = [], 0, len(src)
+    pat = re.compile(r'__attribute__\s*\(\(deprecated\b')
 
-    if in_function:
-        if line.strip().endswith("}"):
-            in_function = False
-        return (in_function, True)
-    if deprecated_re.search(line):
-        return (True, True)
+    while i < n:
+        m = pat.search(src, i)
+        if not m:
+            out.append(src[i:])
+            break
 
-    return (in_function, False)
+        # Go backward to find the start of the function declaration
+        start = src.rfind('\n', 0, m.start())
+        start = start + 1 if start != -1 else 0
+        out.append(src[i:start])
+
+        # Move forward to skip the function body
+        j = src.find('{', m.end())
+        if j == -1:
+            i = m.end()
+            # Malformed, skip the attribute
+            continue
+
+        brace = 1
+        j += 1
+        while j < n and brace:
+            if src[j] == '{':
+                brace += 1
+            elif src[j] == '}':
+                brace -= 1
+            j += 1
+
+        # Skip trailing characters (semicolons, whitespace)
+        while j < n and src[j] in " \t\n;":
+            j += 1
+
+        i = j
+
+    return ''.join(out)
 
 
-def handle_inline_function(
-    line: str, brace_depth: int, *, in_function: bool
-) -> (bool, int, str):
-    """Handle removal of inline function declarations."""
-    inline_re = re.compile(r"\bstatic\s+inline\b")
+def remove_static_inline_functions(source: str) -> str:
+    """Remove 'static inline' functions."""
+    static_inline_re = re.compile(r'\bstatic\s+inline\b')
+    result = []
+    i = 0
+    n = len(source)
 
-    if in_function:
-        brace_depth += line.count("{") - line.count("}")
-        if brace_depth <= 0:
-            in_function = False
-            brace_depth = 0
-        return in_function, brace_depth, None
+    while i < n:
+        match = static_inline_re.search(source, i)
+        if not match:
+            # No more static inlines, copy the rest
+            result.append(source[i:])
+            break
 
-    match = inline_re.search(line)
-    if match:
-        prefix = line[: match.start()].rstrip()
-        if prefix:
-            # Still check for atomics in that prefix
-            atomic_result = handle_atomic_declaration(prefix)
-            result_line = atomic_result if atomic_result else prefix
-        brace_depth = line.count("{") - line.count("}")
-        if brace_depth > 0:
-            in_function = True
-        return in_function, brace_depth, result_line
+        start = match.start()
 
-    return in_function, brace_depth, line
+        # Copy anything before the match
+        if start > i:
+            result.append(source[i:start])
+
+        # Find the function body using brace matching
+        brace_count = 0
+        body_start = source.find('{', match.end())
+        if body_start == -1:
+            # Malformed inline without a body, treat as normal text
+            result.append(source[match.start():match.end()])
+            i = match.end()
+            continue
+
+        i = body_start
+        brace_count = 1
+        i += 1
+
+        while i < n and brace_count > 0:
+            if source[i] == '{':
+                brace_count += 1
+            elif source[i] == '}':
+                brace_count -= 1
+            i += 1
+
+        # If there is a semicolon mid-line, skip it
+        while i < n and source[i] in ' \t\n;':
+            i += 1
+
+    return ''.join(result)
 
 
 def sanitize_cdef(cdef: str, pkg: str) -> str:
     """Sanitize cdef by removing unsupported declarations."""
+    # Parse multi-line patterns first
+    cdef = remove_static_inline_functions(cdef)
+    cdef = remove_deprecated_functions(cdef)
+
     output_lines = cdef.splitlines()
     filtered_lines = []
 
@@ -107,11 +157,10 @@ def sanitize_cdef(cdef: str, pkg: str) -> str:
 
     current_file = None
     pkg_lines = True
-    in_deprecated_function = False
-    in_inline_function = False
-    brace_depth = 0
 
+    # Parse single-line patterns next
     for line in output_lines:
+        # Parse and ignore GCC comments
         if line.startswith("#"):
             match = line_re.match(line)
             if match:
@@ -119,7 +168,7 @@ def sanitize_cdef(cdef: str, pkg: str) -> str:
                 pkg_lines = pkg in current_file
             continue
 
-        # Remove non-package declarations
+        # Ignore non-package declarations
         if not pkg_lines:
             continue
 
@@ -131,21 +180,6 @@ def sanitize_cdef(cdef: str, pkg: str) -> str:
         atomic_result = handle_atomic_declaration(line)
         if atomic_result:
             filtered_lines.append(atomic_result)
-            continue
-
-        # Handle deprecated functions
-        (in_deprecated_function, skip) = handle_deprecated_function(
-            line, in_function=in_deprecated_function
-        )
-        if skip:
-            continue
-
-        # Handle inline functions
-        (in_inline_function, brace_depth, result_line) = handle_inline_function(
-            line, brace_depth, in_function=in_inline_function
-        )
-        if result_line is not None:
-            filtered_lines.append(result_line)
             continue
 
         filtered_lines.append(line)

@@ -99,11 +99,13 @@ def test_torch(test_tensor, test_model):
     model = Resource(test_model, ResourceType.MODEL)
     model.register(session)
 
+    session.torch_model_load(model)
+
     in_tensors = [
         Tensor(test_tensor["dims"], test_tensor["type"], test_tensor["data"])
     ]
 
-    out_tensors = session.torch_jitload_forward(model, in_tensors)
+    out_tensors = session.torch_model_run(model, in_tensors)
     assert out_tensors[0].dims == in_tensors[0].dims
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
@@ -119,13 +121,15 @@ def test_torch_with_run_options(test_tensor, test_model):
     model = Resource(test_model, ResourceType.MODEL)
     model.register(session)
 
+    session.torch_model_load(model)
+
     in_tensors = [
         Tensor(test_tensor["dims"], test_tensor["type"], test_tensor["data"])
     ]
 
     run_options = Buffer(b"none")
 
-    out_tensors = session.torch_jitload_forward(
+    out_tensors = session.torch_model_run(
         model, in_tensors, run_options=run_options
     )
     assert out_tensors[0].dims == in_tensors[0].dims
@@ -143,13 +147,15 @@ def test_torch_from_buffer(test_tensor, test_model):
     model = Resource(test_model, ResourceType.MODEL)
     model.register(session)
 
+    session.torch_model_load(model)
+
     in_tensors = [
         Tensor.from_buffer(
             test_tensor["dims"], test_tensor["type"], test_tensor["data_bytes"]
         )
     ]
 
-    out_tensors = session.torch_jitload_forward(model, in_tensors)
+    out_tensors = session.torch_model_run(model, in_tensors)
     assert out_tensors[0].dims == in_tensors[0].dims
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
@@ -165,9 +171,11 @@ def test_torch_from_numpy(test_tensor, test_model):
     model = Resource(test_model, ResourceType.MODEL)
     model.register(session)
 
+    session.torch_model_load(model)
+
     in_tensors = [Tensor.from_numpy(test_tensor["data_np"])]
 
-    out_tensors = session.torch_jitload_forward(model, in_tensors)
+    out_tensors = session.torch_model_run(model, in_tensors)
     assert out_tensors[0].dims == in_tensors[0].dims
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
@@ -184,9 +192,11 @@ def test_torch_from_torch(test_tensor, test_model):
     model = Resource(test_model, ResourceType.MODEL)
     model.register(session)
 
+    session.torch_model_load(model)
+
     in_tensors = [Tensor.from_torch(test_tensor["data_torch"])]
 
-    out_tensors = session.torch_jitload_forward(model, in_tensors)
+    out_tensors = session.torch_model_run(model, in_tensors)
     assert out_tensors[0].dims == in_tensors[0].dims
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data

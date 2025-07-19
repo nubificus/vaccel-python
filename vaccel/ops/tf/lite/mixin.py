@@ -22,9 +22,9 @@ class TFLiteMixin:
     """
 
     def tflite_model_load(self, resource: Resource) -> None:
-        """Performs the Tensorflow Lite model loading operation.
+        """Performs the Tensorflow Lite model load operation.
 
-        Wraps the `vaccel_tflite_session_load()` C operation.
+        Wraps the `vaccel_tflite_model_load()` C operation.
 
         Args:
             resource: A resource with the model to load.
@@ -32,11 +32,31 @@ class TFLiteMixin:
         Raises:
             FFIError: If the C operation fails.
         """
-        ret = lib.vaccel_tflite_session_load(
+        ret = lib.vaccel_tflite_model_load(
             self._c_ptr_or_raise, resource._c_ptr
         )
         if ret != 0:
-            raise FFIError(ret, "Tensorflow Lite model loading failed")
+            raise FFIError(ret, "Tensorflow Lite model load failed")
+
+    def tflite_model_unload(self, resource: Resource) -> None:
+        """Performs the Tensorflow Lite model unload operation.
+
+        Wraps the `vaccel_tflite_model_unload()` C operation.
+
+        Args:
+            resource: A resource with the model to unload.
+
+        Returns:
+            The status of the operation execution.
+
+        Raises:
+            FFIError: If the C operation fails.
+        """
+        ret = lib.vaccel_tflite_model_unload(
+            self._c_ptr_or_raise, resource._c_ptr
+        )
+        if ret != 0:
+            raise FFIError(ret, "Tensorflow Lite model unload failed")
 
     def tflite_model_run(
         self,
@@ -46,7 +66,7 @@ class TFLiteMixin:
     ) -> (list[Tensor], int):
         """Performs the Tensorflow Lite model run operation.
 
-        Wraps the `vaccel_tflite_session_run()` C operation.
+        Wraps the `vaccel_tflite_model_run()` C operation.
 
         Args:
             resource: A resource with the model to run.
@@ -65,7 +85,7 @@ class TFLiteMixin:
         c_out_tensors = CList.from_ptrs([Tensor.empty()] * nr_out_tensors)
         status = CInt(0, "uint8_t")
 
-        ret = lib.vaccel_tflite_session_run(
+        ret = lib.vaccel_tflite_model_run(
             self._c_ptr_or_raise,
             resource._c_ptr,
             c_in_tensors._c_ptr,
@@ -79,23 +99,3 @@ class TFLiteMixin:
 
         out_tensors = [Tensor.from_c_obj(t) for t in c_out_tensors.value]
         return (out_tensors, status.value)
-
-    def tflite_model_delete(self, resource: Resource) -> None:
-        """Performs the Tensorflow Lite model deletion operation.
-
-        Wraps the `vaccel_tflite_session_delete()` C operation.
-
-        Args:
-            resource: A resource with the model to unload.
-
-        Returns:
-            The status of the operation execution.
-
-        Raises:
-            FFIError: If the C operation fails.
-        """
-        ret = lib.vaccel_tflite_session_delete(
-            self._c_ptr_or_raise, resource._c_ptr
-        )
-        if ret != 0:
-            raise FFIError(ret, "Tensorflow Lite model delete failed")

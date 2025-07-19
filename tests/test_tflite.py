@@ -81,6 +81,8 @@ def test_tflite(test_tensor, test_model):
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
 
+    session.tflite_model_unload(model)
+
 
 def test_tflite_from_buffer(test_tensor, test_model):
     session = Session()
@@ -103,6 +105,8 @@ def test_tflite_from_buffer(test_tensor, test_model):
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
 
+    session.tflite_model_unload(model)
+
 
 def test_tflite_from_numpy(test_tensor, test_model):
     session = Session()
@@ -120,3 +124,5 @@ def test_tflite_from_numpy(test_tensor, test_model):
     assert out_tensors[0].data_type == in_tensors[0].data_type
     assert out_tensors[0].data == in_tensors[0].data
     assert out_tensors[0].to_bytes() == in_tensors[0].to_bytes()
+
+    session.tflite_model_unload(model)
