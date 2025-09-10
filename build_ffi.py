@@ -56,50 +56,57 @@ def handle_atomic_declaration(line: str) -> str | None:
     return None
 
 
-def remove_deprecated_functions(src: str) -> str:
-    """Remove deprecated function declarations."""
-    out, i, n = [], 0, len(src)
-    pat = re.compile(r'__attribute__\s*\(\(deprecated\b')
+def handle_mutex_declaration(line: str) -> str | None:
+    """Handle `pthread_mutex_t` declarations by replacing them with '...;'."""
+    mutex_re = re.compile(r"\bpthread_mutex_t\b")
+    if mutex_re.search(line):
+        indent = re.match(r"^(\s*)", line).group(1)
+        return f"{indent}...;"
+    return None
+
+
+def remove_deprecated_attributes(source: str) -> str:
+    """Remove deprecated function declarations/definitions."""
+    deprecated_re = re.compile(r"__attribute__\s*\(\s*\(")
+    result = []
+    i = 0
+    n = len(source)
 
     while i < n:
-        m = pat.search(src, i)
-        if not m:
-            out.append(src[i:])
+        match = deprecated_re.search(source, i)
+        if not match:
+            result.append(source[i:])
             break
 
-        # Go backward to find the start of the function declaration
-        start = src.rfind('\n', 0, m.start())
-        start = start + 1 if start != -1 else 0
-        out.append(src[i:start])
+        start = match.start()
+        result.append(source[i:start])  # keep code before attribute
 
-        # Move forward to skip the function body
-        j = src.find('{', m.end())
-        if j == -1:
-            i = m.end()
-            # Malformed, skip the attribute
-            continue
-
-        brace = 1
-        j += 1
-        while j < n and brace:
-            if src[j] == '{':
-                brace += 1
-            elif src[j] == '}':
-                brace -= 1
+        j = match.end()
+        depth = 2  # account for the "(("
+        while j < n and depth > 0:
+            if source[j] == "(":
+                depth += 1
+            elif source[j] == ")":
+                depth -= 1
             j += 1
 
-        # Skip trailing characters (semicolons, whitespace)
-        while j < n and src[j] in " \t\n;":
+        attr_text = source[start:j]
+        if "deprecated" not in attr_text:
+            # Not a deprecated attribute → keep it
+            result.append(attr_text)
+
+        # Skip any whitespace immediately after the attribute
+        while j < n and source[j].isspace():
             j += 1
 
         i = j
 
-    return ''.join(out)
+    return "".join(result)
 
 
 def remove_static_inline_functions(source: str) -> str:
     """Remove 'static inline' functions."""
-    static_inline_re = re.compile(r'\bstatic\s+inline\b')
+    static_inline_re = re.compile(r"\bstatic\s+inline\b")
     result = []
     i = 0
     n = len(source)
@@ -119,7 +126,7 @@ def remove_static_inline_functions(source: str) -> str:
 
         # Find the function body using brace matching
         brace_count = 0
-        body_start = source.find('{', match.end())
+        body_start = source.find("{", match.end())
         if body_start == -1:
             # Malformed inline without a body, treat as normal text
             result.append(source[match.start():match.end()])
@@ -131,24 +138,24 @@ def remove_static_inline_functions(source: str) -> str:
         i += 1
 
         while i < n and brace_count > 0:
-            if source[i] == '{':
+            if source[i] == "{":
                 brace_count += 1
-            elif source[i] == '}':
+            elif source[i] == "}":
                 brace_count -= 1
             i += 1
 
         # If there is a semicolon mid-line, skip it
-        while i < n and source[i] in ' \t\n;':
+        while i < n and source[i] in ";":
             i += 1
 
-    return ''.join(result)
+    return "".join(result)
 
 
 def sanitize_cdef(cdef: str, pkg: str) -> str:
     """Sanitize cdef by removing unsupported declarations."""
     # Parse multi-line patterns first
+    cdef = remove_deprecated_attributes(cdef)
     cdef = remove_static_inline_functions(cdef)
-    cdef = remove_deprecated_functions(cdef)
 
     output_lines = cdef.splitlines()
     filtered_lines = []
@@ -180,6 +187,12 @@ def sanitize_cdef(cdef: str, pkg: str) -> str:
         atomic_result = handle_atomic_declaration(line)
         if atomic_result:
             filtered_lines.append(atomic_result)
+            continue
+
+        # Handle mutex declarations
+        mutex_result = handle_mutex_declaration(line)
+        if mutex_result:
+            filtered_lines.append(mutex_result)
             continue
 
         filtered_lines.append(line)
