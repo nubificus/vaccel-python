@@ -99,7 +99,7 @@ class Node(CType):
         Returns:
             The node's ID.
         """
-        return int(self._c_ptr_or_raise.id[0])
+        return int(self._c_ptr_or_raise.id)
 
     def __repr__(self):
         try:
