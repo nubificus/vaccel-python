@@ -4,7 +4,7 @@ import random
 
 import pytest
 
-from vaccel import Arg, OpType, Session
+from vaccel import Arg, ArgType, OpType, Session
 
 
 @pytest.fixture
@@ -41,9 +41,12 @@ def test_data():
 
 
 def test_exec(test_lib, test_args):
-    arg_read = [OpType.EXEC, test_lib["path"], test_lib["symbol"]]
-    arg_read.extend(test_args["read"])
-    g_arg_read = [Arg(arg) for arg in arg_read]
+    g_arg_read = [
+        Arg(OpType.EXEC, ArgType.UINT8),
+        Arg(test_lib["path"], ArgType.STRING),
+        Arg(test_lib["symbol"], ArgType.STRING),
+    ]
+    g_arg_read += [Arg(arg) for arg in test_args["read"]]
     g_arg_write = [Arg(arg) for arg in test_args["write"]]
 
     session = Session()
@@ -55,20 +58,20 @@ def test_exec(test_lib, test_args):
 
 def test_sgemm(test_data):
     arg_read = [
-        Arg(OpType.BLAS_SGEMM),
-        Arg(test_data["m"]),
-        Arg(test_data["n"]),
-        Arg(test_data["k"]),
-        Arg(test_data["alpha"]),
-        Arg(test_data["a"]),
-        Arg(test_data["lda"]),
-        Arg(test_data["b"]),
-        Arg(test_data["ldb"]),
-        Arg(test_data["beta"]),
-        Arg(test_data["ldc"]),
+        Arg(OpType.BLAS_SGEMM, ArgType.UINT8),
+        Arg(test_data["m"], ArgType.INT64),
+        Arg(test_data["n"], ArgType.INT64),
+        Arg(test_data["k"], ArgType.INT64),
+        Arg(test_data["alpha"], ArgType.FLOAT32),
+        Arg(test_data["a"], ArgType.FLOAT32_ARRAY),
+        Arg(test_data["lda"], ArgType.INT64),
+        Arg(test_data["b"], ArgType.FLOAT32_ARRAY),
+        Arg(test_data["ldb"], ArgType.INT64),
+        Arg(test_data["beta"], ArgType.FLOAT32),
+        Arg(test_data["ldc"], ArgType.INT64),
     ]
     c = [float(0)] * test_data["m"] * test_data["n"]
-    arg_write = [Arg(c)]
+    arg_write = [Arg(c, ArgType.FLOAT32_ARRAY)]
 
     session = Session()
     session.genop(arg_read, arg_write)
