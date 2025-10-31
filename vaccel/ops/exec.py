@@ -51,7 +51,9 @@ class ExecMixin:
             FFIError: If the C operation fails.
         """
         if arg_read is not None:
-            c_arg_read = CList([Arg(arg) for arg in arg_read])
+            c_arg_read = CList(
+                [arg if isinstance(arg, Arg) else Arg(arg) for arg in arg_read]
+            )
             c_arg_read_ptr = c_arg_read._c_ptr
             c_arg_read_len = len(c_arg_read)
         else:
@@ -60,7 +62,9 @@ class ExecMixin:
             c_arg_read_len = 0
 
         if arg_write is not None:
-            c_arg_write = CList([Arg(arg) for arg in arg_write])
+            c_arg_write = CList(
+                [arg if isinstance(arg, Arg) else Arg(arg) for arg in arg_write]
+            )
             c_arg_write_ptr = c_arg_write._c_ptr
             c_arg_write_len = len(c_arg_write)
         else:
@@ -112,7 +116,9 @@ class ExecMixin:
             FFIError: If the C operation fails.
         """
         if arg_read is not None:
-            c_arg_read = CList([Arg(arg) for arg in arg_read])
+            c_arg_read = CList(
+                [arg if isinstance(arg, Arg) else Arg(arg) for arg in arg_read]
+            )
             c_arg_read_ptr = c_arg_read._c_ptr
             c_arg_read_len = len(c_arg_read)
         else:
@@ -121,7 +127,9 @@ class ExecMixin:
             c_arg_read_len = 0
 
         if arg_write is not None:
-            c_arg_write = CList([Arg(arg) for arg in arg_write])
+            c_arg_write = CList(
+                [arg if isinstance(arg, Arg) else Arg(arg) for arg in arg_write]
+            )
             c_arg_write_ptr = c_arg_write._c_ptr
             c_arg_write_len = len(c_arg_write)
         else:
