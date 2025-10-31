@@ -17,6 +17,7 @@ from .ops.noop import NoopMixin
 from .ops.tf import TFMixin
 from .ops.tf.lite import TFLiteMixin
 from .ops.torch import TorchMixin
+from .plugin import PluginType
 from .resource import Resource
 
 logger = logging.getLogger(__name__)
@@ -32,16 +33,19 @@ class BaseSession(CType):
         CType: Abstract base class for defining C data types.
 
     Attributes:
-        _flags (int): The flags used to create the session.
+        _flags (PluginType): The flags used to create the session.
+        _c_obj_ptr (ffi.CData): A double pointer to the underlying
+            `struct vaccel_session` C object.
     """
 
-    def __init__(self, flags: int = 0):
+    def __init__(self, flags: PluginType | int = 0):
         """Initializes a new `BaseSession` object.
 
         Args:
             flags: The flags to configure the session creation. Defaults to 0.
         """
-        self._flags = flags
+        self._flags = PluginType(flags)
+        self._c_obj_ptr = ffi.NULL
         super().__init__()
 
     def _init_c_obj(self):
@@ -50,12 +54,12 @@ class BaseSession(CType):
         Raises:
             FFIError: If session initialization fails.
         """
-        # TODO: Use vaccel_session_new()  # noqa: FIX002
-        self._c_obj = ffi.new("struct vaccel_session *")
-        ret = lib.vaccel_session_init(self._c_obj, self._flags)
+        self._c_obj_ptr = ffi.new("struct vaccel_session **")
+        ret = lib.vaccel_session_new(self._c_obj_ptr, self._flags)
         if ret != 0:
             raise FFIError(ret, "Could not init session")
 
+        self._c_obj = self._c_obj_ptr[0]
         self._c_size = ffi.sizeof("struct vaccel_session")
 
     @property
@@ -73,7 +77,7 @@ class BaseSession(CType):
         Raises:
             FFIError: If session release fails.
         """
-        ret = lib.vaccel_session_release(self._c_ptr_or_raise)
+        ret = lib.vaccel_session_delete(self._c_ptr_or_raise)
         if ret != 0:
             raise FFIError(ret, "Could not release session")
         self._c_obj = ffi.NULL
@@ -108,16 +112,26 @@ class BaseSession(CType):
         return int(self._c_ptr_or_raise.remote_id)
 
     @property
-    def flags(self) -> int:
+    def flags(self) -> PluginType:
         """The session flags.
 
         Returns:
             The flags set during session creation.
         """
-        return int(self._c_ptr_or_raise.flags)
+        return PluginType(self._c_ptr_or_raise.hint)
+
+    @property
+    def is_remote(self) -> bool:
+        """True if the session is remote.
+
+        Returns:
+            True if the session is remote (the session plugin is a transport
+                plugin).
+        """
+        return bool(self._c_ptr_or_raise.is_virtio)
 
     def has_resource(self, resource: Resource) -> bool:
-        """Check if a resource is registered with the session.
+        """Checks if a resource is registered with the session.
 
         Args:
             resource: The resource to check for registration.
@@ -142,12 +156,14 @@ class BaseSession(CType):
             session_id = self.id
             remote_id = self.remote_id
             flags = self.flags
+            flags_name = getattr(flags, "name", repr(flags))
+            flags_str = flags_name if flags_name is not None else f"0x{flags:x}"
         except (AttributeError, TypeError, NullPointerError):
             return f"<{self.__class__.__name__} (uninitialized or invalid)>"
         return (
             f"<{self.__class__.__name__} id={session_id} "
             f"remote_id={remote_id} "
-            f"flags=0x{flags:x} "
+            f"flags={flags_str} "
             f"at {c_ptr}>"
         )
 

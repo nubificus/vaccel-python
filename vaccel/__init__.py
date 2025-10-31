@@ -6,6 +6,7 @@ from ._version import __version__
 from .arg import Arg, ArgType
 from .config import Config
 from .op import OpType
+from .plugin import PluginType
 from .resource import Resource, ResourceType
 from .session import Session
 from .vaccel import bootstrap, cleanup
@@ -15,6 +16,7 @@ __all__ = [
     "ArgType",
     "Config",
     "OpType",
+    "PluginType",
     "Resource",
     "ResourceType",
     "Session",
