@@ -2,7 +2,7 @@
 
 """Utilities for C type conversions."""
 
-from enum import IntEnum
+from enum import IntEnum, IntFlag
 from typing import Any
 
 
@@ -26,21 +26,28 @@ class CEnumBuilder:
         self.lib = lib
         self._cache = {}
 
-    def from_prefix(self, enum_name: str, prefix: str) -> IntEnum:
+    def from_prefix(
+        self,
+        enum_name: str,
+        prefix: str,
+        enum_type: type[IntEnum] | type[IntFlag] = IntEnum,
+    ) -> IntEnum | IntFlag:
         """Generates a Python enum from a C enum prefix.
 
         Dynamically create a Python `IntEnum` from C enum constants that share a
         prefix.
 
         Args:
-            enum_name: The name to give the `IntEnum`.
+            enum_name: The name to give the generated Enum.
             prefix: The prefix of the C constants (e.g., "VACCEL_").
+            enum_type: The Enum base class to use.
 
         Returns:
             A Python IntEnum with values mapped from the C library.
         """
-        if enum_name in self._cache:
-            return self._cache[enum_name]
+        cache_key = (enum_name, enum_type)
+        if cache_key in self._cache:
+            return self._cache[cache_key]
 
         members = {
             attr[len(prefix) :]: getattr(self.lib, attr)
@@ -48,14 +55,17 @@ class CEnumBuilder:
             if attr.startswith(prefix)
         }
 
+        if not members:
+            msg = f"No constants found with prefix '{prefix}'"
+            raise ValueError(msg)
+
         # Build docstring
         docstring = self._build_enum_docstring(enum_name, members)
 
-        # Generate enum
-        enum_cls = IntEnum(enum_name, members)
+        enum_cls = enum_type(enum_name, members)
         enum_cls.__doc__ = docstring
 
-        self._cache[enum_name] = enum_cls
+        self._cache[cache_key] = enum_cls
         return enum_cls
 
     def _build_enum_docstring(
