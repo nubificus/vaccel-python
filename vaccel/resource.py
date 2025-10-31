@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from ._c_types import CList, CType
+from ._c_types import CBytes, CList, CNumpyArray, CType
 from ._c_types.utils import CEnumBuilder
 from ._libvaccel import ffi, lib
 from .error import FFIError, NullPointerError
@@ -15,6 +15,13 @@ if TYPE_CHECKING:
     from vaccel.session import (
         BaseSession as Session,  # Type hint only, not imported at runtime
     )
+
+try:
+    import numpy as np  # noqa: TC002
+
+    HAS_NUMPY = True
+except ImportError:
+    HAS_NUMPY = False
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +42,10 @@ class Resource(CType):
         _paths (list[Path] | list[str] | Path | str): The path(s) to the
             contained file(s).
         _type (ResourceType): The type of the resource.
+        _c_data (CBytes | CNumpyArray | None): The encapsulated buffer data
+            passed to the C struct.
+        _c_obj_ptr (ffi.CData): A double pointer to the underlying
+            `struct vaccel_resource` C object.
     """
 
     def __init__(
@@ -53,6 +64,8 @@ class Resource(CType):
             self._paths = [str(paths)]
         self._c_paths = CList(self._paths)
         self._type = type_
+        self._c_data = None
+        self._c_obj_ptr = ffi.NULL
         self.__sessions = []
         super().__init__()
 
@@ -63,17 +76,79 @@ class Resource(CType):
             FFIError: If resource initialization fails.
         """
         self._c_obj_ptr = ffi.new("struct vaccel_resource **")
-        ret = lib.vaccel_resource_multi_new(
-            self._c_obj_ptr,
-            self._c_paths._c_ptr,
-            len(self._c_paths),
-            self._type,
-        )
+        if self._c_paths is not None:
+            ret = lib.vaccel_resource_multi_new(
+                self._c_obj_ptr,
+                self._c_paths._c_ptr,
+                len(self._c_paths),
+                self._type,
+            )
+        else:
+            ret = lib.vaccel_resource_from_buf(
+                self._c_obj_ptr,
+                self._c_data._c_ptr,
+                self._c_data._c_size,
+                self._type,
+                ffi.NULL,
+                True,  # noqa: FBT003
+            )
         if ret != 0:
             raise FFIError(ret, "Could not initialize resource")
 
         self._c_obj = self._c_obj_ptr[0]
         self._c_size = ffi.sizeof("struct vaccel_resource")
+
+    @classmethod
+    def from_buffer(
+        cls,
+        data: bytes | bytearray | memoryview,
+        type_: ResourceType,
+    ) -> "Resource":
+        """Initializes a new `Resource` object from byte-like data.
+
+        Args:
+            data: The data to be passed to the C struct.
+            type_: The type of the resource.
+
+        Returns:
+            A new `Resource` object
+        """
+        inst = cls.__new__(cls)
+        inst._data = data
+        inst._type = type_
+        inst._c_data = CBytes(inst._data)
+        inst._c_paths = None
+        inst._c_obj_ptr = ffi.NULL
+        inst.__sessions = []
+        super().__init__(inst)
+        return inst
+
+    @classmethod
+    def from_numpy(cls, data: "np.ndarray") -> "Resource":
+        """Initializes a new `Resource` object from a NumPy array.
+
+        Args:
+            data: The NumPy array containing the resource data.
+
+        Returns:
+            A new `Resource` object
+
+        Raises:
+            NotImplementedError: If NumPy is not installed.
+        """
+        if not HAS_NUMPY:
+            msg = "NumPy is not available"
+            raise NotImplementedError(msg)
+
+        inst = cls.__new__(cls)
+        inst._data = data
+        inst._type = ResourceType.DATA
+        inst._c_data = CNumpyArray(inst._data)
+        inst._c_paths = None
+        inst._c_obj_ptr = ffi.NULL
+        inst.__sessions = []
+        super().__init__(inst)
+        return inst
 
     @property
     def value(self) -> ffi.CData:
@@ -140,7 +215,7 @@ class Resource(CType):
         return session in self.__sessions
 
     def register(self, session: "Session") -> None:
-        """Register the resource with a session.
+        """Registers the resource with a session.
 
         Args:
             session: The session to register the resource with.
@@ -161,7 +236,7 @@ class Resource(CType):
         self.__sessions.append(session)
 
     def unregister(self, session: "Session") -> None:
-        """Unregister the resource from a session.
+        """Unregisters the resource from a session.
 
         Args:
             session: The session to unregister the resource from.
@@ -180,6 +255,26 @@ class Resource(CType):
                 f"from session {session.id}",
             )
         self.__sessions.remove(session)
+
+    def sync(self, session: "Session") -> None:
+        """Synchronizes the resource data to reflect any remote changes.
+
+        Args:
+            session: The session the resource is registered with.
+
+        Raises:
+            FFIError: If resource synchronization fails.
+        """
+        ret = lib.vaccel_resource_sync(
+            self._c_ptr_or_raise,
+            session._c_ptr_or_raise,
+        )
+        if ret != 0:
+            raise FFIError(
+                ret,
+                f"Could not synchronize resource {self.id} "
+                f"in session {session.id}",
+            )
 
     def __repr__(self):
         try:
