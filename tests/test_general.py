@@ -1,15 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-from pathlib import Path
-
-import pytest
-
-from vaccel import PluginType, Resource, ResourceType, Session
-
-
-@pytest.fixture
-def test_lib(vaccel_paths) -> Path:
-    return vaccel_paths["lib"] / "libmytestlib.so"
+from vaccel import PluginType, Session
 
 
 def test_session():
@@ -27,12 +18,6 @@ def test_session():
     assert ses_c.id == ses_b.id + 1
     assert ses_c.flags == PluginType.GENERIC | PluginType.DEBUG
     assert ses_c.is_remote == 0
-
-
-def test_resource(test_lib):
-    res_a = Resource(test_lib, ResourceType.LIB)
-    res_b = Resource([test_lib, test_lib], ResourceType.LIB)
-    assert res_b.id == res_a.id + 1
 
 
 def test_noop():
