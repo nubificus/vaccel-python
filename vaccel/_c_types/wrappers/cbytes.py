@@ -85,6 +85,8 @@ class CBytes(CType):
             return self._data == other
         return NotImplemented
 
+    __hash__ = None
+
     def __bytes__(self):
         return bytes(self._data)
 
@@ -102,10 +104,12 @@ class CBytes(CType):
 
 
 @to_ctype.register
-def _(value: bytes):
+def _(value: bytes, *, precision: str | None = None):
+    _ = precision
     return CBytes(value)
 
 
 @to_ctype.register
-def _(value: bytearray):
+def _(value: bytearray, *, precision: str | None = None):
+    _ = precision
     return CBytes(value)

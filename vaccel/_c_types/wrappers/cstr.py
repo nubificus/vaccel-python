@@ -90,6 +90,8 @@ class CStr(CType):
             return self._value == other
         return NotImplemented
 
+    __hash__ = None
+
     def __repr__(self):
         try:
             c_ptr = (
@@ -104,10 +106,12 @@ class CStr(CType):
 
 
 @to_ctype.register
-def _(value: str):
+def _(value: str, *, precision: str | None = None):
+    _ = precision
     return CStr(value)
 
 
 @to_ctype.register
-def _(value: Path):
+def _(value: Path, *, precision: str | None = None):
+    _ = precision
     return CStr(value)

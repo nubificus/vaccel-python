@@ -75,13 +75,18 @@ class CAny(CType):
         _wrapped (CType): The wrapped C object.
     """
 
-    def __init__(self, obj: Any):
+    def __init__(self, obj: Any, *, precision: str | None = None):
         """Initializes a new `CAny` object.
 
         Args:
             obj: The python object to be wrapped as a C type.
+            precision: The C type that will be used to represent the python
+                object type, if the type is numeric.
         """
-        self._wrapped = to_ctype(obj)
+        if precision is not None:
+            self._wrapped = to_ctype(obj, precision=precision)
+        else:
+            self._wrapped = to_ctype(obj)
 
     def _init_c_obj(self):
         msg = "CAny is a generic adapter, not meant for initialization."
@@ -111,11 +116,13 @@ class CAny(CType):
 
 
 @singledispatch
-def to_ctype(value: Any):
+def to_ctype(value: Any, *, precision: str | None = None):
+    _ = precision
     msg = f"No CType wrapper registered for {type(value)}"
     raise TypeError(msg)
 
 
 @to_ctype.register
-def _(value: CType):
+def _(value: CType, *, precision: str | None = None):
+    _ = precision
     return value

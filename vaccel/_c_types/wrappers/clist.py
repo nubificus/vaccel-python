@@ -218,5 +218,6 @@ class CList(CType):
 
 @to_ctype.register(tuple)
 @to_ctype.register(list)
-def _(value: list):
+def _(value: list, *, precision: str | None = None):
+    _ = precision
     return CList(value)
