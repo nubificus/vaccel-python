@@ -2,6 +2,8 @@
 
 """C type interface for `float` objects."""
 
+from typing import Final
+
 from vaccel._c_types.types import CType, to_ctype
 from vaccel._libvaccel import ffi
 from vaccel.error import NullPointerError
@@ -22,6 +24,8 @@ class CFloat(CType):
         _ctype_str (str): The actual string that is used for the C type.
     """
 
+    _SUPPORTED_PRECISIONS: Final[set[str]] = {"float", "double"}
+
     def __init__(self, value: float, precision: str = "float"):
         """Initializes a new `CFloat` object.
 
@@ -29,8 +33,9 @@ class CFloat(CType):
             value: The float to be wrapped.
             precision: The C type that will be used to represent the float.
         """
-        if precision not in ("float", "double"):
-            msg = "precision must be 'float' or 'double'"
+        if precision not in self._SUPPORTED_PRECISIONS:
+            supported = ", ".join(str(d) for d in self._SUPPORTED_PRECISIONS)
+            msg = f"Unsupported precision: {precision}. Supported: {supported}"
             raise ValueError(msg)
         self._value = float(value)
         self._precision = precision
@@ -158,5 +163,5 @@ class CFloat(CType):
 
 
 @to_ctype.register
-def _(value: float):
-    return CFloat(value)
+def _(value: float, *, precision: str | None = "float"):
+    return CFloat(value, precision)

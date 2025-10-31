@@ -152,5 +152,6 @@ class CNumpyArray(CType):
 if HAS_NUMPY:
 
     @to_ctype.register
-    def _(value: np.ndarray):
+    def _(value: np.ndarray, *, precision: str | None = None):
+        _ = precision
         return CNumpyArray(value)

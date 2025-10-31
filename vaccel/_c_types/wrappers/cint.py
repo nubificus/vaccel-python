@@ -2,6 +2,8 @@
 
 """C type interface for `int` objects."""
 
+from typing import Final
+
 from vaccel._c_types.types import CType, to_ctype
 from vaccel._libvaccel import ffi
 from vaccel.error import NullPointerError
@@ -22,6 +24,20 @@ class CInt(CType):
         _ctype_str (str): The actual string that is used for the C type.
     """
 
+    _SUPPORTED_PRECISIONS: Final[set[str]] = {
+        "int",
+        "int8_t",
+        "int16_t",
+        "int32_t",
+        "int64_t",
+        "unsigned",
+        "unsigned int",
+        "uint8_t",
+        "uint16_t",
+        "uint32_t",
+        "uint64_t",
+    }
+
     def __init__(self, value: int, precision: str = "int"):
         """Initializes a new `CInt` object.
 
@@ -29,9 +45,12 @@ class CInt(CType):
             value: The int to be wrapped.
             precision: The C type that will be used to represent the int.
         """
+        if precision not in self._SUPPORTED_PRECISIONS:
+            supported = ", ".join(str(d) for d in self._SUPPORTED_PRECISIONS)
+            msg = f"Unsupported precision: {precision}. Supported: {supported}"
+            raise ValueError(msg)
         self._value = int(value)
         self._precision = precision
-        # TODO: validate user input  # noqa: FIX002
         self._ctype_str = self._precision
         super().__init__()
 
@@ -156,5 +175,5 @@ class CInt(CType):
 
 
 @to_ctype.register
-def _(value: int):
-    return CInt(value)
+def _(value: int, *, precision: str | None = "int"):
+    return CInt(value, precision)
