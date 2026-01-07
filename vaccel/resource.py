@@ -66,7 +66,6 @@ class Resource(CType):
         self._type = type_
         self._c_data = None
         self._c_obj_ptr = ffi.NULL
-        self.__sessions = []
         super().__init__()
 
     def _init_c_obj(self):
@@ -119,7 +118,6 @@ class Resource(CType):
         inst._c_data = CBytes(inst._data)
         inst._c_paths = None
         inst._c_obj_ptr = ffi.NULL
-        inst.__sessions = []
         super().__init__(inst)
         return inst
 
@@ -146,7 +144,6 @@ class Resource(CType):
         inst._c_data = CNumpyArray(inst._data)
         inst._c_paths = None
         inst._c_obj_ptr = ffi.NULL
-        inst.__sessions = []
         super().__init__(inst)
         return inst
 
@@ -172,13 +169,9 @@ class Resource(CType):
 
     def __del__(self):
         try:
-            if self.id < 0:
+            if self.id <= 0:
                 return
 
-            for session in self.__sessions:
-                if not session:
-                    continue
-                self.unregister(session)
             self._del_c_obj()
         except NullPointerError:
             pass
@@ -203,17 +196,6 @@ class Resource(CType):
         """
         return int(self._c_ptr_or_raise.remote_id)
 
-    def is_registered(self, session: "Session") -> bool:
-        """Checks if the resource is registered with the session.
-
-        Args:
-            session: The session to check for registration.
-
-        Returns:
-            True if the resource is registered with the session.
-        """
-        return session in self.__sessions
-
     def register(self, session: "Session") -> None:
         """Registers the resource with a session.
 
@@ -233,7 +215,6 @@ class Resource(CType):
                 f"Could not register resource {self.id} "
                 f"with session {session.id}",
             )
-        self.__sessions.append(session)
 
     def unregister(self, session: "Session") -> None:
         """Unregisters the resource from a session.
@@ -254,7 +235,6 @@ class Resource(CType):
                 f"Could not unregister resource {self.id} "
                 f"from session {session.id}",
             )
-        self.__sessions.remove(session)
 
     def sync(self, session: "Session") -> None:
         """Synchronizes the resource data to reflect any remote changes.

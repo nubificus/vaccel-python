@@ -62,7 +62,7 @@ def test_resource_register(test_lib):
     ses = Session()
 
     res.register(ses)
-    assert res.is_registered(ses)
+    assert ses.has_resource(res)
 
 
 def test_resource_unregister(test_buffer):
@@ -71,7 +71,7 @@ def test_resource_unregister(test_buffer):
 
     res.register(ses)
     res.unregister(ses)
-    assert not res.is_registered(ses)
+    assert not ses.has_resource(res)
 
 
 def test_resource_register_unregister_multi(test_lib, test_buffer):
@@ -81,23 +81,23 @@ def test_resource_register_unregister_multi(test_lib, test_buffer):
     ses_b = Session()
 
     res_a.register(ses_a)
-    assert res_a.is_registered(ses_a)
+    assert ses_a.has_resource(res_a)
     res_b.register(ses_a)
-    assert res_b.is_registered(ses_a)
+    assert ses_a.has_resource(res_b)
 
     res_a.register(ses_b)
-    assert res_a.is_registered(ses_b)
+    assert ses_b.has_resource(res_a)
     res_b.register(ses_b)
-    assert res_b.is_registered(ses_b)
+    assert ses_b.has_resource(res_b)
 
     res_a.sync(ses_a)
     res_a.sync(ses_b)
 
     res_a.unregister(ses_a)
-    assert not res_a.is_registered(ses_a)
+    assert not ses_a.has_resource(res_a)
     res_b.unregister(ses_a)
-    assert not res_b.is_registered(ses_a)
+    assert not ses_a.has_resource(res_b)
     res_a.unregister(ses_b)
-    assert not res_a.is_registered(ses_b)
+    assert not ses_b.has_resource(res_a)
     res_b.unregister(ses_b)
-    assert not res_b.is_registered(ses_b)
+    assert not ses_b.has_resource(res_b)
