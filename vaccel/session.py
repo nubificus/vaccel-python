@@ -84,7 +84,7 @@ class BaseSession(CType):
 
     def __del__(self):
         try:
-            if self.id < 0:
+            if self.id <= 0:
                 return
 
             self._del_c_obj()
