@@ -51,28 +51,31 @@ runs:
         sudo apt-get update
         sudo apt-get install -y python3-venv libffi-dev
         python3 -m venv .venv
+        echo "$(pwd)/.venv/bin" >> "$GITHUB_PATH"
       shell: bash
 
     - name: Install dependencies
       working-directory: ${{ inputs.source-path }}
       run: |
-        ./.venv/bin/pip install --upgrade pip
-        ./.venv/bin/pip install build abi3audit
+        pip install --upgrade pip
+        pip install build abi3audit
       shell: bash
 
     - name: Generate distribution artifacts
       id: dist
       working-directory: ${{ inputs.source-path }}
-      if: ${{ inputs.dist == 'true' }}
+      if: inputs.dist == 'true'
+      env:
+        BUILD_PATH: ${{ inputs.build-path }}
       run: |
-        ./.venv/bin/python3 -m build -o "${{ inputs.build-path }}"
-        ./.venv/bin/abi3audit -v \
-          $(find "${{ inputs.build-path }}" -name "*.whl")
-        echo "dist-path=${{ inputs.build-path }}" >> "$GITHUB_OUTPUT"
+        python3 -m build -o "$BUILD_PATH"
+        abi3audit -v \
+          $(find "$BUILD_PATH" -name "*.whl")
+        echo "dist-path=${BUILD_PATH}" >> "$GITHUB_OUTPUT"
       shell: bash
 
     - name: Install project
       working-directory: ${{ inputs.source-path }}
-      if: ${{ inputs.install == 'true' }}
-      run: ./.venv/bin/pip install .
+      if: inputs.install == 'true'
+      run: pip install .
       shell: bash
