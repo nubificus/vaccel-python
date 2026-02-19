@@ -21,38 +21,33 @@ runs:
     - name: Install dependencies
       working-directory: ${{ inputs.source-path }}
       run: |
-        # FIXME: This should be in the vaccel coverage workflow
-        if ! dpkg -s vaccel &> /dev/null; then
-          wget "https://s3.nbfc.io/nbfc-assets/github/vaccel/rev/main/x86_64/release/vaccel_latest_amd64.deb"
-          sudo apt install ./vaccel_latest_amd64.deb
-          rm vaccel_latest_amd64.deb
-        fi
-
         # Use pre-meson NumPy so our arm jammy runners will work correctly
-        ./.venv/bin/pip install "numpy<1.25"
+        pip install "numpy<1.25"
 
         arch=$(python3 -c "import platform; print(platform.architecture()[0])")
         if [[ "${arch}" == "32bit" ]]; then
-          ./.venv/bin/pip install .[test]
+          pip install .[test]
         else
-          ./.venv/bin/pip install .[test-full]
+          pip install .[test-full]
         fi
       shell: bash
 
     - name: Run tests
       working-directory: ${{ inputs.source-path }}
-      run: ./.venv/bin/python3 -m pytest
+      run: python3 -m pytest
       shell: bash
 
     - name: Calculate coverage
       working-directory: ${{ inputs.source-path }}
-      if: ${{ inputs.coverage == 'true' }}
+      if: inputs.coverage == 'true'
+      env:
+        BUILD_PATH: ${{ inputs.build-path }}
       run: |
-        ./.venv/bin/pip install tomli
-        pkg_name=$(./.venv/bin/python3 -c \
+        pip install tomli
+        pkg_name=$(python3 -c \
           "import tomli; print(tomli.load(open('pyproject.toml', 'rb'))['project']['name'])")
-        ./.venv/bin/python3 -m pytest \
+        python3 -m pytest \
           --cov-report term \
-          --cov-report xml:"${{ inputs.build-path }}/coverage.xml" \
-          --cov="${pkg_name}" tests/
+          --cov-report xml:"${BUILD_PATH}/coverage.xml" \
+          --cov="$pkg_name" tests/
       shell: bash
