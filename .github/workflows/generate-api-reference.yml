@@ -6,7 +6,7 @@ on:
       actions-repo:
         type: string
         default: 'nubificus/vaccel'
-      actions-rev:
+      actions-ref:
         type: string
         default: 'main'
       deploy:
@@ -25,13 +25,12 @@ on:
       VACCEL_BOT_PRIVATE_KEY:
         required: true
 
+permissions: read-all
+
 jobs:
   generate-reference:
     name: Generate API Reference
-    runs-on: [base-dind-2204-amd64]
-    permissions:
-      contents: write
-
+    runs-on: base-dind-2204-amd64
     steps:
       - name: Parse repository names
         id: parse-repos
@@ -60,7 +59,7 @@ jobs:
         with:
           sparse-checkout: .github
           repository: ${{ inputs.actions-repo }}
-          ref: ${{ inputs.actions-rev }}
+          ref: ${{ inputs.actions-ref }}
           token: ${{ steps.generate-init-token.outputs.token }}
 
       - name: Initialize workspace
@@ -73,10 +72,10 @@ jobs:
           token: ${{ steps.generate-init-token.outputs.token }}
 
       - name: Determine SHA and branch
-        id: get-rev-info
+        id: get-revision
         uses: ./.github/actions/get-revision-info
 
-      - name: Generate vaccel-bot token
+      - name: Generate trigger vaccel-bot token
         id: generate-trigger-token
         uses: actions/create-github-app-token@v3
         with:
@@ -96,15 +95,17 @@ jobs:
         with:
           workflow: ${{ inputs.target-workflow }}
           ref: main
-          repo: ${{ inputs.target-repo-owner }}/${{ inputs.target-repo-name }}
+          repo: >-
+            ${{ format('{0}/{1}',
+              inputs.target-repo-owner, inputs.target-repo-name) }}
           token: ${{ steps.generate-trigger-token.outputs.token }}
           run-name: ${{ env.RUN_NAME }}
           inputs: >-
             {
               "run-name": "${{ env.RUN_NAME }}",
               "trigger-id": "${{ github.run_id }}",
-              "ref": "${{ steps.get-rev-info.outputs.sha }}",
-              "branch": "${{ steps.get-rev-info.outputs.branch }}",
+              "ref": "${{ steps.get-revision.outputs.sha }}",
+              "branch": "${{ steps.get-revision.outputs.branch }}",
               "repo": "${{ github.repository }}",
               "deploy": "${{ inputs.deploy }}"
             }
@@ -115,14 +116,19 @@ jobs:
           workflow-logs: json-output
 
       - name: Print remote request info
+        env:
+          REMOTE_REPO: >-
+            ${{ format('{0}/{1}',
+              inputs.target-repo-owner, inputs.target-repo-name) }}
+          REMOTE_ID: ${{ steps.trigger-update.outputs.workflow-id }}
+          REMOTE_URL: ${{ steps.trigger-update.outputs.workflow-url }}
+          DEPLOY: ${{ inputs.deploy }}
         run: |
-          remote_repo="${{ inputs.target-repo-owner }}/${{ inputs.target-repo-name }}"
-          remote_id="${{ steps.trigger-update.outputs.workflow-id }}"
-          remote_url="${{ steps.trigger-update.outputs.workflow-url }}"
           echo "## Remote request info" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Triggered **${remote_repo}** run [#${remote_id}](${remote_url})" \
+          echo "- Triggered **${REMOTE_REPO}** run [#${REMOTE_ID}](${REMOTE_URL})" \
             >> "$GITHUB_STEP_SUMMARY"
-          [[ "${{ inputs.deploy }}" == 'false' ]] && exit 0
+
+          [[ "$DEPLOY" == 'true' ]] || exit 0
 
           logs=$(cat <<'EOF'
           ${{ steps.trigger-update.outputs.workflow-logs }}
@@ -163,5 +169,5 @@ jobs:
           )
           echo ""
           echo "${pr_operation^} PR: ${pr_url}"
-          echo "- ${pr_operation^} PR [${remote_repo}#${pr_number}](${pr_url})" \
+          echo "- ${pr_operation^} PR [${REMOTE_REPO}#${pr_number}](${pr_url})" \
             >> "$GITHUB_STEP_SUMMARY"

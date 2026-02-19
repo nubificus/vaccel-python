@@ -18,12 +18,16 @@ runs:
     - name: Ensure run dir exists
       run: |
         uid=$(id -u)
-        [ -d "/run/user/${uid}" ] && exit 0
-        sudo mkdir -p "/run/user/${uid}"
-        sudo chown -R  "${uid}" "/run/user/${uid}"
+        run_dir="/run/user/${uid}"
+
+        if [[ -d "$run_dir" ]]; then
+          exit 0
+        fi
+
+        sudo mkdir -p "$run_dir"
+        sudo chown -R  "$uid" "$run_dir"
       shell: bash
 
     - name: Run examples
-      run: |
-        ./.venv/bin/python3 run-examples.py
+      run: python3 run-examples.py
       shell: bash
