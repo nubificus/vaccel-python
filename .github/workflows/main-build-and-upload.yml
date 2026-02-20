@@ -28,3 +28,16 @@ jobs:
     with:
       deploy: true
     secrets: inherit
+
+  update-release:
+    needs: [build-dist, generate-api-reference]
+    name: Update Release
+    if: always()
+    uses: nubificus/vaccel/.github/workflows/update-release.yml@main
+    with:
+      artifacts-path: 'python'
+      result: >-
+        ${{ needs.build-dist.result != 'failure' &&
+          needs.generate-api-reference.result != 'failure' &&
+          'success' || 'failure' }}
+    secrets: inherit
