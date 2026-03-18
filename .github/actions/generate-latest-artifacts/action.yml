@@ -1,0 +1,40 @@
+name: 'Generate Latest Artifacts'
+description: 'Generate latest artifacts by replacing version with "latest"'
+
+inputs:
+  local-path:
+    description: 'Local path where the artifacts are'
+    default: 'build'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate latest artifacts
+      env:
+        LOCAL_PATH: ${{ inputs.local-path }}
+      run: |
+        # Attempt to match filenames of the form
+        # pkg-A.B.C[.postD.devE+gF{9}][.dG{8}][moretext].extension
+        # where capital letters are numbers, F is 9 digits and G is 8 digits long
+        BASE_RE='\d+\.\d+\.\d+' # base version: A.B.C
+        POST_RE='\.post\d+\.dev\d+\+g[\da-z].{8}' # post abbr: .postD.devE+gF{9}
+        DATE_RE='\.d[\d].{7}' # date: .dG{8}
+        VERSION_REGEX="([^\d]+)${BASE_RE}(${POST_RE})*(${DATE_RE})*([^.]*\..+)"
+
+        if [ -d "$LOCAL_PATH" ]; then
+          echo "Local path is a directory, skipping"
+          exit 0
+        fi
+
+        dir=$(dirname "$LOCAL_PATH")
+        files=$(basename "$LOCAL_PATH")
+        pushd "${dir}"
+        for f in $(find . -maxdepth 1 -type f -name "${files}"); do
+          latest_filename=$(echo "$f" | \
+            perl -pe "s/${VERSION_REGEX}/\1latest\4/g")
+
+          echo "Copying $f to ${latest_filename}"
+          cp "$f" "$latest_filename"
+        done
+        popd
+      shell: bash

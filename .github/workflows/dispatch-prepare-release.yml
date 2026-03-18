@@ -111,17 +111,22 @@ jobs:
           CORE_VERSION: ${{ inputs.core-version }}
         run: |
           if [[ "$CORE_VERSION" =~ ^[0-9]+\.[0-9]+\.0$ ]]; then
-            dep_regex="PKG_MIN_VERSION *= *\"[0-9]*\.[0-9]*\.[0-9]*\""
-            dep_new="PKG_MIN_VERSION = \"${CORE_VERSION}\""
-            sed -i "s/${dep_regex}/${dep_new}/" build_ffi.py
+            ffi_dep_regex='PKG_MIN_VERSION *= *"[0-9]*\.[0-9]*\.[0-9]*"'
+            ffi_dep_new="PKG_MIN_VERSION = \"${CORE_VERSION}\""
+            sed -i "s/${ffi_dep_regex}/${ffi_dep_new}/" build_ffi.py
 
-            if ! git diff --quiet build_ffi.py; then
+            setup_dep_regex="requires_external *= *${CORE_COMPONENT} *(>=[0-9]*\.[0-9]*\.[0-9]*)"
+            setup_dep_new="requires_external = ${CORE_COMPONENT} (>=${CORE_VERSION})"
+            sed -i "s/${setup_dep_regex}/${setup_dep_new}/" setup.cfg
+
+            if ! git diff --quiet build_ffi.py setup.cfg; then
               echo "Updated ${CORE_COMPONENT} min version to: ${CORE_VERSION}"
             else
               echo "Nothing to update"
             fi
           else
-            echo "${CORE_COMPONENT} version '${CORE_VERSION}' is a patch update - skipping"
+            printf "%s version '%s' is a patch update - skipping" \
+              "$CORE_COMPONENT" "$CORE_VERSION"
           fi
         shell: bash
 

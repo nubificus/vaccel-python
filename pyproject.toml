@@ -26,7 +26,7 @@ include = ["vaccel*"]
 
 [tool.setuptools_scm]
 version_file = "vaccel/_version.py"
-version_scheme = "release-branch-semver"
+version_scheme = "no-guess-dev"
 fallback_version = "0.0.1"
 
 [tool.pytest.ini_options]
