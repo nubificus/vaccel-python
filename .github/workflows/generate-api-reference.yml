@@ -83,91 +83,63 @@ jobs:
           private-key: ${{ secrets.VACCEL_BOT_PRIVATE_KEY }}
           owner: ${{ inputs.target-repo-owner }}
           repositories: ${{ inputs.target-repo-name }}
+          permission-contents: read
+          permission-checks: read
           permission-actions: write
 
-      - name: Trigger docs update
-        id: trigger-update
-        uses: the-actions-org/workflow-dispatch@v4
+      - name: Create docs PR
+        timeout-minutes: 30
         env:
-          RUN_NAME: >-
-            Update External Repo ${{ github.repository }}
-            [Run ID: ${{ github.run_id }}]
-        with:
-          workflow: ${{ inputs.target-workflow }}
-          ref: main
-          repo: >-
+          GH_TOKEN: ${{ steps.generate-trigger-token.outputs.token }}
+          TARGET_WORKFLOW: ${{ inputs.target-workflow }}
+          REPO: >-
             ${{ format('{0}/{1}',
               inputs.target-repo-owner, inputs.target-repo-name) }}
-          token: ${{ steps.generate-trigger-token.outputs.token }}
-          run-name: ${{ env.RUN_NAME }}
-          inputs: >-
-            {
-              "run-name": "${{ env.RUN_NAME }}",
-              "trigger-id": "${{ github.run_id }}",
-              "ref": "${{ steps.get-revision.outputs.sha }}",
-              "branch": "${{ steps.get-revision.outputs.branch }}",
-              "repo": "${{ github.repository }}",
-              "deploy": "${{ inputs.deploy }}"
-            }
-          display-workflow-run-url-interval: 10s
-          display-workflow-run-url-timeout: 2m
-          wait-for-completion-interval: 30s
-          wait-for-completion-timeout: 20m
-          workflow-logs: json-output
-
-      - name: Print remote request info
-        env:
-          REMOTE_REPO: >-
-            ${{ format('{0}/{1}',
-              inputs.target-repo-owner, inputs.target-repo-name) }}
-          REMOTE_ID: ${{ steps.trigger-update.outputs.workflow-id }}
-          REMOTE_URL: ${{ steps.trigger-update.outputs.workflow-url }}
+          TRIGGER_ID: ${{ github.run_id }}
+          REF: ${{ steps.get-revision.outputs.sha }}
+          BRANCH: ${{ steps.get-revision.outputs.branch }}
           DEPLOY: ${{ inputs.deploy }}
+          WATCH_INTERVAL_SEC: 20
         run: |
-          echo "## Remote request info" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Triggered **${REMOTE_REPO}** run [#${REMOTE_ID}](${REMOTE_URL})" \
-            >> "$GITHUB_STEP_SUMMARY"
+          run_url=$(gh workflow run "$TARGET_WORKFLOW" \
+            --repo "$REPO" \
+            -f trigger-id="$TRIGGER_ID" \
+            -f ref="$REF" \
+            -f branch="$BRANCH" \
+            -f repository="$GITHUB_REPOSITORY" \
+            -f deploy="$DEPLOY")
+          run_id="${run_url##*/}"
 
+          echo "Triggered workflow run: ${run_url}"
+          {
+            echo "## Create docs PR summary"
+            echo "- Triggered **${REPO}** run [#${run_id}](${run_url})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Waiting for run to complete..."
+          gh run watch "$run_id" \
+            --repo "$REPO" \
+            --interval "$WATCH_INTERVAL_SEC" \
+            --compact \
+            --exit-status
+
+          echo "Run completed successfully"
           [[ "$DEPLOY" == 'true' ]] || exit 0
 
-          logs=$(cat <<'EOF'
-          ${{ steps.trigger-update.outputs.workflow-logs }}
-          EOF
-          )
-          pr_number=$(
-            echo "$logs" | jq -r '
-              .["Update Repo / Verify Build"]
-              | map(select(
-                  .message != null
-                  and (.message | test("Pull request number"))
-                ))
-              | map(.message | capture("Pull request number: (?<val>[^\\s]+)").val)
-              | .[1]
-            '
-          )
-          pr_operation=$(
-            echo "$logs" | jq -r '
-              .["Update Repo / Verify Build"]
-              | map(select(
-                  .message != null
-                  and (.message | test("Pull request operation"))
-                ))
-              | map(.message | capture("Pull request operation: (?<val>[^\\s]+)").val)
-              | .[1]
-            '
-          )
-          pr_url=$(
-            echo "$logs" | jq -r '
-              .["Update Repo / Verify Build"]
-              | map(select(
-                  .message != null
-                  and (.message | test("Pull request URL"))
-                ))
-              | map(.message | capture("Pull request URL: (?<val>[^\\s]+)").val)
-              | .[1]
-            '
-          )
-          echo ""
-          echo "${pr_operation^} PR: ${pr_url}"
-          echo "- ${pr_operation^} PR [${REMOTE_REPO}#${pr_number}](${pr_url})" \
-            >> "$GITHUB_STEP_SUMMARY"
+          run_log=$(gh run view "$run_id" --repo "$REPO" --log)
+          read -r pr_number pr_operation pr_url < <(echo "$run_log" | awk '
+            /Pull request number:/   { number = $NF }
+            /Pull request operation:/ { operation = $NF }
+            /Pull request URL:/      { url = $NF }
+            END { print number, operation, url }
+          ')
+
+          if [[ -n "$pr_operation" ]]; then
+            echo "${pr_operation^} PR: ${pr_url}"
+            echo "- ${pr_operation^} PR [${REPO}#${pr_number}](${pr_url})" \
+              >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No PR was created or updated"
+            echo "- No PR was created or updated" >> "$GITHUB_STEP_SUMMARY"
+          fi
+        shell: bash
