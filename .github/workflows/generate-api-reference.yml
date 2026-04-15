@@ -22,8 +22,6 @@ on:
         type: string
         default: 'dispatch-update-external-repo.yml'
     secrets:
-      GIT_CLONE_PAT:
-        required: false
       VACCEL_BOT_PRIVATE_KEY:
         required: true
 
@@ -35,30 +33,54 @@ jobs:
       contents: write
 
     steps:
+      - name: Parse repository names
+        id: parse-repos
+        env:
+          ACTIONS_REPO: ${{ inputs.actions-repo }}
+        run: |
+          {
+            echo "repo-name=$(basename "$GITHUB_REPOSITORY")"
+            echo "actions-repo-name=$(basename "$ACTIONS_REPO")"
+          } >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Generate initialization vaccel-bot token
+        id: generate-init-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.VACCEL_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.VACCEL_BOT_PRIVATE_KEY }}
+          repositories: |
+            ${{ steps.parse-repos.outputs.repo-name }}
+            ${{ steps.parse-repos.outputs.actions-repo-name }}
+          permission-contents: read
+
       - name: Checkout .github directory
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github
           repository: ${{ inputs.actions-repo }}
           ref: ${{ inputs.actions-rev }}
+          token: ${{ steps.generate-init-token.outputs.token }}
 
       - name: Initialize workspace
+        id: initialize-workspace
         uses: ./.github/actions/initialize-workspace
         with:
-          submodules: 'false'
           remote-actions-repo: ${{ inputs.actions-repo }}
-          token: ${{ secrets.GIT_CLONE_PAT || github.token }}
           fetch-depth: 0
+          submodules: 'false'
+          token: ${{ steps.generate-init-token.outputs.token }}
 
       - name: Determine SHA and branch
         id: get-rev-info
         uses: ./.github/actions/get-revision-info
 
       - name: Generate vaccel-bot token
-        id: generate-token
-        uses: actions/create-github-app-token@v2
+        id: generate-trigger-token
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.VACCEL_BOT_APP_ID }}
+          client-id: ${{ vars.VACCEL_BOT_CLIENT_ID }}
           private-key: ${{ secrets.VACCEL_BOT_PRIVATE_KEY }}
           owner: ${{ inputs.target-repo-owner }}
           repositories: ${{ inputs.target-repo-name }}
@@ -75,7 +97,7 @@ jobs:
           workflow: ${{ inputs.target-workflow }}
           ref: main
           repo: ${{ inputs.target-repo-owner }}/${{ inputs.target-repo-name }}
-          token: ${{ steps.generate-token.outputs.token }}
+          token: ${{ steps.generate-trigger-token.outputs.token }}
           run-name: ${{ env.RUN_NAME }}
           inputs: >-
             {
