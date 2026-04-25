@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Build and Upload
 
 on:
@@ -8,6 +10,8 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+
+permissions: read-all
 
 jobs:
   build-dist:
@@ -25,4 +29,17 @@ jobs:
     uses: ./.github/workflows/generate-api-reference.yml
     with:
       deploy: true
+    secrets: inherit
+
+  update-release:
+    needs: [build-dist, generate-api-reference]
+    name: Update Release
+    if: always()
+    uses: nubificus/vaccel/.github/workflows/update-release.yml@main
+    with:
+      artifacts-path: 'python'
+      result: >-
+        ${{ needs.build-dist.result != 'failure' &&
+          needs.generate-api-reference.result != 'failure' &&
+          'success' || 'failure' }}
     secrets: inherit

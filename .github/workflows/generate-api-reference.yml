@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+
 name: Generate API Reference
 
 on:
@@ -6,7 +8,7 @@ on:
       actions-repo:
         type: string
         default: 'nubificus/vaccel'
-      actions-rev:
+      actions-ref:
         type: string
         default: 'main'
       deploy:
@@ -22,124 +24,124 @@ on:
         type: string
         default: 'dispatch-update-external-repo.yml'
     secrets:
-      GIT_CLONE_PAT:
-        required: false
       VACCEL_BOT_PRIVATE_KEY:
         required: true
+
+permissions: read-all
 
 jobs:
   generate-reference:
     name: Generate API Reference
-    runs-on: [base-dind-2204-amd64]
-    permissions:
-      contents: write
-
+    runs-on: base-dind-2204-amd64
     steps:
+      - name: Parse repository names
+        id: parse-repos
+        env:
+          ACTIONS_REPO: ${{ inputs.actions-repo }}
+        run: |
+          {
+            echo "repo-name=$(basename "$GITHUB_REPOSITORY")"
+            echo "actions-repo-name=$(basename "$ACTIONS_REPO")"
+          } >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Generate initialization vaccel-bot token
+        id: generate-init-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.VACCEL_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.VACCEL_BOT_PRIVATE_KEY }}
+          repositories: |
+            ${{ steps.parse-repos.outputs.repo-name }}
+            ${{ steps.parse-repos.outputs.actions-repo-name }}
+          permission-contents: read
+
       - name: Checkout .github directory
         uses: actions/checkout@v6
         with:
           sparse-checkout: .github
           repository: ${{ inputs.actions-repo }}
-          ref: ${{ inputs.actions-rev }}
+          ref: ${{ inputs.actions-ref }}
+          token: ${{ steps.generate-init-token.outputs.token }}
 
       - name: Initialize workspace
+        id: initialize-workspace
         uses: ./.github/actions/initialize-workspace
         with:
-          submodules: 'false'
           remote-actions-repo: ${{ inputs.actions-repo }}
-          token: ${{ secrets.GIT_CLONE_PAT || github.token }}
           fetch-depth: 0
+          submodules: 'false'
+          token: ${{ steps.generate-init-token.outputs.token }}
 
       - name: Determine SHA and branch
-        id: get-rev-info
+        id: get-revision
         uses: ./.github/actions/get-revision-info
 
-      - name: Generate vaccel-bot token
-        id: generate-token
-        uses: actions/create-github-app-token@v2
+      - name: Generate trigger vaccel-bot token
+        id: generate-trigger-token
+        uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ vars.VACCEL_BOT_APP_ID }}
+          client-id: ${{ vars.VACCEL_BOT_CLIENT_ID }}
           private-key: ${{ secrets.VACCEL_BOT_PRIVATE_KEY }}
           owner: ${{ inputs.target-repo-owner }}
           repositories: ${{ inputs.target-repo-name }}
+          permission-contents: read
+          permission-checks: read
           permission-actions: write
 
-      - name: Trigger docs update
-        id: trigger-update
-        uses: the-actions-org/workflow-dispatch@v4
+      - name: Create docs PR
+        timeout-minutes: 30
         env:
-          RUN_NAME: >-
-            Update External Repo ${{ github.repository }}
-            [Run ID: ${{ github.run_id }}]
-        with:
-          workflow: ${{ inputs.target-workflow }}
-          ref: main
-          repo: ${{ inputs.target-repo-owner }}/${{ inputs.target-repo-name }}
-          token: ${{ steps.generate-token.outputs.token }}
-          run-name: ${{ env.RUN_NAME }}
-          inputs: >-
-            {
-              "run-name": "${{ env.RUN_NAME }}",
-              "trigger-id": "${{ github.run_id }}",
-              "ref": "${{ steps.get-rev-info.outputs.sha }}",
-              "branch": "${{ steps.get-rev-info.outputs.branch }}",
-              "repo": "${{ github.repository }}",
-              "deploy": "${{ inputs.deploy }}"
-            }
-          display-workflow-run-url-interval: 10s
-          display-workflow-run-url-timeout: 2m
-          wait-for-completion-interval: 30s
-          wait-for-completion-timeout: 20m
-          workflow-logs: json-output
-
-      - name: Print remote request info
+          GH_TOKEN: ${{ steps.generate-trigger-token.outputs.token }}
+          TARGET_WORKFLOW: ${{ inputs.target-workflow }}
+          REPO: >-
+            ${{ format('{0}/{1}',
+              inputs.target-repo-owner, inputs.target-repo-name) }}
+          TRIGGER_ID: ${{ github.run_id }}
+          REF: ${{ steps.get-revision.outputs.sha }}
+          BRANCH: ${{ steps.get-revision.outputs.branch }}
+          DEPLOY: ${{ inputs.deploy }}
+          WATCH_INTERVAL_SEC: 20
         run: |
-          remote_repo="${{ inputs.target-repo-owner }}/${{ inputs.target-repo-name }}"
-          remote_id="${{ steps.trigger-update.outputs.workflow-id }}"
-          remote_url="${{ steps.trigger-update.outputs.workflow-url }}"
-          echo "## Remote request info" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Triggered **${remote_repo}** run [#${remote_id}](${remote_url})" \
-            >> "$GITHUB_STEP_SUMMARY"
-          [[ "${{ inputs.deploy }}" == 'false' ]] && exit 0
+          run_url=$(gh workflow run "$TARGET_WORKFLOW" \
+            --repo "$REPO" \
+            -f trigger-id="$TRIGGER_ID" \
+            -f ref="$REF" \
+            -f branch="$BRANCH" \
+            -f repository="$GITHUB_REPOSITORY" \
+            -f deploy="$DEPLOY")
+          run_id="${run_url##*/}"
 
-          logs=$(cat <<'EOF'
-          ${{ steps.trigger-update.outputs.workflow-logs }}
-          EOF
-          )
-          pr_number=$(
-            echo "$logs" | jq -r '
-              .["Update Repo / Verify Build"]
-              | map(select(
-                  .message != null
-                  and (.message | test("Pull request number"))
-                ))
-              | map(.message | capture("Pull request number: (?<val>[^\\s]+)").val)
-              | .[1]
-            '
-          )
-          pr_operation=$(
-            echo "$logs" | jq -r '
-              .["Update Repo / Verify Build"]
-              | map(select(
-                  .message != null
-                  and (.message | test("Pull request operation"))
-                ))
-              | map(.message | capture("Pull request operation: (?<val>[^\\s]+)").val)
-              | .[1]
-            '
-          )
-          pr_url=$(
-            echo "$logs" | jq -r '
-              .["Update Repo / Verify Build"]
-              | map(select(
-                  .message != null
-                  and (.message | test("Pull request URL"))
-                ))
-              | map(.message | capture("Pull request URL: (?<val>[^\\s]+)").val)
-              | .[1]
-            '
-          )
-          echo ""
-          echo "${pr_operation^} PR: ${pr_url}"
-          echo "- ${pr_operation^} PR [${remote_repo}#${pr_number}](${pr_url})" \
-            >> "$GITHUB_STEP_SUMMARY"
+          echo "Triggered workflow run: ${run_url}"
+          {
+            echo "## Create docs PR summary"
+            echo "- Triggered **${REPO}** run [#${run_id}](${run_url})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "Waiting for run to complete..."
+          gh run watch "$run_id" \
+            --repo "$REPO" \
+            --interval "$WATCH_INTERVAL_SEC" \
+            --compact \
+            --exit-status
+
+          echo "Run completed successfully"
+          [[ "$DEPLOY" == 'true' ]] || exit 0
+
+          run_log=$(gh run view "$run_id" --repo "$REPO" --log)
+          read -r pr_number pr_operation pr_url < <(echo "$run_log" | awk '
+            /Pull request number:/   { number = $NF }
+            /Pull request operation:/ { operation = $NF }
+            /Pull request URL:/      { url = $NF }
+            END { print number, operation, url }
+          ')
+
+          if [[ -n "$pr_operation" ]]; then
+            echo "${pr_operation^} PR: ${pr_url}"
+            echo "- ${pr_operation^} PR [${REPO}#${pr_number}](${pr_url})" \
+              >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No PR was created or updated"
+            echo "- No PR was created or updated" >> "$GITHUB_STEP_SUMMARY"
+          fi
+        shell: bash
